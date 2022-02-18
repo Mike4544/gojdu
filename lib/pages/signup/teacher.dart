@@ -213,6 +213,9 @@ class _FirstPageState extends State<FirstPage> {
               onPressed: () {
                 setState(() {
                   widget.update!(false);
+
+                  /* aici ii butonu pt 'Continue de la teachers */
+
                 });
               },
               child: const Padding(
