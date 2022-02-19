@@ -215,7 +215,7 @@ class _FirstPageState extends State<FirstPage> {
                 showDialog(context: context,
                     barrierDismissible: false,
                     builder: (_) =>
-                        Center(
+                        const Center(
                           child: SpinKitRing(
                             color: ColorsB.yellow500,
                           ),

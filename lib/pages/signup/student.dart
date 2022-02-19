@@ -135,7 +135,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                       showDialog(context: context,
                           barrierDismissible: false,
                           builder: (_) =>
-                              Center(
+                             const Center(
                                 child: SpinKitRing(
                                   color: ColorsB.yellow500,
                                 ),
