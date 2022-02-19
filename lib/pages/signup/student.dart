@@ -144,6 +144,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                       await Future.delayed(Duration(seconds: 3));
                       print('Done');
                       Navigator.of(context).pop('dialog');
+
                       //TODO: Add funtionality to the student register button
 
 
