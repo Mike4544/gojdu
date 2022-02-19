@@ -5,6 +5,7 @@ import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/styled_dropdown.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class ParentsSignupPage1 extends StatefulWidget {
   const ParentsSignupPage1({Key? key}) : super(key: key);
@@ -187,7 +188,7 @@ class _FirstPageState extends State<FirstPage> {
               height: device.size.height * 0.075,
             ),
 
-            InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com',),
+            InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com',),
 
             const SizedBox(height: 50,),
 
@@ -204,10 +205,28 @@ class _FirstPageState extends State<FirstPage> {
             const SizedBox(height: 100,),
 
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                showDialog(context: context,
+                    barrierDismissible: false,
+                    builder: (_) =>
+                        Center(
+                          child: SpinKitRing(
+                            color: ColorsB.yellow500,
+                          ),
+                        )
+                );
+                await Future.delayed(Duration(seconds: 3));
+                print('Done');
+                Navigator.of(context).pop('dialog');
+
                 setState(() {
                   widget.update!(false);
                 });
+
+
+                //Butonu de continue la parinti
+                //Dupa cum ai obs, am adaugat loading-uri
+
               },
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),

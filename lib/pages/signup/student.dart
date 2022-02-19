@@ -3,6 +3,7 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
@@ -130,7 +131,24 @@ class _StudentSignUpState extends State<StudentSignUp> {
                 const SizedBox(height: 100,),
 
                 TextButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      showDialog(context: context,
+                          barrierDismissible: false,
+                          builder: (_) =>
+                              Center(
+                                child: SpinKitRing(
+                                  color: ColorsB.yellow500,
+                                ),
+                              )
+                      );
+                      await Future.delayed(Duration(seconds: 3));
+                      print('Done');
+                      Navigator.of(context).pop('dialog');
+                      //TODO: Add funtionality to the student register button
+
+
+
+                    },
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       child:Text(
