@@ -245,7 +245,7 @@ class _FirstPageState extends State<FirstPage> {
                   backgroundColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(360),
-                    side: BorderSide(
+                    side: const BorderSide(
                       color: ColorsB.yellow500,
                     ),
                   )
@@ -297,13 +297,13 @@ class _SecondPageState extends State<SecondPage> {
     var device = MediaQuery.of(context);
 
     return SingleChildScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "One more thing...",
               style: TextStyle(
                 color: ColorsB.yellow500,
