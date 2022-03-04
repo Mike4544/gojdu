@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
 
 class CurvedAppbar extends StatefulWidget {
-  const CurvedAppbar({Key? key}) : super(key: key);
+  final String name;
+
+  const CurvedAppbar({Key? key, required this.name}) : super(key: key);
 
   @override
   _CurvedAppbarState createState() => _CurvedAppbarState();
@@ -12,8 +14,9 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
+      toolbarHeight: 2,
       expandedHeight: 500,
-      collapsedHeight: 100,
+      collapsedHeight: 2,
       automaticallyImplyLeading: false,
       pinned: true,
       elevation: 0,
@@ -29,7 +32,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
             else {
               expanded = true;
             }
-            print(expanded);
+            //print(expanded);
 
             //TODO: Implement the animations, implement the shape to the navbar and the news
 
@@ -43,12 +46,6 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
                   children: [
                     Row(
                       children: [
-                        AnimatedSize(
-                          duration: Duration(milliseconds: 250),
-                          child: Icon(Icons.announcement, color: ColorsB.gray900,
-                            size: expanded ? 40 : 60,
-                          ),
-                        ),
                         SizedBox(width: 10 ,),
                         AnimatedContainer(
                           duration: Duration(milliseconds: 250),
@@ -61,7 +58,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
                           duration: Duration(milliseconds: 250),
                           opacity: expanded ? 1 : 0,
                           child: Text(
-                            'Announcements',
+                            '${widget.name}',
                             style: TextStyle(
                               color: ColorsB.gray900,
 
