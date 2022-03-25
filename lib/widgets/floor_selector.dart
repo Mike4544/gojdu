@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
 
 class DropdownSelector extends StatefulWidget {
-  const DropdownSelector({Key? key}) : super(key: key);
+
+  // <------- For Updating the floor within the parent ------->
+  final ValueChanged<int>? update;
+
+
+  const DropdownSelector({Key? key, this.update}) : super(key: key);
 
   @override
   _DropdownSelectorState createState() => _DropdownSelectorState();
@@ -14,13 +19,24 @@ class _DropdownSelectorState extends State<DropdownSelector> {
   final height = ValueNotifier<double>(0);
   bool open = false;
 
+
   int floorNo = 1;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    open = false;
+    floorNo = 1;
   }
+
+
+  //  <------------- For the selected container ------------------>
+  final List<Color> _containerColors = [
+    Colors.transparent,
+    ColorsB.gray700.withOpacity(0.1),
+    Colors.transparent
+  ];
 
 
 
@@ -40,8 +56,10 @@ class _DropdownSelectorState extends State<DropdownSelector> {
               valueListenable: height,
               builder: (_, value, __ ) =>
                   AnimatedContainer(
+                    clipBehavior: Clip.hardEdge,
                     duration: Duration(milliseconds: 250),
                     height: height.value,
+                    curve: Curves.ease,
                     width: double.infinity,
                     decoration: BoxDecoration(
                         color: ColorsB.gray200,
@@ -57,31 +75,63 @@ class _DropdownSelectorState extends State<DropdownSelector> {
                       itemCount: 3,
                       physics: BouncingScrollPhysics(),
                       itemBuilder: (_, index) =>
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  height.value = 0;
-                                  open = !open;
-                                  floorNo = index;
-                                });
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Floor $index',
-                                    style: TextStyle(
-                                        fontSize: 17
+                          GestureDetector(
+                            onTap: () {
+
+
+
+                              setState(() {
+                                height.value = 0;
+                                open = !open;
+                                floorNo = index;
+                                widget.update!(floorNo);
+                                for(int i = 0; i < 3; i++) {
+                                  if(i != index)
+                                    _containerColors[i] = Colors.transparent;
+                                  _containerColors[index] = ColorsB.gray700.withOpacity(0.1);
+                                }
+                              });
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: _containerColors[index] == ColorsB.gray700.withOpacity(0.1) ?
+                                      const EdgeInsets.fromLTRB(0, 0, 25, 0) :
+                                      EdgeInsets.zero,
+                                  height: 50,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: _containerColors[index],
+                                    borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(50),
+                                      bottomRight: Radius.circular(50)
+                                    )
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Center(
+                                      child: Text(
+                                        'Floor $index',
+                                        style: const TextStyle(
+                                            fontSize: 17
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  Divider(
-                                    height: 10,
-                                    thickness: 1,
-                                  )
-                                ],
-                              ),
+                                ),
+                                Visibility(
+                                  visible: index == 2 ? false : true,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Divider(
+                                      height: 10,
+                                      thickness: 1,
+                                      color: Colors.grey.withOpacity(0.1),
+                                    ),
+                                  ),
+                                )
+                              ],
                             ),
                           ),
                     ),
@@ -136,11 +186,12 @@ class _DropdownSelectorState extends State<DropdownSelector> {
                     ),
                   ),
                   decoration: BoxDecoration(
-                      color: ColorsB.yellow500,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(50),
-                          bottomRight: Radius.circular(50)
-                      )
+                    color: ColorsB.yellow500,
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(50),
+                        bottomRight: Radius.circular(50)
+                    ),
+
                   ),
                 ),
               ),

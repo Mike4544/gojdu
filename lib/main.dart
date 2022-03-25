@@ -42,13 +42,14 @@ void main() {
 
     initialRoute: '/',
     routes: {
-      '/': (context) => Login(),
-      '/news': (context) => NewsPage(),
-      '/signup': (context) => SignupSelect(),
-      '/signup/student': (context) => StudentSignUp(),
-      '/signup/teachers': (context) => TeacherSignUp(),
-      'signup/parents/1': (context) => ParentsSignupPage1(),
+      '/': (context) => const Login(),
+      '/signup': (context) => const SignupSelect(),
+      '/signup/student': (context) => const StudentSignUp(),
+      '/signup/teachers': (context) => const TeacherSignUp(),
+      'signup/parents/1': (context) => const ParentsSignupPage1(),
     },
+
+    //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
   ));
 }
 

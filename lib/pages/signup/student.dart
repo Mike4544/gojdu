@@ -4,6 +4,7 @@ import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:gojdu/pages/news.dart';
 
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
@@ -20,6 +21,9 @@ class _StudentSignUpState extends State<StudentSignUp> {
   var _username = TextEditingController();
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
+
+  //  <---------------  Form key  ----------------->
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -89,87 +93,92 @@ class _StudentSignUpState extends State<StudentSignUp> {
           physics: BouncingScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Column(
-              children: [
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
 
 
-                SizedBox(height: device.size.height * 0.05,),
+                  SizedBox(height: device.size.height * 0.05,),
 
-                const Text(
-                  'Input your details below:',
-                  style: TextStyle(
-                    color: ColorsB.yellow500,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 40,
+                  const Text(
+                    'Input your details below:',
+                    style: TextStyle(
+                      color: ColorsB.yellow500,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 40,
+                    ),
                   ),
-                ),
 
-                const Divider(
-                  height: 25,
-                  thickness: 2,
-                  color: ColorsB.yellow500,
-                ),
+                  const Divider(
+                    height: 25,
+                    thickness: 2,
+                    color: ColorsB.yellow500,
+                  ),
 
-                SizedBox(
-                  height: device.size.height * 0.075,
-                ),
+                  SizedBox(
+                    height: device.size.height * 0.075,
+                  ),
 
-                InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com',),
+                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com', errorMessage: '', isEmail: true, isStudent: true,),
 
-                const SizedBox(height: 50,),
+                  const SizedBox(height: 50,),
 
-                InputField(fieldName: 'Username', isPassword: false, controller: _username,),
+                  InputField(fieldName: 'Username', isPassword: false, controller: _username, errorMessage: '', isEmail: false,),
 
-                const SizedBox(height: 50,),
+                  const SizedBox(height: 50,),
 
-                InputField(fieldName: 'Password', isPassword: true, controller: _password,),
+                  InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false,),
 
-                const SizedBox(height: 50,),
+                  const SizedBox(height: 50,),
 
-                InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword,),
+                  InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false,),
 
-                const SizedBox(height: 100,),
+                  const SizedBox(height: 100,),
 
-                TextButton(
-                    onPressed: () async {
-                      showDialog(context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                             const Center(
+                  TextButton(
+                      onPressed: () async {
+                        if(_formKey.currentState!.validate()){
+                          showDialog(context: context,
+                              barrierDismissible: false,
+                              builder: (_) =>
+                              const Center(
                                 child: SpinKitRing(
                                   color: ColorsB.yellow500,
                                 ),
                               )
-                      );
-                      await Future.delayed(Duration(seconds: 3));
-                      print('Done');
-                      Navigator.of(context).pop('dialog');
+                          );
+                          await Future.delayed(Duration(seconds: 3));
+                          print('Done');
+                          Navigator.of(context).pop('dialog');
 
-                      //TODO: Add funtionality to the student register button
+                          //TODO: Add funtionality to the student register button
+                        }
 
 
 
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child:Text(
-                        'Register',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal,
-                          letterSpacing: 2,
-                          fontSize: 30,
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child:Text(
+                          'Register',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.normal,
+                            letterSpacing: 2,
+                            fontSize: 30,
+                          ),
                         ),
                       ),
+                    style: TextButton.styleFrom(
+                        backgroundColor: ColorsB.yellow500,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(360)
+                        )
                     ),
-                  style: TextButton.styleFrom(
-                      backgroundColor: ColorsB.yellow500,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(360)
-                      )
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         ),

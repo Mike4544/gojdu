@@ -11,11 +11,14 @@ class InputField extends StatefulWidget {
   final Function(String)? onChanged;
   final String? label;
   final FocusNode? focusNode;
+  final String? errorMessage;
+  final bool? isEmail;
+  final bool? isStudent;
 
 
 
 
-  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode}) : super(key: key);
+  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode, this.errorMessage, this.isEmail, this.isStudent}) : super(key: key);
 
   @override
   State<InputField> createState() => _InputFieldState();
@@ -56,7 +59,12 @@ class _InputFieldState extends State<InputField> {
           obscureText: widget.isPassword,
           textAlign: TextAlign.start,
           decoration: InputDecoration(
+            errorText: widget.errorMessage!.isNotEmpty ? widget.errorMessage : null,
             hintText: widget.label,
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(50)
+            ),
             contentPadding: EdgeInsets.symmetric(vertical: 4.5, horizontal: 10),
               fillColor: ColorsB.gray200,
               filled: true,
@@ -64,13 +72,25 @@ class _InputFieldState extends State<InputField> {
                 borderRadius: BorderRadius.circular(50),
                 borderSide: BorderSide.none,
               ),
-              constraints: BoxConstraints(
+             constraints: BoxConstraints(
                 minWidth: size.size.width*0.75,
                 minHeight: 40,
                 maxWidth: size.size.width * 0.9, //Previous value *.75
-                maxHeight: 40,
+                maxHeight: 70,
               )
           ),
+          validator: (value) {
+            if(value == null || value.isEmpty){
+              return "Field cannot be empty.";
+            }
+            else if(widget.isEmail!) {
+                if(!value.contains('@gojdu.com') && widget.isStudent!) {
+                  return 'Please enter a vaild email adress (example@gojdu.com).';
+                } else if(!widget.isStudent! && !value.contains('@')) {
+                  return 'Please enter a valid email adress.';
+                }
+            }
+          },
 
         )
 

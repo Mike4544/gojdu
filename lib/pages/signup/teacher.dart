@@ -135,6 +135,10 @@ class _FirstPageState extends State<FirstPage> {
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
 
+  //  <---------------- Form global key ------------------->
+  final _formKey = GlobalKey<FormState>();
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -169,92 +173,98 @@ class _FirstPageState extends State<FirstPage> {
       physics: BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-        child: Column(
-          children: [
+        child: Form(
+          key: _formKey,
+
+          child: Column(
+            children: [
 
 
-            SizedBox(height: device.size.height * 0.05,),
+              SizedBox(height: device.size.height * 0.05,),
 
-            const Text(
-              'Input your details below:',
-              style: TextStyle(
-                color: ColorsB.yellow500,
-                fontWeight: FontWeight.w700,
-                fontSize: 40,
+              const Text(
+                'Input your details below:',
+                style: TextStyle(
+                  color: ColorsB.yellow500,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 40,
+                ),
               ),
-            ),
 
-            const Divider(
-              height: 25,
-              thickness: 2,
-              color: ColorsB.yellow500,
-            ),
+              const Divider(
+                height: 25,
+                thickness: 2,
+                color: ColorsB.yellow500,
+              ),
 
-            SizedBox(
-              height: device.size.height * 0.075,
-            ),
+              SizedBox(
+                height: device.size.height * 0.075,
+              ),
 
-            InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com',),
+              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', isEmail: true, isStudent: false, errorMessage: ''),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Username', isPassword: false, controller: _username,),
+              InputField(fieldName: 'Username', isPassword: false, controller: _username, isEmail: false, errorMessage: ''),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Password', isPassword: true, controller: _password,),
+              InputField(fieldName: 'Password', isPassword: true, controller: _password, isEmail: false, errorMessage: ''),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword,),
+              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, isEmail: false, errorMessage: ''),
 
-            const SizedBox(height: 100,),
+              const SizedBox(height: 100,),
 
-            TextButton(
-              onPressed: () async {
-                showDialog(context: context,
-                    barrierDismissible: false,
-                    builder: (_) =>
+              TextButton(
+                onPressed: () async {
+                  if(_formKey.currentState!.validate()){
+                    showDialog(context: context,
+                        barrierDismissible: false,
+                        builder: (_) =>
                         const Center(
                           child: SpinKitRing(
                             color: ColorsB.yellow500,
                           ),
                         )
-                );
-                await Future.delayed(Duration(seconds: 3));
-                print('Done');
-                Navigator.of(context).pop('dialog');
-                setState(() {
-                  widget.update!(false);
+                    );
+                    await Future.delayed(Duration(seconds: 3));
+                    print('Done');
+                    Navigator.of(context).pop('dialog');
+                    setState(() {
+                      widget.update!(false);
 
 
-                  /* aici ii butonu pt 'Continue de la teachers */
+                      /* aici ii butonu pt 'Continue de la teachers */
 
-                });
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child:Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: ColorsB.yellow500,
-                    fontWeight: FontWeight.normal,
-                    letterSpacing: 2,
-                    fontSize: 30,
+                    });
+                  }
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child:Text(
+                    'Continue',
+                    style: TextStyle(
+                      color: ColorsB.yellow500,
+                      fontWeight: FontWeight.normal,
+                      letterSpacing: 2,
+                      fontSize: 30,
+                    ),
                   ),
                 ),
-              ),
-              style: TextButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(360),
-                    side: BorderSide(
-                      color: ColorsB.yellow500,
-                    ),
-                  )
-              ),
-            )
-          ],
+                style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(360),
+                      side: BorderSide(
+                        color: ColorsB.yellow500,
+                      ),
+                    )
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -297,49 +307,52 @@ class _SecondPageState extends State<SecondPage> {
 
     var device = MediaQuery.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          Text(
-            "Your account has been created!",
-            style: TextStyle(
-              color: ColorsB.yellow500,
-              fontSize: 40,
-              fontWeight: FontWeight.w700,
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Text(
+              "Your account has been created!",
+              style: TextStyle(
+                color: ColorsB.yellow500,
+                fontSize: 40,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
 
-          const Divider(
-            height: 25,
-            thickness: 2,
-            color: ColorsB.yellow500,
-          ),
-
-          SizedBox(
-            height: device.size.height * 0.025,
-          ),
-
-          const Text(
-            "Before you can access it though it must undergo verification by the school staff.",
-            style: TextStyle(
+            const Divider(
+              height: 25,
+              thickness: 2,
               color: ColorsB.yellow500,
-              fontSize: 20,
-              fontWeight: FontWeight.normal,
             ),
-          ),
 
-          SizedBox(
-            height: device.size.height * 0.1,
-          ),
+            SizedBox(
+              height: device.size.height * 0.025,
+            ),
 
-          StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require teacher accounts to be verified',
-          description: 'To keep third-parties from making fake accounts of various teachers, we require this type of account to be verified.',
-            controller: _iconController,
-          ),
+            const Text(
+              "Before you can access it though it must undergo verification by the school staff.",
+              style: TextStyle(
+                color: ColorsB.yellow500,
+                fontSize: 20,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+
+            SizedBox(
+              height: device.size.height * 0.1,
+            ),
+
+            StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require teacher accounts to be verified',
+            description: 'To keep third-parties from making fake accounts of various teachers, we require this type of account to be verified.',
+              controller: _iconController,
+            ),
 
 
-        ],
+          ],
+        ),
       ),
     );
   }

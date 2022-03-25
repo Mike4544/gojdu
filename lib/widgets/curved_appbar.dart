@@ -14,9 +14,9 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      toolbarHeight: 2,
+      toolbarHeight: 100,
       expandedHeight: 500,
-      collapsedHeight: 2,
+      collapsedHeight: 100,
       automaticallyImplyLeading: false,
       pinned: true,
       elevation: 0,

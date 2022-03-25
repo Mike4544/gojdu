@@ -129,6 +129,9 @@ class _FirstPageState extends State<FirstPage> {
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
 
+  //  <---------------  Form key  --------------------->
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -163,95 +166,102 @@ class _FirstPageState extends State<FirstPage> {
       physics: BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-        child: Column(
-          children: [
+        child: Form(
+
+          key: _formKey,
+
+          child: Column(
+            children: [
 
 
-            SizedBox(height: device.size.height * 0.05,),
+              SizedBox(height: device.size.height * 0.05,),
 
-            const Text(
-              'Input your details below:',
-              style: TextStyle(
-                color: ColorsB.yellow500,
-                fontWeight: FontWeight.w700,
-                fontSize: 40,
+              const Text(
+                'Input your details below:',
+                style: TextStyle(
+                  color: ColorsB.yellow500,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 40,
+                ),
               ),
-            ),
 
-            const Divider(
-              height: 25,
-              thickness: 2,
-              color: ColorsB.yellow500,
-            ),
+              const Divider(
+                height: 25,
+                thickness: 2,
+                color: ColorsB.yellow500,
+              ),
 
-            SizedBox(
-              height: device.size.height * 0.075,
-            ),
+              SizedBox(
+                height: device.size.height * 0.075,
+              ),
 
-            InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com',),
+              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: '', isEmail: true, isStudent: false,),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Username', isPassword: false, controller: _username,),
+              InputField(fieldName: 'Username', isPassword: false, controller: _username, errorMessage: '', isEmail: false, isStudent: false,),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Password', isPassword: true, controller: _password,),
+              InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false, isStudent: false,),
 
-            const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-            InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword,),
+              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false, isStudent: false,),
 
-            const SizedBox(height: 100,),
+              const SizedBox(height: 100,),
 
-            TextButton(
-              onPressed: () async {
-                showDialog(context: context,
-                    barrierDismissible: false,
-                    builder: (_) =>
+              TextButton(
+                onPressed: () async {
+                  if(_formKey.currentState!.validate()){
+                    showDialog(context: context,
+                        barrierDismissible: false,
+                        builder: (_) =>
                         const Center(
                           child: SpinKitRing(
                             color: ColorsB.yellow500,
                           ),
                         )
-                );
-                await Future.delayed(Duration(seconds: 3));
-                print('Done');
-                Navigator.of(context).pop('dialog');
+                    );
+                    await Future.delayed(Duration(seconds: 3));
+                    print('Done');
+                    Navigator.of(context).pop('dialog');
 
-                setState(() {
-                  widget.update!(false);
+                    setState(() {
+                      widget.update!(false);
 
-                });
+                    });
+                  }
 
 
-                //Butonu de continue la parinti
-                //Dupa cum ai obs, am adaugat loading-uri
+                  //Butonu de continue la parinti
+                  //Dupa cum ai obs, am adaugat loading-uri
 
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child:Text(
-                  'Continue',
-                  style: TextStyle(
-                    color: ColorsB.yellow500,
-                    fontWeight: FontWeight.normal,
-                    letterSpacing: 2,
-                    fontSize: 30,
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child:Text(
+                    'Continue',
+                    style: TextStyle(
+                      color: ColorsB.yellow500,
+                      fontWeight: FontWeight.normal,
+                      letterSpacing: 2,
+                      fontSize: 30,
+                    ),
                   ),
                 ),
-              ),
-              style: TextButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(360),
-                    side: const BorderSide(
-                      color: ColorsB.yellow500,
-                    ),
-                  )
-              ),
-            )
-          ],
+                style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(360),
+                      side: const BorderSide(
+                        color: ColorsB.yellow500,
+                      ),
+                    )
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -274,6 +284,9 @@ class _SecondPageState extends State<SecondPage> {
 
   var _childUsername = TextEditingController();
 
+  //  <-------------  Error Text  ---------------------->
+  String _errorText = '';
+
   @override
   void initState() {
     // TODO: implement initState
@@ -281,6 +294,7 @@ class _SecondPageState extends State<SecondPage> {
     _containerHeight = ValueNotifier<double>(0);
     _iconController = AnimateIconController();
     open = false;
+    _errorText = '';
   }
 
   @override
@@ -334,10 +348,48 @@ class _SecondPageState extends State<SecondPage> {
             SizedBox(
               height: device.size.height * 0.1,
             ),
-            InputField(fieldName: 'Child\'s Username', isPassword: false, controller: _childUsername,),
+            InputField(fieldName: 'Child\'s Username', isPassword: false, controller: _childUsername, isEmail: false, errorMessage: _errorText,),
 
             SizedBox(
-              height: device.size.height * 0.1,
+              height: device.size.height * 0.05,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    if(_childUsername.value.text.isNotEmpty){
+                      print(_childUsername.value.text);
+                    }
+                    else {
+                      setState(() {
+                        _errorText = 'Field cannot be empty.';
+                      });
+                    }
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                    child: Text(
+                        "Finish",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'Nunito',
+                          letterSpacing: 2.5,
+                        )),
+                  ),
+                  style: TextButton.styleFrom(
+                      backgroundColor: ColorsB.yellow500,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      )
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: device.size.height * 0.05,
             ),
 
             StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require parents\' and students\' accounts to be linked.',
