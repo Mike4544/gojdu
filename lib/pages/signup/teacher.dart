@@ -132,11 +132,14 @@ class _FirstPageState extends State<FirstPage> {
 
   var _mail = TextEditingController();
   var _username = TextEditingController();
+  var _lastname = TextEditingController();
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
 
   //  <---------------- Form global key ------------------->
   final _formKey = GlobalKey<FormState>();
+
+  var error = '';
 
 
   @override
@@ -145,6 +148,7 @@ class _FirstPageState extends State<FirstPage> {
     super.initState();
     _mail = TextEditingController();
     _username = TextEditingController();
+    _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
 
@@ -205,7 +209,11 @@ class _FirstPageState extends State<FirstPage> {
 
               const SizedBox(height: 50,),
 
-              InputField(fieldName: 'Username', isPassword: false, controller: _username, isEmail: false, errorMessage: ''),
+              InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
+
+              const SizedBox(height: 50,),
+
+              InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
 
               const SizedBox(height: 50,),
 

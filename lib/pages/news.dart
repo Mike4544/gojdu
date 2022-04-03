@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
@@ -9,6 +10,7 @@ import 'package:gojdu/widgets/floor_selector.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
+import 'package:animations/animations.dart';
 
 class NewsPage extends StatefulWidget {
 
@@ -22,8 +24,17 @@ class NewsPage extends StatefulWidget {
 
 //Globals
 SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
+late bool loaded;
 
-//TODO: Make the news page. At least begin it
+
+
+// <---------- Height and width outside of context -------------->
+var screenHeight = window.physicalSize.height / window.devicePixelRatio;
+var screenWidth = window.physicalSize.width / window.devicePixelRatio;
+
+//  TODO: Make variables for the name, password, mail etc
+
+
 
 class _NewsPageState extends State<NewsPage>{
 
@@ -31,8 +42,11 @@ class _NewsPageState extends State<NewsPage>{
 
   int _currentIndex = 1;
 
-  //Navbar Anim stuff
-  //Controllers?
+
+
+
+
+
 
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
@@ -60,7 +74,7 @@ class _NewsPageState extends State<NewsPage>{
 
   }
 
-  PageController _pageController = PageController(
+  final PageController _pageController = PageController(
     initialPage: 1,
   );
 
@@ -70,6 +84,8 @@ class _NewsPageState extends State<NewsPage>{
     // TODO: implement initState
     super.initState();
 
+    //  <-----------  Loaded  ------------------>
+    loaded = false;
     //Initialising the navbar icons -
     rootBundle.load('assets/map.riv').then((data){
       final file = RiveFile.import(data);
@@ -207,6 +223,7 @@ class _NewsPageState extends State<NewsPage>{
         children: [
           MapPage(navbarButton: _mapInput),
           Announcements(navbarButton: _announcementsInput, isAdmin: widget.isAdmin,),
+          Calendar(navbarButton: _reserveInput,)
         ],
       ),
     );
@@ -227,31 +244,30 @@ class Announcements extends StatefulWidget {
 class _AnnouncementsState extends State<Announcements> with SingleTickerProviderStateMixin {
 
 
-  var selectedColorS = ColorsB.yellow500;
-  var selectedColorT = Colors.white;
+  var selectedColorS = Colors.white;
+  var selectedColorT = ColorsB.yellow500;
+  var selectedColorP = Colors.white;
 
-  double rectX = 0;
+  late double rectX;
   
   // <---------------- Bool for admin ------------------>
   late final bool isAdmin = widget.isAdmin;
 
 
   final _announcementsController = PageController(
-      initialPage: 0
+      initialPage: 1
   );
 
-  var _currentAnnouncement = 0;
+  var _currentAnnouncement = 1;
 
 //  <----------------- Shimmer animation controller ----------->
   late AnimationController _shimmerController;
 
 
   //  <-------------- Loading bool for shimmer loading -------------------->
-  bool isLoading = true;
+  late bool isLoading;
 
-  // <---------- Height and width outside of context -------------->
-  var screenHeight = window.physicalSize.height / window.devicePixelRatio;
-  var screenWidth = window.physicalSize.width / window.devicePixelRatio;
+
 
   @override
   void initState() {
@@ -260,20 +276,28 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     widget.navbarButton?.value = true;
     _mapInput?.value = false;
     _reserveInput?.value = false;
-    _currentAnnouncement = 0;
+    _currentAnnouncement = 1;
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
 
-    _Load();
+    if(!loaded) {
+      isLoading = true;
+      load();
+    }
+    else {
+      isLoading = false;
+    }
+    rectX = device.width * 0.107;
 
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _announcementsController.dispose();
     _shimmerController.dispose();
+    super.dispose();
+
+
   }
 
 
@@ -281,16 +305,16 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   String title = 'Lorem Ipsum Title';
   String description = 'Lorem Ipsum Title Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Title Lorem Ipsum Title ';
 
-
+  var device = window.physicalSize;
 
   @override
   Widget build(BuildContext context) {
-    var device = MediaQuery.of(context);
+
 
     return CustomScrollView(
       physics: BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Announcements',),
+        CurvedAppbar(name: 'Announcements', accType: 'Student account', position: 1,),
 
         SliverToBoxAdapter(
             child: Padding(
@@ -328,120 +352,37 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       )
                     ],
                   ),
-                  SizedBox(height: 50,),
+                  SizedBox(height: 25,),
 
-                  SizedBox(
-                    height: 75,
-                    width: device.size.width * 0.75,
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.black12,
-                          borderRadius: BorderRadius.circular(50)
-                      ),
-                      child: Center(
-                        child: Stack(
+                  teachersBar(),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+                    child: SizedBox(
+                      height: 450,
+                      child: ShaderMask(
+                        shaderCallback: (Rect bounds) =>
+                        const material.LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: [
+                            0, 0.25
+                          ],
+                          colors: [Colors.transparent, ColorsB.gray900]
+                        ).createShader(bounds),
+                        blendMode: BlendMode.dstIn,
+                        child: PageView(
+                          clipBehavior: Clip.hardEdge,
+                          controller: _announcementsController,
+                          physics: NeverScrollableScrollPhysics(),
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                GestureDetector(
-                                  child: Text(
-                                    'Students',
-                                    style: TextStyle(
-                                        color: selectedColorS,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      selectedColorS = ColorsB.yellow500;
-                                      selectedColorT = Colors.white;
-                                      rectX = 0;
-                                      _currentAnnouncement = 0;
-                                    });
-                                    _announcementsController.animateToPage(
-                                        _currentAnnouncement,
-                                        duration: Duration(milliseconds: 250),
-                                        curve: Curves.easeInOut);
-                                  },
-                                ),
-                                GestureDetector(
-                                  child: Text(
-                                    'Teachers',
-                                    style: TextStyle(
-                                        color: isAdmin ? selectedColorT : Colors.grey.withOpacity(0.25),
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    if(isAdmin) {
-                                      setState(() {
-                                        selectedColorS = Colors.white;
-                                        selectedColorT = ColorsB.yellow500;
-                                        rectX = device.size.width * 0.75 * 0.5;
-                                        _currentAnnouncement = 1;
-                                      });
-                                      _announcementsController.animateToPage(
-                                          _currentAnnouncement,
-                                          duration: Duration(milliseconds: 250),
-                                          curve: Curves.easeInOut);
-                                    }
-                                    else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          backgroundColor: ColorsB.yellow500,
-                                          content: Text(
-                                            'You\'re not a teacher, dude.',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontFamily: 'Nunito',
-                                            ),
-                                          ),
-                                        )
-                                      );
-                                    }
-                                  },
-                                )
-                              ],
-                            ),
-                            AnimatedPositioned(
-                              curve: Curves.easeInOut,
-                              duration: Duration(milliseconds: 250),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 25),
-                                child: Container(
-                                  width: 100,
-                                  height: 2,
-                                  color: ColorsB.yellow500,
-                                ),
-                              ),
-                              left: rectX,
-                              top: 26,
-                            ),
+                            _buildLists(ColorsB.gray800),
+                            _buildLists(Colors.amber),
+                            _buildLists(Colors.indigoAccent),
+
 
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: SizedBox(
-                      height: 400,
-                      child: PageView(
-                        controller: _announcementsController,
-                        physics: NeverScrollableScrollPhysics(),
-                        children: [
-                          _buildLists(ColorsB.gray800),
-                          _buildLists(Colors.amber),
-
-
-                        ],
-                      ),
+                      )
                     ),
                   )
 
@@ -452,6 +393,152 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
       ],
     );
+  }
+
+  Widget teachersBar() {
+    if(isAdmin){
+      return SizedBox(
+        height: 75,
+        width: device.width * 0.90,
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.black12,
+              borderRadius: BorderRadius.circular(50)
+          ),
+          child: Center(
+            child: Stack(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    GestureDetector(
+                      child: Text(
+                        'Students',
+                        style: TextStyle(
+                            color: selectedColorS,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          selectedColorS = ColorsB.yellow500;
+                          selectedColorT = Colors.white;
+                          selectedColorP = Colors.white;
+                          rectX = 0;
+                          _currentAnnouncement = 0;
+                        });
+                        _announcementsController.animateToPage(
+                            _currentAnnouncement,
+                            duration: Duration(milliseconds: 250),
+                            curve: Curves.easeInOut);
+                      },
+                    ),
+                    GestureDetector(
+                      child: Text(
+                        'Teachers',
+                        style: TextStyle(
+                            color: isAdmin ? selectedColorT : Colors.grey.withOpacity(0.25),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      onTap: () {
+                        if(isAdmin) {
+                          setState(() {
+                            selectedColorS = Colors.white;
+                            selectedColorT = ColorsB.yellow500;
+                            selectedColorP = Colors.white;
+                            rectX = device.width * 0.107;
+                            _currentAnnouncement = 1;
+                          });
+                          _announcementsController.animateToPage(
+                              _currentAnnouncement,
+                              duration: Duration(milliseconds: 250),
+                              curve: Curves.easeInOut);
+                        }
+                        else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: ColorsB.yellow500,
+                                content: Text(
+                                  'You\'re not a teacher, dude.',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: 'Nunito',
+                                  ),
+                                ),
+                              )
+                          );
+                        }
+                      },
+                    ),
+                    GestureDetector(
+                      child: Text(
+                        'Parents',
+                        style: TextStyle(
+                            color: isAdmin ? selectedColorP : Colors.grey.withOpacity(0.25),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      onTap: () {
+                        if(isAdmin) {
+                          setState(() {
+                            selectedColorS = Colors.white;
+                            selectedColorT = Colors.white;
+                            selectedColorP = ColorsB.yellow500;
+                            rectX = device.width * 0.21;
+                            _currentAnnouncement = 2;
+                          });
+                          _announcementsController.animateToPage(
+                              _currentAnnouncement,
+                              duration: Duration(milliseconds: 250),
+                              curve: Curves.easeInOut);
+                        }
+                        else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: ColorsB.yellow500,
+                                content: Text(
+                                  'You\'re not a parent, dude.',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: 'Nunito',
+                                  ),
+                                ),
+                              )
+                          );
+                        }
+                      },
+                    )
+                  ],
+                ),
+                AnimatedPositioned(
+                  curve: Curves.easeInOut,
+                  duration: Duration(milliseconds: 250),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 25),
+                    child: Container(
+                      width: 75,
+                      height: 2,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                  left: rectX,
+                  top: 26,
+                ),
+
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    else {
+      return const SizedBox(width: 0, height: 0,);
+    }
   }
 
 
@@ -467,91 +554,99 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
               padding: const EdgeInsets.all(10.0),
               child: GestureDetector(
                 onTap: () {
-                  _hero(context, title, description,
-                      _color);
+                  _hero(context, title, description, 'By Mihai', _color);
                 },
-                child: Hero(
-                  tag: 'title-container',
-                  child: Shimmer.fromColors(
-                    baseColor: ColorsB.gray800,
-                    highlightColor: ColorsB.gray700,
-                    child: Container(                         // Student containers. Maybe get rid of the hero
-                        width: screenWidth * 0.75,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: _color,
-                          borderRadius: BorderRadius.circular(
-                              50),
-                        ),
+                child: Shimmer.fromColors(
+                  baseColor: ColorsB.gray800,
+                  highlightColor: ColorsB.gray700,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
+                      width: screenWidth * 0.75,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: _color,
+                        borderRadius: BorderRadius.circular(
+                            50),
                       ),
-                  ),
-                  ),
+                    ),
+                ),
                 ),
               ),
       );
     }
     else {
-      return ListView.builder(
-        physics: BouncingScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: 5,
-        itemBuilder: (_, index) =>
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: GestureDetector(
-                onTap: () {
-                  _hero(context, title, description,
-                      _color);
-                },
-                child: Hero(
-                  tag: 'title-container',
-                  child: Container(                         // Student containers. Maybe get rid of the hero
+      return RefreshIndicator(
+        backgroundColor: ColorsB.gray900,
+        color: _color,
+        onRefresh: () async {},
+        child: ListView.builder(
+          physics: BouncingScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: 5,
+          itemBuilder: (_, index) =>
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: GestureDetector(
+                  onTap: () {
+                    _hero(context, title, description, 'By Mihai', _color);
+                  },
+                  child: SizedBox(
                     width: screenWidth * 0.75,
                     height: 200,
-                    decoration: BoxDecoration(
-                      color: _color,
-                      borderRadius: BorderRadius.circular(
-                          50),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(25.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment
-                            .start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: 25,),
-
-                          Flexible(
-                            child: Text(
-                              description,
-                              overflow: TextOverflow
-                                  .ellipsis,
-                              maxLines: 3,
+                    child: Container(                         // Student containers. Maybe get rid of the hero
+                      width: screenWidth * 0.75,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: _color,
+                        borderRadius: BorderRadius.circular(
+                            50),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(25.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment
+                              .start,
+                          children: [
+                            Text(
+                              title,
                               style: TextStyle(
-                                  color: Colors.white
-                                      .withOpacity(0.25),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight
-                                      .bold
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold
                               ),
                             ),
-                          ),
+                            Text(
+                              'By Mihai',     //  Hard coded!!
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 15,
+                              ),
+                            ),
+                            SizedBox(height: 25,),
 
-                        ],
+                            Flexible(
+                              child: Text(
+                                description,
+                                overflow: TextOverflow
+                                    .ellipsis,
+                                maxLines: 3,
+                                style: TextStyle(
+                                    color: Colors.white
+                                        .withOpacity(0.25),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight
+                                        .bold
+                                ),
+                              ),
+                            ),
+
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+        ),
       );
     }
 
@@ -559,15 +654,18 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   //  <------------------- Hardcoded loader ------------------>
 
-  void _Load() async {
-    await Future.delayed(Duration(seconds: 3));
-    setState(() {
-      isLoading = false;
-    });
+  void load() async {
+      await Future.delayed(Duration(seconds: 3));
+      setState(() {
+        isLoading = false;
+        loaded = true;
+      });
+
+
   }
 
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, Color color) {
+  void _hero(BuildContext context, String title, String description, String author, Color color) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -578,7 +676,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color),
+                child: BigNewsContainer(title: title, description: description, color: color, author: 'By Mihai',),
               )
         )
     );
@@ -598,8 +696,9 @@ class BigNewsContainer extends StatelessWidget {
   final String title;
   final String description;
   final Color color;
+  final String author;
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color}) : super(key: key);
+  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -622,13 +721,26 @@ class BigNewsContainer extends StatelessWidget {
                   alignment: Alignment.bottomLeft,
                   child: Padding(
                     padding: const EdgeInsets.all(15.0),
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        Text(
+                          author,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          )
+                        )
+                      ],
                     ),
                   ),
                 ),
@@ -694,9 +806,8 @@ class _MapPageState extends State<MapPage>{
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     height.dispose();
+    super.dispose();
   }
 
   // <---------- Height and width outside of context -------------->
@@ -757,13 +868,12 @@ class _MapPageState extends State<MapPage>{
   @override
   Widget build(BuildContext context) {
 
-    var device = MediaQuery.of(context);
 
 
     return CustomScrollView(
       physics: BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Map',),
+        CurvedAppbar(name: 'Map', position: 0, accType: 'Student account'),
 
         SliverToBoxAdapter(
             child: Padding(
@@ -773,7 +883,7 @@ class _MapPageState extends State<MapPage>{
                 children: [
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'Select floor',
                         style: TextStyle(
                             color: ColorsB.yellow500,
@@ -781,7 +891,7 @@ class _MapPageState extends State<MapPage>{
                             fontWeight: FontWeight.w600
                         ),
                       ),
-                      SizedBox(width: 10,),
+                      const SizedBox(width: 10,),
                       Expanded(
                         child: Container(
                           color: ColorsB.gray800,
@@ -845,11 +955,43 @@ class _MapPageState extends State<MapPage>{
 }
 
 
+class Calendar extends StatefulWidget {
+  final SMIInput<bool>? navbarButton;
 
-/*TODO: KNOWN BUGS
-        + Sometimes the dropdown from the second page doesn't work first time
-        + Sometimes icons are stuck
- */
+
+  const Calendar({Key? key, required this.navbarButton}) : super(key: key);
+
+  @override
+  State<Calendar> createState() => _CalendarState();
+}
+
+class _CalendarState extends State<Calendar> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget.navbarButton?.value = true;
+    _announcementsInput?.value = false;
+    _mapInput?.value = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: BouncingScrollPhysics(),
+      slivers: [
+        CurvedAppbar(name: 'Room Manager', position: 2, accType: 'Student account'),
+
+        SliverToBoxAdapter(
+
+        )
+
+      ],
+    );
+  }
+}
+
 
 
 

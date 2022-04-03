@@ -5,6 +5,9 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gojdu/pages/news.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
@@ -19,11 +22,15 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
   var _mail = TextEditingController();
   var _username = TextEditingController();
+  var _lastname = TextEditingController();
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
 
   //  <---------------  Form key  ----------------->
   final _formKey = GlobalKey<FormState>();
+
+  // <---------------- Error messages -------------->
+  late String error;
 
   @override
   void initState() {
@@ -31,8 +38,10 @@ class _StudentSignUpState extends State<StudentSignUp> {
     super.initState();
     _mail = TextEditingController();
     _username = TextEditingController();
+    _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
+    error = '';
 
   }
 
@@ -43,6 +52,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
     _mail.dispose();
     _username.dispose();
+    _lastname.dispose();
     _password.dispose();
     _repPassword.dispose();
 
@@ -120,60 +130,105 @@ class _StudentSignUpState extends State<StudentSignUp> {
                     height: device.size.height * 0.075,
                   ),
 
-                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com', errorMessage: '', isEmail: true, isStudent: true,),
+                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com', errorMessage: error, isEmail: true, isStudent: true,),
 
                   const SizedBox(height: 50,),
 
-                  InputField(fieldName: 'Username', isPassword: false, controller: _username, errorMessage: '', isEmail: false,),
+                  InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
 
                   const SizedBox(height: 50,),
 
-                  InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false,),
+                  InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
 
                   const SizedBox(height: 50,),
 
-                  InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false,),
+                  InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: error, isEmail: false,),
+
+                  const SizedBox(height: 50,),
+
+                  InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: error, isEmail: false,),
 
                   const SizedBox(height: 100,),
 
                   TextButton(
-                      onPressed: () async {
-                        if(_formKey.currentState!.validate()){
-                          showDialog(context: context,
-                              barrierDismissible: false,
-                              builder: (_) =>
-                              const Center(
-                                child: SpinKitRing(
-                                  color: ColorsB.yellow500,
-                                ),
-                              )
-                          );
-                          await Future.delayed(Duration(seconds: 3));
-                          print('Done');
-                          Navigator.of(context).pop('dialog');
+                    onPressed: () async {
+                      if(_formKey.currentState!.validate()){
+                        showDialog(context: context,
+                            barrierDismissible: false,
+                            builder: (_) =>
+                            const Center(
+                              child: SpinKitRing(
+                                color: ColorsB.yellow500,
+                              ),
+                            )
+                        );
+                        //await Future.delayed(Duration(seconds: 3));
 
-                          //TODO: Add funtionality to the student register button
+                        var url = Uri.parse('https://automemeapp.com/register_student.php');
+                        final response = await http.post(url, body: {
+                          "username": _username.value.text,
+                          "password_1": _password.value.text,
+                          "password_2": _repPassword.value.text,
+                          "email": _mail.value.text,
+                        });
+                        print(response.statusCode);
+                        if(response.statusCode == 200){
+                          var jsondata = json.decode(response.body);
+                          if(jsondata["error"]){
+                            setState(() {
+                              error = jsondata["message"];
+                              Navigator.of(context).pop('dialog');
+                            });
+                          }else{
+                            if(jsondata["success"]){
+                              //save the data returned from server
+                              //and navigate to home page
+                              String? user = jsondata["username"];
+                              String? email = jsondata["email"];
+                              String? acc_type = jsondata["account"];
+                              print(acc_type);
+                              Navigator.of(context).pop('dialog');
+                              Navigator.pushReplacement(context, MaterialPageRoute(
+                                builder: (context) => NewsPage(isAdmin: false,)
+                              ));
+                              //user shared preference to save data
+                            }else{
+                              error = "Error connecting.";
+                              Navigator.of(context).pop('dialog');
+                            }
+                          }
+                        }else{
+                          setState(() {
+                            error = "wtf?";
+                            Navigator.of(context).pop('dialog');
+
+                          });
                         }
 
 
 
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child:Text(
-                          'Register',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.normal,
-                            letterSpacing: 2,
-                            fontSize: 30,
-                          ),
+                        //TODO: Add funtionality to the student register button
+                      }
+
+
+
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child:Text(
+                        'Register',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.normal,
+                          letterSpacing: 2,
+                          fontSize: 30,
                         ),
                       ),
+                    ),
                     style: TextButton.styleFrom(
                         backgroundColor: ColorsB.yellow500,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(360)
+                            borderRadius: BorderRadius.circular(360)
                         )
                     ),
                   )

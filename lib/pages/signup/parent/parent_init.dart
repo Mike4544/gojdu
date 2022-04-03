@@ -126,8 +126,11 @@ class _FirstPageState extends State<FirstPage> {
 
   var _mail = TextEditingController();
   var _username = TextEditingController();
+  var _lastname = TextEditingController();
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
+
+  var error = "";
 
   //  <---------------  Form key  --------------------->
   final _formKey = GlobalKey<FormState>();
@@ -138,6 +141,7 @@ class _FirstPageState extends State<FirstPage> {
     super.initState();
     _mail = TextEditingController();
     _username = TextEditingController();
+    _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
 
@@ -150,6 +154,7 @@ class _FirstPageState extends State<FirstPage> {
 
     _mail.dispose();
     _username.dispose();
+    _lastname.dispose();
     _password.dispose();
     _repPassword.dispose();
 
@@ -199,7 +204,11 @@ class _FirstPageState extends State<FirstPage> {
 
               const SizedBox(height: 50,),
 
-              InputField(fieldName: 'Username', isPassword: false, controller: _username, errorMessage: '', isEmail: false, isStudent: false,),
+              InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
+
+              const SizedBox(height: 50,),
+
+              InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
 
               const SizedBox(height: 50,),
 
@@ -337,7 +346,7 @@ class _SecondPageState extends State<SecondPage> {
             ),
 
             const Text(
-              "Before you can create your account, please input your child's username below.",
+              "Before you can create your account, please input your child's last name below.",
               style: TextStyle(
                 color: ColorsB.yellow500,
                 fontSize: 20,
@@ -348,7 +357,7 @@ class _SecondPageState extends State<SecondPage> {
             SizedBox(
               height: device.size.height * 0.1,
             ),
-            InputField(fieldName: 'Child\'s Username', isPassword: false, controller: _childUsername, isEmail: false, errorMessage: _errorText,),
+            InputField(fieldName: 'Child\'s Last Name', isPassword: false, controller: _childUsername, isEmail: false, errorMessage: _errorText, lengthLimiter: 15,),
 
             SizedBox(
               height: device.size.height * 0.05,

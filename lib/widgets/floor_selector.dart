@@ -13,11 +13,14 @@ class DropdownSelector extends StatefulWidget {
   _DropdownSelectorState createState() => _DropdownSelectorState();
 }
 
-class _DropdownSelectorState extends State<DropdownSelector> {
+class _DropdownSelectorState extends State<DropdownSelector> with TickerProviderStateMixin {
 
 
   final height = ValueNotifier<double>(0);
   bool open = false;
+  
+  //  <---------- Animated Icon ----------------->
+  late AnimationController _iconController;
 
 
   int floorNo = 1;
@@ -25,9 +28,18 @@ class _DropdownSelectorState extends State<DropdownSelector> {
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();
     open = false;
     floorNo = 1;
+    _iconController = AnimationController(vsync: this, duration: Duration(milliseconds: 250),);
+    super.initState();
+
+  }
+
+  @override
+  void dispose() {
+    _iconController.dispose();
+    super.dispose();
+
   }
 
 
@@ -78,8 +90,6 @@ class _DropdownSelectorState extends State<DropdownSelector> {
                           GestureDetector(
                             onTap: () {
 
-
-
                               setState(() {
                                 height.value = 0;
                                 open = !open;
@@ -90,6 +100,13 @@ class _DropdownSelectorState extends State<DropdownSelector> {
                                     _containerColors[i] = Colors.transparent;
                                   _containerColors[index] = ColorsB.gray700.withOpacity(0.1);
                                 }
+                                if(open){
+                                  _iconController.forward();
+                                }
+                                else {
+                                  _iconController.reverse();
+                                }
+
                               });
                             },
                             child: Column(
@@ -172,17 +189,27 @@ class _DropdownSelectorState extends State<DropdownSelector> {
             children: [
               GestureDetector(
                 onTap: () {
-                  height.value = open ? device.size.height * 0.25 : 0;
                   open = !open;
+                  height.value = open ? device.size.height * 0.25 : 0;
+
+                  if(open){
+                    _iconController.forward();
+                  }
+                  else {
+                    _iconController.reverse();
+                  }
                 },
                 child: Container(
                   height: 50,
                   width: device.size.width * 0.1,
                   child: Center(
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white,
-                      size: 35,
+                    child: RotationTransition(
+                      turns: Tween<double>(begin: 0.0, end: 0.5).animate(CurvedAnimation(parent: _iconController, curve: Curves.ease)),
+                      child: Icon(
+                        Icons.keyboard_arrow_down_sharp,
+                        color: Colors.white,
+                        size: 35,
+                      ),
                     ),
                   ),
                   decoration: BoxDecoration(
