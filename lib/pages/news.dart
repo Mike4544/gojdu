@@ -254,9 +254,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   late final bool isAdmin = widget.isAdmin;
 
 
-  final _announcementsController = PageController(
-      initialPage: 1
-  );
+  late final _announcementsController;
 
   var _currentAnnouncement = 1;
 
@@ -288,6 +286,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       isLoading = false;
     }
     rectX = device.width * 0.107;
+
+    _announcementsController = PageController(
+        initialPage: isAdmin ? 1 : 0
+    );
 
   }
 

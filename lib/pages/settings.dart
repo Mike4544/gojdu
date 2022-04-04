@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/pages/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
 
@@ -214,14 +215,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   InkWell(
-                                    onTap: () {
+                                    onTap: () async {
 
-                                      Navigator.pushReplacement(context, MaterialPageRoute(
-                                        builder: (context) =>
-                                            Login()
-                                      ));
-
-                                      //  TODO: A proper logoff function
+                                      logoff(context);
                                     },
                                     borderRadius: BorderRadius.circular(30),
                                     child: Ink(
@@ -300,6 +296,23 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
+
+Future<void> logoff(BuildContext context) async {
+  
+  final prefs = await SharedPreferences.getInstance();
+
+  await prefs.remove('name');
+  await prefs.remove('password');
+
+  Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) =>
+          const Login()
+  ));
+  
+
+}
+
 
 class RPSCustomPainter extends CustomPainter {
   @override

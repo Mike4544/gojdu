@@ -18,8 +18,15 @@ import 'package:gojdu/pages/signup/parent/parent_init.dart';
 //Importing the splash screen
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+//  Preferences
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final Widget homeWidget = await getPage();
+
   Paint.enableDithering = true;
   
   FlutterNativeSplash.removeAfter(initialization);
@@ -32,18 +39,11 @@ void main() {
       fontFamily: 'Nunito',
     ),
 
-    onGenerateRoute: (settings) {
-      switch(settings.name) {
-        case '/signup/student':
-          //return SlideRightRoute(page: StudentSignUp());
-          break;
-      }
-    },
 
 
-    initialRoute: '/',
+
+    home: homeWidget,
     routes: {
-      '/': (context) => const Login(),
       '/signup': (context) => const SignupSelect(),
       '/signup/student': (context) => const StudentSignUp(),
       '/signup/teachers': (context) => const TeacherSignUp(),
@@ -56,6 +56,22 @@ void main() {
 
 void initialization(BuildContext context) async {
   await Future.delayed(Duration(seconds: 2));
+}
+
+Future<Widget> getPage() async {
+
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  print(prefs.getString('name').toString());
+
+  if(!(prefs.getString('name') != null && prefs.getString("password") != null)){
+    print(false);
+    return Login();
+  }
+  else {
+    print(true);
+    return NewsPage(isAdmin: false);
+  }
+
 }
 
 

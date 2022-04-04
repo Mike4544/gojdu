@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/pages/news.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -20,6 +21,9 @@ class _LoginState extends State<Login> {
       TextEditingController());
   final _passController = ValueNotifier<TextEditingController>(
       TextEditingController());
+
+  //  <-------------------------  Prefs Files ------------------>
+  final Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
 
   //Transition width and height
@@ -245,6 +249,8 @@ class _LoginState extends State<Login> {
   void login() async {
     //  TODO: Pass the login info gen
 
+    final SharedPreferences prefs2 = await prefs;
+
     if (_formKey.currentState!.validate()) {
       var url = Uri.parse('https://automemeapp.com/gojdu.php');
       final response = await http.post(url, body: {
@@ -263,6 +269,10 @@ class _LoginState extends State<Login> {
             //and navigate to home page
             String user = jsondata["username"];
             String email = jsondata["email"];
+
+            await prefs2.setString('name', _nameController.value.text);
+            await prefs2.setString('password', _passController.value.text);
+
             print("The name is ${_nameController.value
                 .text} and the password is ${_passController.value.text}");
             //TODO: D: Send info to the server - Darius fa-ti magia
