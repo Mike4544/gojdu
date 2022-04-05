@@ -21,6 +21,10 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 //  Preferences
 import 'package:shared_preferences/shared_preferences.dart';
 
+//  HTTP
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,39 +72,29 @@ Future<Widget> getPage() async {
     return Login();
   }
   else {
-    print(true);
-    return NewsPage(isAdmin: false);
+    //print(true);
+    var url = Uri.parse('https://automemeapp.com/gojdu.php');
+    final response = await http.post(url, body: {
+      "username": prefs.getString('name').toString(),
+      "password": prefs.getString('password').toString(),
+    });
+    if (response.statusCode == 200) {
+      var jsondata = json.decode(response.body);
+      if (jsondata["error"]) {
+        return Login();
+      } else {
+        if (jsondata["success"]) {
+          return NewsPage(isAdmin: false);
+        } else {
+          return Login();
+        }
+      }
+    } else {
+      return Login();
+    }
+    //return NewsPage(isAdmin: false);
   }
 
 }
-
-
-// class SlideRightRoute extends PageRouteBuilder {
-//   final Widget page;
-//   SlideRightRoute({required this.page})
-//       : super(
-//     pageBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         ) =>
-//     page,
-//     transitionsBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         Widget child,
-//         ) =>
-//         SlideTransition(
-//           position: Tween<Offset>(
-//             begin: const Offset(-1, 0),
-//             end: Offset.zero,
-//           ).animate(animation),
-//           child: child,
-//         ),
-//   );
-// }
-
-
 
 

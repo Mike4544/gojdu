@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
+import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/navbar.dart';
 import 'package:rive/rive.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
@@ -265,6 +266,17 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   //  <-------------- Loading bool for shimmer loading -------------------->
   late bool isLoading;
 
+  //  <---------------  Scrollcontroller  ------------------------->
+
+  late ScrollController  _scrollController;
+  int maxScrollCount = 5;
+
+ final List<GlobalKey<RefreshIndicatorState>> _indicator = [
+   GlobalKey(),
+   GlobalKey(),
+   GlobalKey()
+ ];
+
 
 
   @override
@@ -291,14 +303,54 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         initialPage: isAdmin ? 1 : 0
     );
 
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent){
+        _getMoreData();
+      }
+    });
+
   }
 
   @override
   void dispose() {
     _announcementsController.dispose();
     _shimmerController.dispose();
+    _scrollController.dispose();
     super.dispose();
 
+
+  }
+
+  void _getMoreData() {
+
+    //  TODO: Maybe make it async
+    maxScrollCount += 5;
+    setState(() {
+
+    });
+
+  }
+
+  void _refresh() async {
+    this._indicator[_currentAnnouncement].currentState?.show();
+    loaded = false;
+    setState(() {
+      maxScrollCount = 5; //  Reset to the original scroll count
+      isLoading = true;
+      load();
+    });
+  }
+
+  void _showWritable() {
+
+     Navigator.push(context, PageRouteBuilder(
+      pageBuilder: (context, a1, a2) =>
+      SlideTransition(
+        position: Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+        child: const PostItPage(),
+      )
+    ));
 
   }
 
@@ -337,6 +389,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       Visibility(
                         visible: isAdmin,
                         child: GestureDetector(
+                          onTap: _showWritable,
                           child: Icon(
                             Icons.add_circle_outline,
                             size: 40,
@@ -550,42 +603,42 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       return ListView.builder(
         physics: BouncingScrollPhysics(),
         shrinkWrap: true,
-        itemCount: 5,
+        itemCount: maxScrollCount,
         itemBuilder: (_, index) =>
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: GestureDetector(
-                onTap: () {
-                  _hero(context, title, description, 'By Mihai', _color);
-                },
-                child: Shimmer.fromColors(
-                  baseColor: ColorsB.gray800,
-                  highlightColor: ColorsB.gray700,
-                  child: Container(                         // Student containers. Maybe get rid of the hero
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _color,
-                        borderRadius: BorderRadius.circular(
-                            50),
-                      ),
+              child: Shimmer.fromColors(
+                baseColor: ColorsB.gray800,
+                highlightColor: ColorsB.gray700,
+                child: Container(                         // Student containers. Maybe get rid of the hero
+                    width: screenWidth * 0.75,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
                     ),
-                ),
-                ),
+                  ),
+              ),
               ),
       );
     }
     else {
       return RefreshIndicator(
+        key: this._indicator.elementAt(_currentAnnouncement),
         backgroundColor: ColorsB.gray900,
         color: _color,
-        onRefresh: () async {},
+        onRefresh: () async {
+          _refresh();
+        },
         child: ListView.builder(
-          physics: BouncingScrollPhysics(),
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: 5,
-          itemBuilder: (_, index) =>
-              Padding(
+          itemCount: maxScrollCount + 1,
+          itemBuilder: (_, index) {
+            if(index != maxScrollCount){
+              return Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: GestureDetector(
                   onTap: () {
@@ -647,7 +700,28 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     ),
                   ),
                 ),
-              ),
+              );
+            }
+            else {
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Shimmer.fromColors(
+                  baseColor: ColorsB.gray800,
+                  highlightColor: ColorsB.gray700,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
+                    width: screenWidth * 0.75,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
         ),
       );
     }
@@ -657,7 +731,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   //  <------------------- Hardcoded loader ------------------>
 
   void load() async {
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
       setState(() {
         isLoading = false;
         loaded = true;
@@ -993,6 +1067,89 @@ class _CalendarState extends State<Calendar> {
     );
   }
 }
+
+
+class PostItPage extends StatefulWidget {
+  const PostItPage({Key? key}) : super(key: key);
+
+  @override
+  State<PostItPage> createState() => _PostItPageState();
+}
+
+class _PostItPageState extends State<PostItPage> {
+
+  //  <---------------  Post controller ---------------->
+  final _postController = TextEditingController();
+
+  @override
+  void dispose() {
+    _postController.dispose();
+    super.dispose();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: ColorsB.gray900,
+        bottomNavigationBar: const BackNavbar(variation: 1,),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          flexibleSpace: Padding(
+            padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
+            child: Row(
+              children: const [
+                Icon(Icons.book, color: ColorsB.yellow500, size: 40,),
+                SizedBox(width: 20,),
+                Text(
+                  'Make a new post',
+                  style: TextStyle(
+                      fontSize: 25,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(35.0),
+            child: Form(
+              child: Column(
+                children: [
+                  const InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '',),
+                  const SizedBox(height: 50,),
+                  TextFormField(
+                    cursorColor: ColorsB.yellow500,
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none
+                      )
+                    ),
+                  )
+
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 
 
