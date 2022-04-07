@@ -1,7 +1,10 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
+import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/navbar.dart';
@@ -778,6 +781,7 @@ class BigNewsContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     var device = MediaQuery.of(context);
 
     return Scaffold(
@@ -785,7 +789,8 @@ class BigNewsContainer extends StatelessWidget {
       backgroundColor: ColorsB.gray900,
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-        child:Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Hero(
               tag: 'title-rectangle',
@@ -804,17 +809,17 @@ class BigNewsContainer extends StatelessWidget {
                         Text(
                           title,
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
                           ),
                         ),
                         Text(
-                          author,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          )
+                            author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
                         )
                       ],
                     ),
@@ -827,9 +832,9 @@ class BigNewsContainer extends StatelessWidget {
               child: Text(
                 description,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.normal
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal
                 ),
               ),
             )
@@ -1079,7 +1084,35 @@ class PostItPage extends StatefulWidget {
 class _PostItPageState extends State<PostItPage> {
 
   //  <---------------  Post controller ---------------->
-  final _postController = TextEditingController();
+  late TextEditingController _postController;
+  late TextEditingController _postTitleController;
+
+  // <---------------  Colors for the preview -------------->
+  late Color? _postColor;
+  late String? _className;
+
+
+  // <---------------  Form key -------------->
+  late final GlobalKey<FormState> _formKey;
+
+  void _updatePreview(Color color, String className) {
+    setState(() {
+      _postColor = color;
+      _className = className;
+    });
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _postController = TextEditingController();
+    _postTitleController = TextEditingController();
+    _formKey = GlobalKey<FormState>();
+    _postColor = null;
+    _className = null;
+  }
 
   @override
   void dispose() {
@@ -1097,25 +1130,29 @@ class _PostItPageState extends State<PostItPage> {
       child: Scaffold(
         backgroundColor: ColorsB.gray900,
         bottomNavigationBar: const BackNavbar(variation: 1,),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          flexibleSpace: Padding(
-            padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
-            child: Row(
-              children: const [
-                Icon(Icons.book, color: ColorsB.yellow500, size: 40,),
-                SizedBox(width: 20,),
-                Text(
-                  'Make a new post',
-                  style: TextStyle(
-                      fontSize: 25,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700
+        extendBody: true,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(75),
+          child: AppBar(
+            backgroundColor: ColorsB.gray900,
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            flexibleSpace: Padding(
+              padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
+              child: Row(
+                children: const [
+                  Icon(Icons.book, color: ColorsB.yellow500, size: 40,),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Make a new post',
+                    style: TextStyle(
+                        fontSize: 25,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1124,26 +1161,142 @@ class _PostItPageState extends State<PostItPage> {
           child: Padding(
             padding: const EdgeInsets.all(35.0),
             child: Form(
+              key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '',),
+                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false,),
                   const SizedBox(height: 50,),
+                  const Text(
+                    'Post contents',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   TextFormField(
+                    controller: _postController,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 5,
                     cursorColor: ColorsB.yellow500,
                     decoration: InputDecoration(
                       fillColor: Colors.white,
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(
+                          color: Colors.red,
+                        )
+                      ),
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none
-                      )
+                        borderSide: BorderSide.none,
+                      ),
                     ),
-                  )
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Field cannot be empty.';
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Select channel',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ClassSelect(update: _updatePreview,),
+                  const SizedBox(height: 100,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          if(_formKey.currentState!.validate()){
 
+                          }
+                        },
+                        child: const Text(
+                          'Post',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            color: Colors.white,
+                            fontWeight: FontWeight.normal,
+                            letterSpacing: 2.5,
+                            fontSize: 20,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || _postColor == null ? ColorsB.gray800 : ColorsB.yellow500,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                        ),
+                      ),
+                      Opacity(
+                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || _postColor == null ? 0.5 : 1,
+                        child: TextButton(
+                          onPressed: () {
+
+                            if(_formKey.currentState!.validate()) {
+
+
+                              Navigator.of(context).push(
+                                  PageRouteBuilder(
+                                      pageBuilder: (context, animation, secAnim) {
+
+                                        return SlideTransition(
+                                          position: Tween<Offset>(
+                                              begin: const Offset(0, 1),
+                                              end: Offset.zero
+                                          ).animate(
+                                              CurvedAnimation(parent: animation, curve: Curves.ease)
+                                          ),
+                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me'),
+                                        );
+                                      }
+
+                                  )
+                              );
+                            }
+
+
+
+                          },
+                          child: const Text(
+                            'Preview',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              color: Colors.white,
+                              fontWeight: FontWeight.normal,
+                              letterSpacing: 2.5,
+                              fontSize: 20,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                            backgroundColor: ColorsB.gray800,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 100,),
                 ],
               ),
             ),
-          ),
+         ),
         ),
       ),
     );

@@ -42,12 +42,16 @@ class _LoginState extends State<Login> {
   //  <-------------- Global size --------------->
   late Size globalSize;
 
+  //  <-------------  Login Indicator ------------>
+  bool isLoggingIn = false;
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     nameError = '';
+    isLoggingIn = false;
   }
 
 
@@ -147,10 +151,10 @@ class _LoginState extends State<Login> {
                                     _passController.value.text.isNotEmpty
                                     ? login
                                     : null,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 30),
-                                  child: Text(
+                                  child: !isLoggingIn ? const Text(
                                       "Sign-in",
                                       style: TextStyle(
                                         color: Colors.white,
@@ -158,7 +162,11 @@ class _LoginState extends State<Login> {
                                         fontWeight: FontWeight.normal,
                                         fontFamily: 'Nunito',
                                         letterSpacing: 2.5,
-                                      )),
+                                      )
+                                  ) :
+                                  const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.gray900),
+                                  )
                                 ),
                                 style: TextButton.styleFrom(
                                     backgroundColor: _nameController.value.text
@@ -252,6 +260,11 @@ class _LoginState extends State<Login> {
     final SharedPreferences prefs2 = await prefs;
 
     if (_formKey.currentState!.validate()) {
+
+      setState(() {
+        isLoggingIn = true;
+      });
+
       var url = Uri.parse('https://automemeapp.com/gojdu.php');
       final response = await http.post(url, body: {
         "username": _nameController.value.text,
@@ -280,17 +293,22 @@ class _LoginState extends State<Login> {
             /*TODO: M/D: Make a 'remember me' check.
                                         We wouldn't want to make the users uncomfy UwU
                                  */
+            setState(() {
+              isLoggingIn = false;
+            });
 
             _tWidth.value = globalSize.width;
             _tHeight.value = globalSize.height;
             _radius.value = 0;
             //user shared preference to save data
           } else {
+            isLoggingIn = false;
             nameError = "Something went wrong.";
           }
         }
       } else {
         setState(() {
+          isLoggingIn = false;
           nameError = "Error during connecting to server.";
         });
       }

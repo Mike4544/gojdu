@@ -69,11 +69,11 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
               builder: (_, value, __ ) =>
                   AnimatedContainer(
                     clipBehavior: Clip.hardEdge,
-                    duration: Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 250),
                     height: height.value,
                     curve: Curves.ease,
                     width: double.infinity,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                         color: ColorsB.gray200,
                         borderRadius: BorderRadius.only(
                             bottomRight: Radius.circular(30),
@@ -85,7 +85,7 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
                       scrollDirection: Axis.vertical,
                       shrinkWrap: true,
                       itemCount: 3,
-                      physics: BouncingScrollPhysics(),
+                      physics: const BouncingScrollPhysics(),
                       itemBuilder: (_, index) =>
                           GestureDetector(
                             onTap: () {

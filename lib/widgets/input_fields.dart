@@ -62,11 +62,11 @@ class _InputFieldState extends State<InputField> {
             errorText: widget.errorMessage!.isNotEmpty ? widget.errorMessage : null,
             hintText: widget.label,
             errorBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: Colors.red),
               borderRadius: BorderRadius.circular(50)
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 4.5, horizontal: 10),
-              fillColor: ColorsB.gray200,
+            contentPadding: const EdgeInsets.symmetric(vertical: 4.5, horizontal: 10),
+              fillColor: Colors.white,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(50),
