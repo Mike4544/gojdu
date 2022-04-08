@@ -11,6 +11,8 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class NewsPage extends StatefulWidget {
 
@@ -548,28 +550,23 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       return ListView.builder(
         physics: BouncingScrollPhysics(),
         shrinkWrap: true,
-        itemCount: 5,
+        itemCount: 10,
         itemBuilder: (_, index) =>
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: GestureDetector(
-                onTap: () {
-                  _hero(context, title, description, 'By Mihai', _color);
-                },
-                child: Shimmer.fromColors(
-                  baseColor: ColorsB.gray800,
-                  highlightColor: ColorsB.gray700,
-                  child: Container(                         // Student containers. Maybe get rid of the hero
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _color,
-                        borderRadius: BorderRadius.circular(
-                            50),
-                      ),
+              child: Shimmer.fromColors(
+                baseColor: ColorsB.gray800,
+                highlightColor: ColorsB.gray700,
+                child: Container(                         // Student containers. Maybe get rid of the hero
+                    width: screenWidth * 0.75,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
                     ),
-                ),
-                ),
+                  ),
+              ),
               ),
       );
     }
@@ -655,13 +652,52 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   //  <------------------- Hardcoded loader ------------------>
 
   void load() async {
+    /*
       await Future.delayed(Duration(seconds: 3));
       setState(() {
         isLoading = false;
         loaded = true;
       });
+      */
+    var url = Uri.parse('https://automemeapp.com/selectposts.php');
+    final response = await http.post(url, body: {
+      "index": "0",
+      "channel": "Student",
+    });
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      var jsondata = json.decode(response.body);
 
+      if (jsondata["1"]["error"]) {
+        setState(() {
+          //nameError = jsondata["message"];
+        });
+      } else {
+        if (jsondata["1"]["success"]) {
+            for(int i = 2; i <= 10; i++)
+              {
+                  String post = jsondata[i.toString()]["post"].toString();
+                  String title = jsondata[i.toString()]["title"].toString();
+                  String owner = jsondata[i.toString()]["owner"].toString();
+                  if(post != "null")
+                    {
+                      print(post+ " this is the post");
+                      print(title+" this is the title");
+                      print(owner+ " this is the owner");
+                    }
 
+              }
+            setState(() {
+              isLoading = false;
+              loaded = true;
+            });
+        }
+        else
+          {
+            print(jsondata["1"]["message"]);
+          }
+      }
+    }
   }
 
   // <-------------- Placing the hero container ---------------> //
