@@ -235,7 +235,7 @@ class _LoginState extends State<Login> {
                       height: _tHeight.value,
                       onEnd: () {
                         Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(isAdmin: true))
+                            builder: (context) => NewsPage(data: loginInfo,))
 
                           //TODO: Remove the hardcoded value
 
@@ -254,6 +254,8 @@ class _LoginState extends State<Login> {
     );
   }
 
+  late Map loginInfo;
+
   void login() async {
     //  TODO: Pass the login info gen
 
@@ -265,7 +267,7 @@ class _LoginState extends State<Login> {
         isLoggingIn = true;
       });
 
-      var url = Uri.parse('https://automemeapp.com/gojdu.php');
+      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
       final response = await http.post(url, body: {
         "username": _nameController.value.text,
         "password": _passController.value.text,
@@ -274,14 +276,17 @@ class _LoginState extends State<Login> {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
           setState(() {
+            isLoggingIn = false;
             nameError = jsondata["message"];
           });
         } else {
           if (jsondata["success"]) {
             //save the data returned from server
             //and navigate to home page
-            String user = jsondata["username"];
-            String email = jsondata["email"];
+            String user = jsondata["username"].toString();
+            String email = jsondata["email"].toString();
+            //String acc_type = jsondata["account"].toString();
+            String acc_type = 'Teacher';
 
             await prefs2.setString('name', _nameController.value.text);
             await prefs2.setString('password', _passController.value.text);
@@ -297,6 +302,14 @@ class _LoginState extends State<Login> {
               isLoggingIn = false;
             });
 
+            final loginMap = {
+              'username': user,
+              'email': email,
+              'account': acc_type,
+            };
+
+            loginInfo = loginMap;
+
             _tWidth.value = globalSize.width;
             _tHeight.value = globalSize.height;
             _radius.value = 0;
@@ -304,6 +317,9 @@ class _LoginState extends State<Login> {
           } else {
             isLoggingIn = false;
             nameError = "Something went wrong.";
+            setState(() {
+
+            });
           }
         }
       } else {

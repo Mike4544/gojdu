@@ -186,10 +186,17 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               String? user = jsondata["username"];
                               String? email = jsondata["email"];
                               String? acc_type = jsondata["account"];
-                              print(acc_type);
+                              print(acc_type.toString());
                               Navigator.of(context).pop('dialog');
+
+                              final loginMap = {
+                                "username": user,
+                                "email": email,
+                                "account": acc_type,
+                              };
+
                               Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (context) => NewsPage(isAdmin: false,)
+                                builder: (context) => NewsPage(data: loginMap,)
                               ));
                               //user shared preference to save data
                             }else{

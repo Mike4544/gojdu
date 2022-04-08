@@ -18,9 +18,9 @@ import 'package:animations/animations.dart';
 
 class NewsPage extends StatefulWidget {
 
-  final bool isAdmin;
+  final Map data;
 
-  const NewsPage({Key? key, required this.isAdmin}) : super(key: key);
+  const NewsPage({Key? key, required this.data}) : super(key: key);
 
   @override
   _NewsPageState createState() => _NewsPageState();
@@ -30,7 +30,7 @@ class NewsPage extends StatefulWidget {
 SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
-
+late final Map globalMap;
 
 // <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
@@ -47,10 +47,7 @@ class _NewsPageState extends State<NewsPage>{
   int _currentIndex = 1;
 
 
-
-
-
-
+  late final accType;
 
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
@@ -87,6 +84,10 @@ class _NewsPageState extends State<NewsPage>{
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    // <---------- Load the acc type -------------->
+    accType = widget.data['account'];
+    globalMap = widget.data;
 
     //  <-----------  Loaded  ------------------>
     loaded = false;
@@ -226,7 +227,7 @@ class _NewsPageState extends State<NewsPage>{
         controller: _pageController,
         children: [
           MapPage(navbarButton: _mapInput),
-          Announcements(navbarButton: _announcementsInput, isAdmin: widget.isAdmin,),
+          Announcements(navbarButton: _announcementsInput),
           Calendar(navbarButton: _reserveInput,)
         ],
       ),
@@ -237,9 +238,8 @@ class _NewsPageState extends State<NewsPage>{
 class Announcements extends StatefulWidget {
 
   final SMIInput<bool>? navbarButton;
-  final bool isAdmin;
 
-  const Announcements({Key? key, required this.navbarButton, required this.isAdmin}) : super(key: key);
+  const Announcements({Key? key, required this.navbarButton}) : super(key: key);
 
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
@@ -253,9 +253,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   var selectedColorP = Colors.white;
 
   late double rectX;
-  
-  // <---------------- Bool for admin ------------------>
-  late final bool isAdmin = widget.isAdmin;
+
 
 
   late final _announcementsController;
@@ -274,11 +272,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   late ScrollController  _scrollController;
   int maxScrollCount = 5;
 
- final List<GlobalKey<RefreshIndicatorState>> _indicator = [
-   GlobalKey(),
-   GlobalKey(),
-   GlobalKey()
- ];
+
+  //  <-----------------  Text Keys ----------------------------->
+  final GlobalKey _textKeyStudent = GlobalKey();
+  final GlobalKey _textKeyTeacher = GlobalKey();
+  final GlobalKey _textKeyParent = GlobalKey();
+
+
 
 
 
@@ -302,8 +302,25 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
     rectX = device.width * 0.107;
 
+    int _getCurrentIndex() {
+      switch(globalMap['account']) {
+        case 'Student':
+          _currentAnnouncement = 0;
+          return 0;
+        case 'Teacher':
+          _currentAnnouncement = 1;
+          return 1;
+        case 'Parent':
+          _currentAnnouncement = 2;
+          return 2;
+        default:
+          return 0;
+      }
+    }
+
     _announcementsController = PageController(
-        initialPage: isAdmin ? 1 : 0
+        initialPage:  _getCurrentIndex(),
+
     );
 
     _scrollController = ScrollController();
@@ -312,6 +329,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         _getMoreData();
       }
     });
+
+    print(globalMap['account']);
 
   }
 
@@ -336,7 +355,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
-    this._indicator[_currentAnnouncement].currentState?.show();
     loaded = false;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
@@ -364,18 +382,44 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   var device = window.physicalSize;
 
+  late var currentWidth;
+
+  //  <----------------- Alignment for the bar -------------->
+  Alignment _alignment = Alignment.center;
+
+
+  List<String> labels = [
+    'Students',
+    'Teachers',
+    'Parents'
+  ];
+
+  Size _textSize(String text, TextStyle style) {
+    final TextPainter textPainter = TextPainter(
+        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr)
+      ..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size;
+  }
+
+  final style = const TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold
+  );
+
+
   @override
   Widget build(BuildContext context) {
 
+    currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return CustomScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Announcements', accType: 'Student account', position: 1,),
+        CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1,),
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
               child: Column(
                 children: [
                   Row(
@@ -388,12 +432,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                             fontWeight: FontWeight.w600
                         ),
                       ),
-                      SizedBox(width: 10,),
+                      const SizedBox(width: 10,),
                       Visibility(
-                        visible: isAdmin,
+                        visible: globalMap['account'] == 'Teacher' ? true : false, // cHANGE IT,
                         child: GestureDetector(
                           onTap: _showWritable,
-                          child: Icon(
+                          child: const Icon(
                             Icons.add_circle_outline,
                             size: 40,
                             color: ColorsB.gray800,
@@ -454,141 +498,131 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   Widget teachersBar() {
-    if(isAdmin){
-      return SizedBox(
-        height: 75,
-        width: device.width * 0.90,
-        child: Container(
-          decoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(50)
-          ),
-          child: Center(
-            child: Stack(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+    if(globalMap['account'] == 'Teacher') {
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: SizedBox(
+          height: 75,
+          width: device.width * 0.90,
+          child: Container(
+            decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(50)
+            ),
+            child: Align(
+              alignment: Alignment(0, 0.5),
+
+              //  TODO: Modify the alignment here.
+              child: Transform.translate(
+                offset: Offset(0, 20),
+                child: Stack(
                   children: [
-                    GestureDetector(
-                      child: Text(
-                        'Students',
-                        style: TextStyle(
-                            color: selectedColorS,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(
+                          child: Text(
+                            'Students',
+                            key: _textKeyStudent,
+                            style: TextStyle(
+                                color: selectedColorS,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedColorS = ColorsB.yellow500;
+                              selectedColorT = Colors.white;
+                              selectedColorP = Colors.white;
+                              _alignment = Alignment.centerLeft;
+                              _currentAnnouncement = 0;
+                              currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                              print(currentWidth);
+                            });
+                            _announcementsController.animateToPage(
+                                _currentAnnouncement,
+                                duration: Duration(milliseconds: 250),
+                                curve: Curves.easeInOut);
+                          },
                         ),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          selectedColorS = ColorsB.yellow500;
-                          selectedColorT = Colors.white;
-                          selectedColorP = Colors.white;
-                          rectX = 0;
-                          _currentAnnouncement = 0;
-                        });
-                        _announcementsController.animateToPage(
-                            _currentAnnouncement,
-                            duration: Duration(milliseconds: 250),
-                            curve: Curves.easeInOut);
-                      },
+                        GestureDetector(
+                          child: Text(
+                            'Teachers',
+                            key: _textKeyTeacher,
+                            style: TextStyle(
+                                color: selectedColorT,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+
+                              setState(() {
+                                selectedColorS = Colors.white;
+                                selectedColorT = ColorsB.yellow500;
+                                selectedColorP = Colors.white;
+                                _alignment = Alignment.center;
+                                _currentAnnouncement = 1;
+                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                print(currentWidth);
+                              });
+                              _announcementsController.animateToPage(
+                                  _currentAnnouncement,
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                          },
+                        ),
+                        GestureDetector(
+                          child: Text(
+                            'Parents',
+                            key: _textKeyParent,
+                            style: TextStyle(
+                                color: selectedColorP,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+
+                              setState(() {
+                                selectedColorS = Colors.white;
+                                selectedColorT = Colors.white;
+                                selectedColorP = ColorsB.yellow500;
+                                _alignment = Alignment.centerRight;
+                                _currentAnnouncement = 2;
+                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                print(currentWidth);
+                              });
+                              _announcementsController.animateToPage(
+                                  _currentAnnouncement,
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                            }
+                        )
+                      ],
                     ),
-                    GestureDetector(
-                      child: Text(
-                        'Teachers',
-                        style: TextStyle(
-                            color: isAdmin ? selectedColorT : Colors.grey.withOpacity(0.25),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
+                    AnimatedAlign(
+                      curve: Curves.easeInOut,
+                      duration: Duration(milliseconds: 250),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: currentWidth/3),
+                        child: AnimatedContainer(
+                          curve: Curves.easeInOut,
+                          duration: const Duration(milliseconds: 250),
+                          width: currentWidth,
+                          height: 2,
+                          color: ColorsB.yellow500,
                         ),
                       ),
-                      onTap: () {
-                        if(isAdmin) {
-                          setState(() {
-                            selectedColorS = Colors.white;
-                            selectedColorT = ColorsB.yellow500;
-                            selectedColorP = Colors.white;
-                            rectX = device.width * 0.107;
-                            _currentAnnouncement = 1;
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: ColorsB.yellow500,
-                                content: Text(
-                                  'You\'re not a teacher, dude.',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              )
-                          );
-                        }
-                      },
+                      alignment: _alignment,
                     ),
-                    GestureDetector(
-                      child: Text(
-                        'Parents',
-                        style: TextStyle(
-                            color: isAdmin ? selectedColorP : Colors.grey.withOpacity(0.25),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      onTap: () {
-                        if(isAdmin) {
-                          setState(() {
-                            selectedColorS = Colors.white;
-                            selectedColorT = Colors.white;
-                            selectedColorP = ColorsB.yellow500;
-                            rectX = device.width * 0.21;
-                            _currentAnnouncement = 2;
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: ColorsB.yellow500,
-                                content: Text(
-                                  'You\'re not a parent, dude.',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              )
-                          );
-                        }
-                      },
-                    )
+
                   ],
                 ),
-                AnimatedPositioned(
-                  curve: Curves.easeInOut,
-                  duration: Duration(milliseconds: 250),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 25),
-                    child: Container(
-                      width: 75,
-                      height: 2,
-                      color: ColorsB.yellow500,
-                    ),
-                  ),
-                  left: rectX,
-                  top: 26,
-                ),
-
-              ],
+              ),
             ),
           ),
         ),
@@ -628,7 +662,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
     else {
       return RefreshIndicator(
-        key: this._indicator.elementAt(_currentAnnouncement),
         backgroundColor: ColorsB.gray900,
         color: _color,
         onRefresh: () async {
@@ -954,7 +987,7 @@ class _MapPageState extends State<MapPage>{
     return CustomScrollView(
       physics: BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Map', position: 0, accType: 'Student account'),
+        CurvedAppbar(name: 'Map', position: 0, accType: globalMap['account'] + ' account'),
 
         SliverToBoxAdapter(
             child: Padding(

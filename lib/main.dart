@@ -73,7 +73,7 @@ Future<Widget> getPage() async {
   }
   else {
     //print(true);
-    var url = Uri.parse('https://automemeapp.com/gojdu.php');
+    var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
     final response = await http.post(url, body: {
       "username": prefs.getString('name').toString(),
       "password": prefs.getString('password').toString(),
@@ -84,7 +84,21 @@ Future<Widget> getPage() async {
         return Login();
       } else {
         if (jsondata["success"]) {
-          return NewsPage(isAdmin: false);
+          String? email = jsondata["email"];
+          String? name = jsondata["username"];
+          //String? acc_type = jsondata["account"];
+          String acc_type = 'Teacher';
+
+
+
+          final loginMap = {
+            "email": email,
+            "name": name,
+            "account": acc_type,
+          };
+
+
+          return NewsPage(data: loginMap,);
         } else {
           return Login();
         }
