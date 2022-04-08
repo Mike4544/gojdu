@@ -172,10 +172,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
                           "password_2": _repPassword.value.text,
                           "email": _mail.value.text,
                         });
-                        print(response.statusCode);
                         if(response.statusCode == 200){
                           var jsondata = json.decode(response.body);
-                          print(jsondata);
                           if(jsondata["error"]){
                             setState(() {
                               error = jsondata["message"];
@@ -188,7 +186,6 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               String? user = jsondata["username"];
                               String? email = jsondata["email"];
                               String? acc_type = jsondata["account"];
-                              print(acc_type.toString());
                               Navigator.of(context).pop('dialog');
 
                               final loginMap = {
