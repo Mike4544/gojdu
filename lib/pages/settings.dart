@@ -16,6 +16,26 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+
+  late String? fn, ln, email;
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+
+  Future<int> _getData() async {
+    final prefs = await _prefs;
+    fn = prefs.getString('first_name');
+    ln = prefs.getString('last_name');
+    email = prefs.getString('email');
+
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -89,82 +109,101 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: device.height * 0.35,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Row(
+                FutureBuilder(
+                  future: _getData(),
+                  builder: (context, snapshot) {
+                    if(!snapshot.hasData){
+                      return const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+                      );
+                    }
+                    return SizedBox(
+                      height: device.height * 0.35,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                                color: Colors.blueGrey[900]!.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(50),
-                              border: Border.all(color: Colors.grey[900]!)
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8.5),
-                              child: Center(
-                                child: Text(
-                                  'ceva@gojdu.com',
-                                  style: TextStyle(
-                                      color: Colors.white24.withOpacity(0.5),
-                                    fontSize: 15,
-                                  ),
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.blueGrey[900]!.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(50),
+                                    border: Border.all(color: Colors.grey[900]!)
                                 ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Transform.translate(
-                            offset: const Offset(0, 4),
-                            child: Text(
-                              'Tira Mihai',
-                              style: TextStyle(
-                                color: ColorsB.gray800,
-                                fontSize: 20,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Transform.translate(
-                            offset: const Offset(0, 5),
-                            child: TextButton(
-                              onPressed: () {
-                                //  Change pass
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                child: Center(
-                                  child: Text(
-                                    'Change your password',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.normal
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8.5),
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.fitWidth,
+                                      child: Text(
+                                        email!,
+                                        style: TextStyle(
+                                          color: Colors.white24.withOpacity(0.5),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              style: TextButton.styleFrom(
-                                  backgroundColor: ColorsB.gray800,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                  )
-                              ),
-                            ),
-                          )
+                                constraints: BoxConstraints(
+                                    minWidth: 100,
+                                    maxWidth: device.width * 0.5,
+                                ),
+                              )
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Transform.translate(
+                                offset: const Offset(0, 4),
+                                child: FittedBox(
+                                  fit: BoxFit.fitWidth,
+                                  child: Text(
+                                    ln! + ' ' + fn!,
+                                    style: TextStyle(
+                                      color: ColorsB.gray800,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Transform.translate(
+                                offset: const Offset(0, 5),
+                                child: TextButton(
+                                  onPressed: () {
+                                    //  Change pass
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    child: Center(
+                                      child: Text(
+                                        'Change your password',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.normal
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: ColorsB.gray800,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                      )
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+
                         ],
                       ),
-
-                    ],
-                  ),
+                    );
+                  }
                 )
               ],
             ),

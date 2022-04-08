@@ -33,6 +33,15 @@ late bool loaded;
 
 late Map globalMap;
 
+//  <-------------- Lists ------------->
+List<String> titles = [];
+List<String> descriptions = [];
+List<String> owners = [];
+
+int maximumCount = 0;
+
+var currentChannel = "";
+
 // <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
@@ -288,32 +297,19 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.navbarButton?.value = true;
-    _mapInput?.value = false;
-    _reserveInput?.value = false;
-    _currentAnnouncement = 1;
-    _shimmerController = AnimationController.unbounded(vsync: this)
-      ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
-
-    if(!loaded) {
-      isLoading = true;
-      load();
-    }
-    else {
-      isLoading = false;
-    }
-    rectX = device.width * 0.107;
-
     int _getCurrentIndex() {
       switch(globalMap['account']) {
         case 'Student':
           _currentAnnouncement = 0;
+          currentChannel = 'Students';
           return 0;
         case 'Teacher':
           _currentAnnouncement = 1;
+          currentChannel = 'Teachers';
           return 1;
         case 'Parent':
           _currentAnnouncement = 2;
+          currentChannel = 'Parents';
           return 2;
         default:
           return 0;
@@ -321,9 +317,23 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
 
     _announcementsController = PageController(
-        initialPage:  _getCurrentIndex(),
+      initialPage:  _getCurrentIndex(),
 
     );
+    widget.navbarButton?.value = true;
+    _mapInput?.value = false;
+    _reserveInput?.value = false;
+    _currentAnnouncement = 1;
+    _shimmerController = AnimationController.unbounded(vsync: this)
+      ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
+
+    if(descriptions.isEmpty) {
+      isLoading = true;
+      load(currentChannel);
+    }
+    else {
+      isLoading = false;
+    }
 
     _scrollController = ScrollController();
     _scrollController.addListener(() {
@@ -341,6 +351,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _announcementsController.dispose();
     _shimmerController.dispose();
     _scrollController.dispose();
+    titles.clear();
+    descriptions.clear();
+    owners.clear();
     super.dispose();
 
 
@@ -358,10 +371,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   void _refresh() async {
     loaded = false;
+    titles.clear();
+    owners.clear();
+    descriptions.clear();
+    maximumCount = 0;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
       isLoading = true;
-      load();
+      load(currentChannel);
     });
   }
 
@@ -385,6 +402,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   var device = window.physicalSize;
 
   late var currentWidth;
+
+  // Max max max posts
+
 
   //  <----------------- Alignment for the bar -------------->
   Alignment _alignment = Alignment.center;
@@ -541,7 +561,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               _alignment = Alignment.centerLeft;
                               _currentAnnouncement = 0;
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                              currentChannel = 'Students';
                               print(currentWidth);
+                              _refresh();
                             });
                             _announcementsController.animateToPage(
                                 _currentAnnouncement,
@@ -568,7 +590,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _alignment = Alignment.center;
                                 _currentAnnouncement = 1;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                currentChannel = 'Teachers';
                                 print(currentWidth);
+                                _refresh();
                               });
                               _announcementsController.animateToPage(
                                   _currentAnnouncement,
@@ -595,8 +619,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _alignment = Alignment.centerRight;
                                 _currentAnnouncement = 2;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                currentChannel = 'Parents';
                                 print(currentWidth);
+                                _refresh();
                               });
+
                               _announcementsController.animateToPage(
                                   _currentAnnouncement,
                                   duration: Duration(milliseconds: 250),
@@ -640,7 +667,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   Widget _buildLists(Color _color) {
     if(isLoading) {
       return ListView.builder(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         shrinkWrap: true,
         itemCount: maxScrollCount,
         itemBuilder: (_, index) =>
@@ -673,14 +700,19 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: maxScrollCount + 1,
+          itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
           itemBuilder: (_, index) {
+
+            title = titles[index];
+            description = descriptions[index];
+            var owner = owners[index];
+
             if(index != maxScrollCount){
               return Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: GestureDetector(
                   onTap: () {
-                    _hero(context, title, description, 'By Mihai', _color);
+                    _hero(context, titles[index], descriptions[index], owners[index], _color);
                   },
                   child: SizedBox(
                     width: screenWidth * 0.75,
@@ -708,7 +740,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               ),
                             ),
                             Text(
-                              'By Mihai',     //  Hard coded!!
+                              'by ' + owner,     //  Hard coded!!
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.5),
                                 fontSize: 15,
@@ -740,7 +772,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ),
               );
             }
-            else {
+            else{
               return Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Shimmer.fromColors(
@@ -768,7 +800,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   //  <------------------- Hardcoded loader ------------------>
 
-  void load() async {
+
+
+
+
+  Future<int> load(String channel) async {
     /*
       await Future.delayed(const Duration(seconds: 3));
       setState(() {
@@ -780,7 +816,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       var url = Uri.parse('https://automemeapp.com/selectposts.php');
           final response = await http.post(url, body: {
             "index": "0",
-            "channel": "Student",
+            "channel": channel,
           });
       print(response.statusCode);
       if (response.statusCode == 200) {
@@ -792,17 +828,27 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           });
         } else {
           if (jsondata["1"]["success"]) {
-            for(int i = 2; i <= 10; i++)
+
+            for(int i = 2; i <= 52; i++)
             {
               String post = jsondata[i.toString()]["post"].toString();
               String title = jsondata[i.toString()]["title"].toString();
               String owner = jsondata[i.toString()]["owner"].toString();
-              if(post != "null")
+
+
+              if(post != "null" && post != null){
+                titles.add(title);
+                descriptions.add(post);
+                owners.add(owner);
+                ++maximumCount;
+              }
+
+              /* if(post != "null")
               {
                 print(post+ " this is the post");
                 print(title+" this is the title");
                 print(owner+ " this is the owner");
-              }
+              } */
 
             }
             setState(() {
@@ -816,6 +862,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       }
+
+      return 0;
 
   }
 
@@ -831,7 +879,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: 'By Mihai',),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author,),
               )
         )
     );
@@ -891,7 +939,7 @@ class BigNewsContainer extends StatelessWidget {
                           ),
                         ),
                         Text(
-                            author,
+                            "by " + author,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -1124,6 +1172,8 @@ class Calendar extends StatefulWidget {
 
 class _CalendarState extends State<Calendar> {
 
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -1131,6 +1181,7 @@ class _CalendarState extends State<Calendar> {
     widget.navbarButton?.value = true;
     _announcementsInput?.value = false;
     _mapInput?.value = false;
+
   }
 
   @override
@@ -1294,9 +1345,29 @@ class _PostItPageState extends State<PostItPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if(_formKey.currentState!.validate()){
-
+                            var url = Uri.parse('https://automemeapp.com/insertposts.php');
+                                final response = await http.post(url, body: {
+                                  "title": _postTitleController.value.text,
+                                  "channel": _className,
+                                  "body": _postController.value.text,
+                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                });
+                            if (response.statusCode == 200) {
+                              var jsondata = json.decode(response.body);
+                              print(jsondata);
+                              if (jsondata["error"]) {
+                              } else {
+                                if (jsondata["success"]){
+                                  Navigator.pop(context);
+                                }
+                                else
+                                {
+                                  print(jsondata["message"]);
+                                }
+                              }
+                            }
                           }
                         },
                         child: const Text(

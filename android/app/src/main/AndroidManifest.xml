@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.gojdu.app.gojdu">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
    <application
         android:label="gojdu"
         android:name="${applicationName}"
