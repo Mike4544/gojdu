@@ -792,16 +792,18 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           });
         } else {
           if (jsondata["1"]["success"]) {
-            for(int i = 2; i <= 10; i++)
+            // bool reloadable = true;
+            // index ------> global variable
+            // maxindex = index + 10;
+            for(int i = 2; i <= 10; i++) //index; index <= maxindex; index++
             {
               String post = jsondata[i.toString()]["post"].toString();
               String title = jsondata[i.toString()]["title"].toString();
               String owner = jsondata[i.toString()]["owner"].toString();
               if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //reloadable = false; ------> nu o sa se incarce mai multe postari
+                break;
               }
 
             }
