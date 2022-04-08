@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/pages/news.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -20,6 +21,9 @@ class _LoginState extends State<Login> {
       TextEditingController());
   final _passController = ValueNotifier<TextEditingController>(
       TextEditingController());
+
+  //  <-------------------------  Prefs Files ------------------>
+  final Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
 
   //Transition width and height
@@ -38,12 +42,16 @@ class _LoginState extends State<Login> {
   //  <-------------- Global size --------------->
   late Size globalSize;
 
+  //  <-------------  Login Indicator ------------>
+  bool isLoggingIn = false;
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     nameError = '';
+    isLoggingIn = false;
   }
 
 
@@ -93,7 +101,7 @@ class _LoginState extends State<Login> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              InputField(fieldName: "Name",
+                              InputField(fieldName: "Email",
                                 isPassword: false,
                                 lengthLimiter: 15,
                                 controller: _nameController.value,
@@ -143,10 +151,10 @@ class _LoginState extends State<Login> {
                                     _passController.value.text.isNotEmpty
                                     ? login
                                     : null,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 30),
-                                  child: Text(
+                                  child: !isLoggingIn ? const Text(
                                       "Sign-in",
                                       style: TextStyle(
                                         color: Colors.white,
@@ -154,7 +162,11 @@ class _LoginState extends State<Login> {
                                         fontWeight: FontWeight.normal,
                                         fontFamily: 'Nunito',
                                         letterSpacing: 2.5,
-                                      )),
+                                      )
+                                  ) :
+                                  const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.gray900),
+                                  )
                                 ),
                                 style: TextButton.styleFrom(
                                     backgroundColor: _nameController.value.text
@@ -223,7 +235,7 @@ class _LoginState extends State<Login> {
                       height: _tHeight.value,
                       onEnd: () {
                         Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(isAdmin: true))
+                            builder: (context) => NewsPage(data: loginInfo,))
 
                           //TODO: Remove the hardcoded value
 
@@ -242,27 +254,44 @@ class _LoginState extends State<Login> {
     );
   }
 
+  late Map loginInfo;
+
   void login() async {
     //  TODO: Pass the login info gen
 
+    final SharedPreferences prefs2 = await prefs;
+
     if (_formKey.currentState!.validate()) {
-      var url = Uri.parse('https://automemeapp.com/gojdu.php');
+
+      setState(() {
+        isLoggingIn = true;
+      });
+
+      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
       final response = await http.post(url, body: {
-        "username": _nameController.value.text,
+        "email": _nameController.value.text,
         "password": _passController.value.text,
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
           setState(() {
+            isLoggingIn = false;
             nameError = jsondata["message"];
           });
         } else {
           if (jsondata["success"]) {
             //save the data returned from server
             //and navigate to home page
-            String user = jsondata["username"];
-            String email = jsondata["email"];
+            String fn = jsondata["first_name"].toString();
+            String ln = jsondata["last_name"].toString();
+            String email = jsondata["email"].toString();
+            String acc_type = jsondata["account"].toString();
+            //String acc_type = 'Teacher';
+
+            await prefs2.setString('name', _nameController.value.text);
+            await prefs2.setString('password', _passController.value.text);
+
             print("The name is ${_nameController.value
                 .text} and the password is ${_passController.value.text}");
             //TODO: D: Send info to the server - Darius fa-ti magia
@@ -270,17 +299,34 @@ class _LoginState extends State<Login> {
             /*TODO: M/D: Make a 'remember me' check.
                                         We wouldn't want to make the users uncomfy UwU
                                  */
+            setState(() {
+              isLoggingIn = false;
+            });
+
+            final loginMap = {
+              'first_name': fn,
+              'last_name': ln,
+              'email': email,
+              'account': acc_type,
+            };
+
+            loginInfo = loginMap;
 
             _tWidth.value = globalSize.width;
             _tHeight.value = globalSize.height;
             _radius.value = 0;
             //user shared preference to save data
           } else {
+            isLoggingIn = false;
             nameError = "Something went wrong.";
+            setState(() {
+
+            });
           }
         }
       } else {
         setState(() {
+          isLoggingIn = false;
           nameError = "Error during connecting to server.";
         });
       }

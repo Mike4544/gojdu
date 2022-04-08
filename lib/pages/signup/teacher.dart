@@ -6,6 +6,8 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/styled_dropdown.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class TeacherSignUp extends StatefulWidget {
   const TeacherSignUp({Key? key}) : super(key: key);
@@ -237,17 +239,60 @@ class _FirstPageState extends State<FirstPage> {
                           ),
                         )
                     );
-                    await Future.delayed(Duration(seconds: 3));
-                    print('Done');
-                    Navigator.of(context).pop('dialog');
-                    setState(() {
-                      widget.update!(false);
+                    //await Future.delayed(Duration(seconds: 3));
 
-
-                      /* aici ii butonu pt 'Continue de la teachers */
-
+                    var url = Uri.parse('https://automemeapp.com/register_teacher.php');
+                    final response = await http.post(url, body: {
+                      "first_name": _username.value.text,
+                      "last_name": _lastname.value.text,
+                      "password_1": _password.value.text,
+                      "password_2": _repPassword.value.text,
+                      "email": _mail.value.text,
                     });
+                    print(response.statusCode);
+                    if(response.statusCode == 200){
+                      var jsondata = json.decode(response.body);
+                      if(jsondata["error"]){
+                        setState(() {
+                          error = jsondata["message"];
+                          Navigator.of(context).pop('dialog');
+                        });
+                      }else{
+                        if(jsondata["success"]){
+                          //save the data returned from server
+                          //and navigate to home page
+                          String? user = jsondata["username"];
+                          String? email = jsondata["email"];
+                          String? acc_type = jsondata["account"];
+                          print(acc_type.toString());
+                          Navigator.of(context).pop('dialog');
+
+                          final loginMap = {
+                            "username": user,
+                            "email": email,
+                            "account": acc_type,
+                          };
+
+                          widget.update!(false);
+                          //user shared preference to save data
+                        }else{
+                          error = "Error connecting.";
+                          Navigator.of(context).pop('dialog');
+                        }
+                      }
+                    }else{
+                      setState(() {
+                        error = "wtf?";
+                        Navigator.of(context).pop('dialog');
+
+                      });
+                    }
+
+
+
+                    //TODO: Add funtionality to the student register button
                   }
+                 //widget.update!(false);
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),

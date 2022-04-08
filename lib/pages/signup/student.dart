@@ -166,7 +166,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                         var url = Uri.parse('https://automemeapp.com/register_student.php');
                         final response = await http.post(url, body: {
-                          "username": _username.value.text,
+                          "first_name": _username.value.text,
+                          "last_name": _lastname.value.text,
                           "password_1": _password.value.text,
                           "password_2": _repPassword.value.text,
                           "email": _mail.value.text,
@@ -174,6 +175,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         print(response.statusCode);
                         if(response.statusCode == 200){
                           var jsondata = json.decode(response.body);
+                          print(jsondata);
                           if(jsondata["error"]){
                             setState(() {
                               error = jsondata["message"];
@@ -186,10 +188,17 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               String? user = jsondata["username"];
                               String? email = jsondata["email"];
                               String? acc_type = jsondata["account"];
-                              print(acc_type);
+                              print(acc_type.toString());
                               Navigator.of(context).pop('dialog');
+
+                              final loginMap = {
+                                "username": user,
+                                "email": email,
+                                "account": acc_type,
+                              };
+
                               Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (context) => NewsPage(isAdmin: false,)
+                                builder: (context) => NewsPage(data: loginMap,)
                               ));
                               //user shared preference to save data
                             }else{

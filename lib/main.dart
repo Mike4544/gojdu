@@ -18,8 +18,19 @@ import 'package:gojdu/pages/signup/parent/parent_init.dart';
 //Importing the splash screen
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+//  Preferences
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+//  HTTP
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final Widget homeWidget = await getPage();
+
   Paint.enableDithering = true;
   
   FlutterNativeSplash.removeAfter(initialization);
@@ -32,18 +43,11 @@ void main() {
       fontFamily: 'Nunito',
     ),
 
-    onGenerateRoute: (settings) {
-      switch(settings.name) {
-        case '/signup/student':
-          //return SlideRightRoute(page: StudentSignUp());
-          break;
-      }
-    },
 
 
-    initialRoute: '/',
+
+    home: homeWidget,
     routes: {
-      '/': (context) => const Login(),
       '/signup': (context) => const SignupSelect(),
       '/signup/student': (context) => const StudentSignUp(),
       '/signup/teachers': (context) => const TeacherSignUp(),
@@ -58,33 +62,55 @@ void initialization(BuildContext context) async {
   await Future.delayed(Duration(seconds: 2));
 }
 
+Future<Widget> getPage() async {
 
-// class SlideRightRoute extends PageRouteBuilder {
-//   final Widget page;
-//   SlideRightRoute({required this.page})
-//       : super(
-//     pageBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         ) =>
-//     page,
-//     transitionsBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         Widget child,
-//         ) =>
-//         SlideTransition(
-//           position: Tween<Offset>(
-//             begin: const Offset(-1, 0),
-//             end: Offset.zero,
-//           ).animate(animation),
-//           child: child,
-//         ),
-//   );
-// }
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  print(prefs.getString('name').toString());
+
+  if(!(prefs.getString('name') != null && prefs.getString("password") != null)){
+    print(false);
+    return Login();
+  }
+  else {
+    //print(true);
+    var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+    final response = await http.post(url, body: {
+      "username": prefs.getString('name').toString(),
+      "password": prefs.getString('password').toString(),
+    });
+    if (response.statusCode == 200) {
+      var jsondata = json.decode(response.body);
+      if (jsondata["error"]) {
+        return Login();
+      } else {
+        if (jsondata["success"]) {
+          String fn = jsondata["first_name"].toString();
+          String ln = jsondata["last_name"].toString();
+          String email = jsondata["email"].toString();
+          String acc_type = jsondata["account"].toString();
+          //String acc_type = 'Teacher';
 
 
+
+          final loginMap = {
+            'first_name': fn,
+            'last_name': ln,
+            'email': email,
+            'account': acc_type,
+          };
+
+
+          return NewsPage(data: loginMap,);
+        } else {
+          return Login();
+        }
+      }
+    } else {
+      return Login();
+    }
+    //return NewsPage(isAdmin: false);
+  }
+
+}
 
 

@@ -1,8 +1,13 @@
+import 'dart:ffi';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
+import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
+import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/navbar.dart';
 import 'package:rive/rive.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
@@ -11,14 +16,12 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class NewsPage extends StatefulWidget {
 
-  final bool isAdmin;
+  final Map data;
 
-  const NewsPage({Key? key, required this.isAdmin}) : super(key: key);
+  const NewsPage({Key? key, required this.data}) : super(key: key);
 
   @override
   _NewsPageState createState() => _NewsPageState();
@@ -28,7 +31,7 @@ class NewsPage extends StatefulWidget {
 SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
-
+late Map globalMap;
 
 // <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
@@ -45,10 +48,7 @@ class _NewsPageState extends State<NewsPage>{
   int _currentIndex = 1;
 
 
-
-
-
-
+  late final accType;
 
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
@@ -85,6 +85,10 @@ class _NewsPageState extends State<NewsPage>{
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    // <---------- Load the acc type -------------->
+    accType = widget.data['account'];
+    globalMap = widget.data;
 
     //  <-----------  Loaded  ------------------>
     loaded = false;
@@ -139,6 +143,7 @@ class _NewsPageState extends State<NewsPage>{
     // TODO: implement dispose
     super.dispose();
     _pageController.dispose();
+    globalMap.clear();
   }
 
 
@@ -224,7 +229,7 @@ class _NewsPageState extends State<NewsPage>{
         controller: _pageController,
         children: [
           MapPage(navbarButton: _mapInput),
-          Announcements(navbarButton: _announcementsInput, isAdmin: widget.isAdmin,),
+          Announcements(navbarButton: _announcementsInput),
           Calendar(navbarButton: _reserveInput,)
         ],
       ),
@@ -235,9 +240,8 @@ class _NewsPageState extends State<NewsPage>{
 class Announcements extends StatefulWidget {
 
   final SMIInput<bool>? navbarButton;
-  final bool isAdmin;
 
-  const Announcements({Key? key, required this.navbarButton, required this.isAdmin}) : super(key: key);
+  const Announcements({Key? key, required this.navbarButton}) : super(key: key);
 
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
@@ -251,14 +255,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   var selectedColorP = Colors.white;
 
   late double rectX;
-  
-  // <---------------- Bool for admin ------------------>
-  late final bool isAdmin = widget.isAdmin;
 
 
-  final _announcementsController = PageController(
-      initialPage: 1
-  );
+
+  late final _announcementsController;
 
   var _currentAnnouncement = 1;
 
@@ -268,6 +268,19 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   //  <-------------- Loading bool for shimmer loading -------------------->
   late bool isLoading;
+
+  //  <---------------  Scrollcontroller  ------------------------->
+
+  late ScrollController  _scrollController;
+  int maxScrollCount = 5;
+
+
+  //  <-----------------  Text Keys ----------------------------->
+  final GlobalKey _textKeyStudent = GlobalKey();
+  final GlobalKey _textKeyTeacher = GlobalKey();
+  final GlobalKey _textKeyParent = GlobalKey();
+
+
 
 
 
@@ -291,14 +304,76 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
     rectX = device.width * 0.107;
 
+    int _getCurrentIndex() {
+      switch(globalMap['account']) {
+        case 'Student':
+          _currentAnnouncement = 0;
+          return 0;
+        case 'Teacher':
+          _currentAnnouncement = 1;
+          return 1;
+        case 'Parent':
+          _currentAnnouncement = 2;
+          return 2;
+        default:
+          return 0;
+      }
+    }
+
+    _announcementsController = PageController(
+        initialPage:  _getCurrentIndex(),
+
+    );
+
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent){
+        _getMoreData();
+      }
+    });
+
+    print(globalMap['account']);
+
   }
 
   @override
   void dispose() {
     _announcementsController.dispose();
     _shimmerController.dispose();
+    _scrollController.dispose();
     super.dispose();
 
+
+  }
+
+  void _getMoreData() {
+
+    //  TODO: Maybe make it async
+    maxScrollCount += 5;
+    setState(() {
+
+    });
+
+  }
+
+  void _refresh() async {
+    loaded = false;
+    setState(() {
+      maxScrollCount = 5; //  Reset to the original scroll count
+      isLoading = true;
+      load();
+    });
+  }
+
+  void _showWritable() {
+
+     Navigator.push(context, PageRouteBuilder(
+      pageBuilder: (context, a1, a2) =>
+      SlideTransition(
+        position: Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+        child: const PostItPage(),
+      )
+    ));
 
   }
 
@@ -309,18 +384,44 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   var device = window.physicalSize;
 
+  late var currentWidth;
+
+  //  <----------------- Alignment for the bar -------------->
+  Alignment _alignment = Alignment.center;
+
+
+  List<String> labels = [
+    'Students',
+    'Teachers',
+    'Parents'
+  ];
+
+  Size _textSize(String text, TextStyle style) {
+    final TextPainter textPainter = TextPainter(
+        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr)
+      ..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size;
+  }
+
+  final style = const TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold
+  );
+
+
   @override
   Widget build(BuildContext context) {
 
+    currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return CustomScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Announcements', accType: 'Student account', position: 1,),
+        CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1,),
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
               child: Column(
                 children: [
                   Row(
@@ -333,11 +434,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                             fontWeight: FontWeight.w600
                         ),
                       ),
-                      SizedBox(width: 10,),
+                      const SizedBox(width: 10,),
                       Visibility(
-                        visible: isAdmin,
+                        visible: globalMap['account'] == 'Teacher' ? true : false, // cHANGE IT,
                         child: GestureDetector(
-                          child: Icon(
+                          onTap: _showWritable,
+                          child: const Icon(
                             Icons.add_circle_outline,
                             size: 40,
                             color: ColorsB.gray800,
@@ -398,141 +500,131 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   Widget teachersBar() {
-    if(isAdmin){
-      return SizedBox(
-        height: 75,
-        width: device.width * 0.90,
-        child: Container(
-          decoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(50)
-          ),
-          child: Center(
-            child: Stack(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+    if(globalMap['account'] == 'Teacher') {
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: SizedBox(
+          height: 75,
+          width: device.width * 0.90,
+          child: Container(
+            decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(50)
+            ),
+            child: Align(
+              alignment: Alignment(0, 0.5),
+
+              //  TODO: Modify the alignment here.
+              child: Transform.translate(
+                offset: Offset(0, 20),
+                child: Stack(
                   children: [
-                    GestureDetector(
-                      child: Text(
-                        'Students',
-                        style: TextStyle(
-                            color: selectedColorS,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(
+                          child: Text(
+                            'Students',
+                            key: _textKeyStudent,
+                            style: TextStyle(
+                                color: selectedColorS,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedColorS = ColorsB.yellow500;
+                              selectedColorT = Colors.white;
+                              selectedColorP = Colors.white;
+                              _alignment = Alignment.centerLeft;
+                              _currentAnnouncement = 0;
+                              currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                              print(currentWidth);
+                            });
+                            _announcementsController.animateToPage(
+                                _currentAnnouncement,
+                                duration: Duration(milliseconds: 250),
+                                curve: Curves.easeInOut);
+                          },
                         ),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          selectedColorS = ColorsB.yellow500;
-                          selectedColorT = Colors.white;
-                          selectedColorP = Colors.white;
-                          rectX = 0;
-                          _currentAnnouncement = 0;
-                        });
-                        _announcementsController.animateToPage(
-                            _currentAnnouncement,
-                            duration: Duration(milliseconds: 250),
-                            curve: Curves.easeInOut);
-                      },
+                        GestureDetector(
+                          child: Text(
+                            'Teachers',
+                            key: _textKeyTeacher,
+                            style: TextStyle(
+                                color: selectedColorT,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+
+                              setState(() {
+                                selectedColorS = Colors.white;
+                                selectedColorT = ColorsB.yellow500;
+                                selectedColorP = Colors.white;
+                                _alignment = Alignment.center;
+                                _currentAnnouncement = 1;
+                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                print(currentWidth);
+                              });
+                              _announcementsController.animateToPage(
+                                  _currentAnnouncement,
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                          },
+                        ),
+                        GestureDetector(
+                          child: Text(
+                            'Parents',
+                            key: _textKeyParent,
+                            style: TextStyle(
+                                color: selectedColorP,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          onTap: () {
+
+                              setState(() {
+                                selectedColorS = Colors.white;
+                                selectedColorT = Colors.white;
+                                selectedColorP = ColorsB.yellow500;
+                                _alignment = Alignment.centerRight;
+                                _currentAnnouncement = 2;
+                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                print(currentWidth);
+                              });
+                              _announcementsController.animateToPage(
+                                  _currentAnnouncement,
+                                  duration: Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut);
+                            }
+                        )
+                      ],
                     ),
-                    GestureDetector(
-                      child: Text(
-                        'Teachers',
-                        style: TextStyle(
-                            color: isAdmin ? selectedColorT : Colors.grey.withOpacity(0.25),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
+                    AnimatedAlign(
+                      curve: Curves.easeInOut,
+                      duration: Duration(milliseconds: 250),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: currentWidth/3),
+                        child: AnimatedContainer(
+                          curve: Curves.easeInOut,
+                          duration: const Duration(milliseconds: 250),
+                          width: currentWidth,
+                          height: 2,
+                          color: ColorsB.yellow500,
                         ),
                       ),
-                      onTap: () {
-                        if(isAdmin) {
-                          setState(() {
-                            selectedColorS = Colors.white;
-                            selectedColorT = ColorsB.yellow500;
-                            selectedColorP = Colors.white;
-                            rectX = device.width * 0.107;
-                            _currentAnnouncement = 1;
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: ColorsB.yellow500,
-                                content: Text(
-                                  'You\'re not a teacher, dude.',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              )
-                          );
-                        }
-                      },
+                      alignment: _alignment,
                     ),
-                    GestureDetector(
-                      child: Text(
-                        'Parents',
-                        style: TextStyle(
-                            color: isAdmin ? selectedColorP : Colors.grey.withOpacity(0.25),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      onTap: () {
-                        if(isAdmin) {
-                          setState(() {
-                            selectedColorS = Colors.white;
-                            selectedColorT = Colors.white;
-                            selectedColorP = ColorsB.yellow500;
-                            rectX = device.width * 0.21;
-                            _currentAnnouncement = 2;
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: ColorsB.yellow500,
-                                content: Text(
-                                  'You\'re not a parent, dude.',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              )
-                          );
-                        }
-                      },
-                    )
+
                   ],
                 ),
-                AnimatedPositioned(
-                  curve: Curves.easeInOut,
-                  duration: Duration(milliseconds: 250),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 25),
-                    child: Container(
-                      width: 75,
-                      height: 2,
-                      color: ColorsB.yellow500,
-                    ),
-                  ),
-                  left: rectX,
-                  top: 26,
-                ),
-
-              ],
+              ),
             ),
           ),
         ),
@@ -550,7 +642,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       return ListView.builder(
         physics: BouncingScrollPhysics(),
         shrinkWrap: true,
-        itemCount: 10,
+        itemCount: maxScrollCount,
         itemBuilder: (_, index) =>
             Padding(
               padding: const EdgeInsets.all(10.0),
@@ -574,13 +666,17 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       return RefreshIndicator(
         backgroundColor: ColorsB.gray900,
         color: _color,
-        onRefresh: () async {},
+        onRefresh: () async {
+          _refresh();
+        },
         child: ListView.builder(
-          physics: BouncingScrollPhysics(),
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: 5,
-          itemBuilder: (_, index) =>
-              Padding(
+          itemCount: maxScrollCount + 1,
+          itemBuilder: (_, index) {
+            if(index != maxScrollCount){
+              return Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: GestureDetector(
                   onTap: () {
@@ -642,7 +738,28 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     ),
                   ),
                 ),
-              ),
+              );
+            }
+            else {
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Shimmer.fromColors(
+                  baseColor: ColorsB.gray800,
+                  highlightColor: ColorsB.gray700,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
+                    width: screenWidth * 0.75,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
         ),
       );
     }
@@ -653,51 +770,53 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   void load() async {
     /*
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
       setState(() {
         isLoading = false;
         loaded = true;
       });
-      */
-    var url = Uri.parse('https://automemeapp.com/selectposts.php');
-    final response = await http.post(url, body: {
-      "index": "0",
-      "channel": "Student",
-    });
-    print(response.statusCode);
-    if (response.statusCode == 200) {
-      var jsondata = json.decode(response.body);
 
-      if (jsondata["1"]["error"]) {
-        setState(() {
-          //nameError = jsondata["message"];
-        });
-      } else {
-        if (jsondata["1"]["success"]) {
+     */
+      var url = Uri.parse('https://automemeapp.com/selectposts.php');
+          final response = await http.post(url, body: {
+            "index": "0",
+            "channel": "Student",
+          });
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+
+        if (jsondata["1"]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata["1"]["success"]) {
             for(int i = 2; i <= 10; i++)
+            {
+              String post = jsondata[i.toString()]["post"].toString();
+              String title = jsondata[i.toString()]["title"].toString();
+              String owner = jsondata[i.toString()]["owner"].toString();
+              if(post != "null")
               {
-                  String post = jsondata[i.toString()]["post"].toString();
-                  String title = jsondata[i.toString()]["title"].toString();
-                  String owner = jsondata[i.toString()]["owner"].toString();
-                  if(post != "null")
-                    {
-                      print(post+ " this is the post");
-                      print(title+" this is the title");
-                      print(owner+ " this is the owner");
-                    }
-
+                print(post+ " this is the post");
+                print(title+" this is the title");
+                print(owner+ " this is the owner");
               }
+
+            }
             setState(() {
               isLoading = false;
               loaded = true;
             });
-        }
-        else
+          }
+          else
           {
             print(jsondata["1"]["message"]);
           }
+        }
       }
-    }
+
   }
 
   // <-------------- Placing the hero container ---------------> //
@@ -738,6 +857,7 @@ class BigNewsContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     var device = MediaQuery.of(context);
 
     return Scaffold(
@@ -745,7 +865,8 @@ class BigNewsContainer extends StatelessWidget {
       backgroundColor: ColorsB.gray900,
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-        child:Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Hero(
               tag: 'title-rectangle',
@@ -764,17 +885,17 @@ class BigNewsContainer extends StatelessWidget {
                         Text(
                           title,
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
                           ),
                         ),
                         Text(
-                          author,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          )
+                            author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
                         )
                       ],
                     ),
@@ -787,9 +908,9 @@ class BigNewsContainer extends StatelessWidget {
               child: Text(
                 description,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.normal
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal
                 ),
               ),
             )
@@ -909,7 +1030,7 @@ class _MapPageState extends State<MapPage>{
     return CustomScrollView(
       physics: BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Map', position: 0, accType: 'Student account'),
+        CurvedAppbar(name: 'Map', position: 0, accType: globalMap['account'] + ' account'),
 
         SliverToBoxAdapter(
             child: Padding(
@@ -1027,6 +1148,237 @@ class _CalendarState extends State<Calendar> {
     );
   }
 }
+
+
+class PostItPage extends StatefulWidget {
+  const PostItPage({Key? key}) : super(key: key);
+
+  @override
+  State<PostItPage> createState() => _PostItPageState();
+}
+
+class _PostItPageState extends State<PostItPage> {
+
+  //  <---------------  Post controller ---------------->
+  late TextEditingController _postController;
+  late TextEditingController _postTitleController;
+
+  // <---------------  Colors for the preview -------------->
+  late Color? _postColor;
+  late String? _className;
+
+
+  // <---------------  Form key -------------->
+  late final GlobalKey<FormState> _formKey;
+
+  void _updatePreview(Color color, String className) {
+    setState(() {
+      _postColor = color;
+      _className = className;
+    });
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _postController = TextEditingController();
+    _postTitleController = TextEditingController();
+    _formKey = GlobalKey<FormState>();
+    _postColor = null;
+    _className = null;
+  }
+
+  @override
+  void dispose() {
+    _postController.dispose();
+    super.dispose();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: ColorsB.gray900,
+        bottomNavigationBar: const BackNavbar(variation: 1,),
+        extendBody: true,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(75),
+          child: AppBar(
+            backgroundColor: ColorsB.gray900,
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            flexibleSpace: Padding(
+              padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
+              child: Row(
+                children: const [
+                  Icon(Icons.book, color: ColorsB.yellow500, size: 40,),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Make a new post',
+                    style: TextStyle(
+                        fontSize: 25,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(35.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false,),
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Post contents',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _postController,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 5,
+                    cursorColor: ColorsB.yellow500,
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(
+                          color: Colors.red,
+                        )
+                      ),
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Field cannot be empty.';
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Select channel',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ClassSelect(update: _updatePreview,),
+                  const SizedBox(height: 100,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          if(_formKey.currentState!.validate()){
+
+                          }
+                        },
+                        child: const Text(
+                          'Post',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            color: Colors.white,
+                            fontWeight: FontWeight.normal,
+                            letterSpacing: 2.5,
+                            fontSize: 20,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || _postColor == null ? ColorsB.gray800 : ColorsB.yellow500,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                        ),
+                      ),
+                      Opacity(
+                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || _postColor == null ? 0.5 : 1,
+                        child: TextButton(
+                          onPressed: () {
+
+                            if(_formKey.currentState!.validate()) {
+
+
+                              Navigator.of(context).push(
+                                  PageRouteBuilder(
+                                      pageBuilder: (context, animation, secAnim) {
+
+                                        return SlideTransition(
+                                          position: Tween<Offset>(
+                                              begin: const Offset(0, 1),
+                                              end: Offset.zero
+                                          ).animate(
+                                              CurvedAnimation(parent: animation, curve: Curves.ease)
+                                          ),
+                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me'),
+                                        );
+                                      }
+
+                                  )
+                              );
+                            }
+
+
+
+                          },
+                          child: const Text(
+                            'Preview',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              color: Colors.white,
+                              fontWeight: FontWeight.normal,
+                              letterSpacing: 2.5,
+                              fontSize: 20,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                            backgroundColor: ColorsB.gray800,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 100,),
+                ],
+              ),
+            ),
+         ),
+        ),
+      ),
+    );
+  }
+}
+
 
 
 
