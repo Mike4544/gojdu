@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -40,13 +41,11 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 //  TODO: Make variables for the name, password, mail etc
 
 
-
 class _NewsPageState extends State<NewsPage>{
 
   bool pressed = false; //????????????? Ii folosit undeva?????
 
   int _currentIndex = 1;
-
 
   late final accType;
 
@@ -635,7 +634,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
   }
 
-
+  List<String> posts = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
+  List<String>titles = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
+  List<String>owner = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
+  bool reloadable = true;
 
   Widget _buildLists(Color _color) {
     if(isLoading) {
@@ -797,16 +799,22 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             // maxindex = index + 10;
             for(int i = 2; i <= 10; i++) //index; index <= maxindex; index++
             {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
-              if(post != "null")
+              if(jsondata[i.toString()]["post"].toString() != "null")
+                {
+                  posts[i] = jsondata[i.toString()]["post"].toString();
+                  titles[i] = jsondata[i.toString()]["title"].toString();
+                  owner[i] = jsondata[i.toString()]["owner"].toString();
+                }
+              else
               {
-                //reloadable = false; ------> nu o sa se incarce mai multe postari
+                reloadable = false; //------> nu o sa se incarce mai multe postari
                 break;
               }
 
             }
+            print(posts);
+            print(titles);
+            print(owner);
             setState(() {
               isLoading = false;
               loaded = true;
@@ -1296,9 +1304,29 @@ class _PostItPageState extends State<PostItPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if(_formKey.currentState!.validate()){
-
+                            var url = Uri.parse('https://automemeapp.com/insertposts.php');
+                            final response = await http.post(url, body: {
+                              "title": _postTitleController.value.text,
+                              "channel": _className,
+                              "body": _postController.value.text,
+                              "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                            });
+                            if (response.statusCode == 200) {
+                              var jsondata = json.decode(response.body);
+                              print(jsondata);
+                              if (jsondata["error"]) {
+                              } else {
+                                if (jsondata["success"]){
+                                    Navigator.pop(context);
+                                }
+                                else
+                                {
+                                  print(jsondata["message"]);
+                                }
+                              }
+                            }
                           }
                         },
                         child: const Text(
