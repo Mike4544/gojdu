@@ -508,9 +508,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                         ).createShader(bounds),
                         blendMode: BlendMode.dstIn,
                         child: PageView(
-                          onPageChanged: (index) {
-                            _refresh();
-                          },
                           clipBehavior: Clip.hardEdge,
                           controller: _announcementsController,
                           physics: const NeverScrollableScrollPhysics(),
@@ -578,6 +575,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               _currentAnnouncement = 0;
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                               currentChannel = 'Students';
+                              _refresh();
                               print(currentWidth);
                             });
                             _announcementsController.animateToPage(
@@ -606,6 +604,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _currentAnnouncement = 1;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Teachers';
+                                _refresh();
                                 print(currentWidth);
                               });
                               _announcementsController.animateToPage(
@@ -634,6 +633,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _currentAnnouncement = 2;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Parents';
+                                _refresh();
                                 print(currentWidth);
                               });
 
@@ -1273,7 +1273,7 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                   }
                                 },
                                 child: Container(
-                                  width: 10,
+                                  width: 20,
                                   height: screenHeight * 0.5,
                                   color: Colors.transparent,
                                   child: Center(
