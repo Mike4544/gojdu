@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:convert';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -508,9 +509,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                         ).createShader(bounds),
                         blendMode: BlendMode.dstIn,
                         child: PageView(
-                          onPageChanged: (index) {
-                            _refresh();
-                          },
                           clipBehavior: Clip.hardEdge,
                           controller: _announcementsController,
                           physics: const NeverScrollableScrollPhysics(),
@@ -578,6 +576,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               _currentAnnouncement = 0;
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                               currentChannel = 'Students';
+                              _refresh();
                               print(currentWidth);
                             });
                             _announcementsController.animateToPage(
@@ -606,6 +605,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _currentAnnouncement = 1;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Teachers';
+                                _refresh();
                                 print(currentWidth);
                               });
                               _announcementsController.animateToPage(
@@ -634,6 +634,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _currentAnnouncement = 2;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Parents';
+                                _refresh();
                                 print(currentWidth);
                               });
 
@@ -647,7 +648,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     ),
                     AnimatedAlign(
                       curve: Curves.easeInOut,
-                      duration: Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 250),
                       child: Padding(
                         padding: EdgeInsets.symmetric(
                             horizontal: currentWidth/3),
@@ -723,61 +724,65 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             if(index != maxScrollCount){
               return Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: GestureDetector(
-                  onTap: () {
-                    _hero(context, titles[index], descriptions[index], owners[index], _color);
-                  },
-                  child: SizedBox(
+                child: SizedBox(
+                  width: screenWidth * 0.75,
+                  height: 200,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
                     width: screenWidth * 0.75,
                     height: 200,
-                    child: Container(                         // Student containers. Maybe get rid of the hero
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _color,
-                        borderRadius: BorderRadius.circular(
-                            50),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(25.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                              ),
-                            ),
-                            Text(
-                              'by ' + owner,     //  Hard coded!!
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 25,),
-
-                            Flexible(
-                              child: Text(
-                                description,
-                                overflow: TextOverflow
-                                    .ellipsis,
-                                maxLines: 3,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(50),
+                        onTap: () {
+                          _hero(context, titles[index], descriptions[index], owners[index], _color);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                            children: [
+                              Text(
+                                title,
                                 style: TextStyle(
-                                    color: Colors.white
-                                        .withOpacity(0.25),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight
-                                        .bold
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold
                                 ),
                               ),
-                            ),
+                              Text(
+                                'by ' + owner,     //  Hard coded!!
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 25,),
 
-                          ],
+                              Flexible(
+                                child: Text(
+                                  description,
+                                  overflow: TextOverflow
+                                      .ellipsis,
+                                  maxLines: 3,
+                                  style: TextStyle(
+                                      color: Colors.white
+                                          .withOpacity(0.25),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight
+                                          .bold
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1184,7 +1189,7 @@ class Calendar extends StatefulWidget {
 }
 
 
-class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin{
+class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
 
   late List<EdgeInsetsGeometry> _padding;
@@ -1193,7 +1198,10 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
   late AnimationController _clipAnimation;
   late Animation<double> _clipAnimationValue;
 
+  late AnimationController _containerAnim;
+  late Animation<double> _containerAnimValue;
 
+  int maxStep = 0;
 
   @override
   void initState() {
@@ -1223,11 +1231,18 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
     ];
 
     _clipAnimation = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _containerAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+
     _clipAnimationValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1).animate(CurvedAnimation(
         parent: _clipAnimation,
         curve: Curves.easeInOut
     ));
-    
+    _containerAnimValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1 + 20).animate(CurvedAnimation(
+        parent: _containerAnim,
+        curve: Curves.easeInOut
+    ));
+
+    maxStep = 0;
     
 
 
@@ -1239,6 +1254,7 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
     _stepsColors.clear();
     _padding.clear();
     _wordColor.clear();
+    _containerAnim.dispose();
     super.dispose();
   }
 
@@ -1267,9 +1283,11 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                 onTap: () {
                                   if(_clipAnimation.status == AnimationStatus.dismissed){
                                     _clipAnimation.forward();
+                                    _containerAnim.forward();
                                   }
                                   else {
                                     _clipAnimation.reverse();
+                                    _containerAnim.reverse();
                                   }
                                 },
                                 child: Container(
@@ -1278,7 +1296,7 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                   color: Colors.transparent,
                                   child: Center(
                                     child: RotationTransition(
-                                      turns: Tween<double>(begin: 0, end: -0.5).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
+                                      turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
                                       child: const Icon(
                                         Icons.keyboard_arrow_right_rounded,
                                         color: Colors.white,
@@ -1295,7 +1313,7 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                             clipper: CustomClipBar(widthFactor: _clipAnimationValue.value),
                             child: SizedBox(
                                 height: screenHeight * 0.5,
-                                width:  screenWidth * 0.25,
+                                width:  _clipAnimationValue.value <= screenWidth * 0.2 ? _containerAnimValue.value : screenWidth * 0.25,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
@@ -1328,12 +1346,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[0],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[0],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
-                                              child: const Text(
-                                                'Select your hall.',
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select your hall.',
                                               ),
                                             ),
                                           ),
@@ -1370,12 +1388,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[1],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[1],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Select the day of interest.',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the day of interest.',
                                               ),
                                             ),
                                           ),
@@ -1412,12 +1430,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[2],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[2],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Select the time interval.',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the time interval.',
                                               ),
                                             ),
                                           ),
@@ -1454,12 +1472,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[3],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[3],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Profit!',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Profit!',
                                               ),
                                             ),
                                           ),
@@ -1476,24 +1494,90 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: SizedBox(
-                    height: screenHeight * 0.5,
-                    child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 750),
-                      reverse: true,
-                      transitionBuilder: (child, animation, anim2) {
-                        return SharedAxisTransition(
-                          fillColor: ColorsB.gray900,
-                          animation: animation,
-                          secondaryAnimation: anim2,
-                          child: child,
-                          transitionType: SharedAxisTransitionType.vertical,
-                        );
-                      },
-                      child: _pages(),
-                    ),
-                    )
-                  ),
+                  child: Stack(
+                          children: [
+                            SizedBox(
+                              height: screenHeight * 0.5,
+                              child: PageTransitionSwitcher(
+                                duration: const Duration(milliseconds: 750),
+                                reverse: true,
+                                transitionBuilder: (child, animation, anim2) {
+                                  return SharedAxisTransition(
+                                    fillColor: ColorsB.gray900,
+                                    animation: animation,
+                                    secondaryAnimation: anim2,
+                                    child: child,
+                                    transitionType: SharedAxisTransitionType.vertical,
+                                  );
+                                },
+                                child: _pages(),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: Offset(0, screenHeight * 0.5 - 20),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if(currentPage != 0){
+
+                                        _changePage(currentPage-1);
+
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_back_ios,
+                                        color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                                        , size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: currentPage < maxStep ? Colors.white : Colors.white.withOpacity(0.5),
+                                        size: 30,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      if(currentPage < maxStep){
+
+                                        _changePage(currentPage+1);
+
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                  )
               ],
             ),
           ),
@@ -1529,6 +1613,10 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
       _padding[page] = const EdgeInsets.only(bottom: 50);
       _stepsColors[page] = ColorsB.yellow500;
       _wordColor[page] = Colors.white;
+
+      if(page > currentPage){
+        maxStep = page;
+      }
 
 
       currentPage = page;
@@ -1688,12 +1776,14 @@ class _CalPag2State extends State<CalPag2> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: ColorsB.yellow500,
-      child: TextButton(
-        onPressed: () {
-          widget.changePage(0);
-        },
-        child: const Text('GoBack'),
+      decoration: BoxDecoration(
+        color: ColorsB.gray200,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TableCalendar(
+        firstDay: DateTime.utc(2022, 4, 11),
+        lastDay: DateTime.utc(2040, 4, 12),
+        focusedDay: DateTime.now(),
       ),
     );
   }
@@ -1760,7 +1850,7 @@ class _PostItPageState extends State<PostItPage> {
         bottomNavigationBar: const BackNavbar(variation: 1,),
         extendBody: true,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75),
+          preferredSize: const Size.fromHeight(75),
           child: AppBar(
             backgroundColor: ColorsB.gray900,
             automaticallyImplyLeading: false,
