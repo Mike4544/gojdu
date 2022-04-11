@@ -1201,6 +1201,8 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
   late AnimationController _containerAnim;
   late Animation<double> _containerAnimValue;
 
+  late Animation<double> _gradientAnim;
+
   int maxStep = 0;
 
   @override
@@ -1232,6 +1234,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
     _clipAnimation = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _containerAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _clipAnimationValue = Tween<double>(begin: 0, end: 1).animate(_clipAnimation);
 
     _clipAnimationValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1).animate(CurvedAnimation(
         parent: _clipAnimation,
@@ -1239,6 +1242,11 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
     ));
     _containerAnimValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1 + 20).animate(CurvedAnimation(
         parent: _containerAnim,
+        curve: Curves.easeInOut
+    ));
+
+    _gradientAnim = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(
+        parent: _clipAnimation,
         curve: Curves.easeInOut
     ));
 
@@ -1291,7 +1299,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                                   }
                                 },
                                 child: Container(
-                                  width: 10,
+                                  width: 15,
                                   height: screenHeight * 0.5,
                                   color: Colors.transparent,
                                   child: Center(
@@ -1494,23 +1502,39 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Stack(
+                  child: AnimatedBuilder(
+                    animation: _clipAnimation,
+                    builder: (_, __) =>
+                        Stack(
                           children: [
-                            SizedBox(
-                              height: screenHeight * 0.5,
-                              child: PageTransitionSwitcher(
-                                duration: const Duration(milliseconds: 750),
-                                reverse: true,
-                                transitionBuilder: (child, animation, anim2) {
-                                  return SharedAxisTransition(
-                                    fillColor: ColorsB.gray900,
-                                    animation: animation,
-                                    secondaryAnimation: anim2,
-                                    child: child,
-                                    transitionType: SharedAxisTransitionType.vertical,
-                                  );
-                                },
-                                child: _pages(),
+                            ShaderMask(
+                              shaderCallback: (rect) {
+                                return material.LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      ColorsB.gray900.withOpacity(_gradientAnim.value),
+                                      ColorsB.gray900,
+                                    ],
+                                ).createShader(rect);
+                            },
+                              blendMode: BlendMode.dstATop,
+                              child: SizedBox(
+                                height: screenHeight * 0.5,
+                                child: PageTransitionSwitcher(
+                                  duration: const Duration(milliseconds: 750),
+                                  reverse: true,
+                                  transitionBuilder: (child, animation, anim2) {
+                                    return SharedAxisTransition(
+                                      fillColor: ColorsB.gray900,
+                                      animation: animation,
+                                      secondaryAnimation: anim2,
+                                      child: child,
+                                      transitionType: SharedAxisTransitionType.vertical,
+                                    );
+                                  },
+                                  child: _pages(),
+                                ),
                               ),
                             ),
                             Transform.translate(
@@ -1577,6 +1601,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                             ),
                           ],
                         ),
+                  ),
                   )
               ],
             ),
