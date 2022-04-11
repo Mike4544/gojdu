@@ -1,6 +1,6 @@
 import 'dart:ffi';
 import 'dart:convert';
-import 'dart:io';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -34,6 +34,8 @@ late bool loaded;
 
 late Map globalMap;
 
+
+
 // <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
@@ -41,11 +43,13 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 //  TODO: Make variables for the name, password, mail etc
 
 
+
 class _NewsPageState extends State<NewsPage>{
 
   bool pressed = false; //????????????? Ii folosit undeva?????
 
   int _currentIndex = 1;
+
 
   late final accType;
 
@@ -224,7 +228,7 @@ class _NewsPageState extends State<NewsPage>{
         ),
       ),
       body: PageView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         controller: _pageController,
         children: [
           MapPage(navbarButton: _mapInput),
@@ -280,6 +284,15 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   final GlobalKey _textKeyParent = GlobalKey();
 
 
+  late List<String> titles = [];
+  late List<String> descriptions = [];
+  late List<String> owners = [];
+
+  int maximumCount = 0;
+
+  late var currentChannel = "";
+
+
 
 
 
@@ -287,32 +300,30 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.navbarButton?.value = true;
-    _mapInput?.value = false;
-    _reserveInput?.value = false;
-    _currentAnnouncement = 1;
-    _shimmerController = AnimationController.unbounded(vsync: this)
-      ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
 
-    if(!loaded) {
-      isLoading = true;
-      load();
-    }
-    else {
-      isLoading = false;
-    }
-    rectX = device.width * 0.107;
+    //  <-------------- Lists ------------->
+    titles = [];
+    descriptions = [];
+    owners = [];
+
+    maximumCount = 0;
+
+    var currentChannel = "";
+
 
     int _getCurrentIndex() {
       switch(globalMap['account']) {
         case 'Student':
           _currentAnnouncement = 0;
+          currentChannel = 'Students';
           return 0;
         case 'Teacher':
           _currentAnnouncement = 1;
+          currentChannel = 'Teachers';
           return 1;
         case 'Parent':
           _currentAnnouncement = 2;
+          currentChannel = 'Parents';
           return 2;
         default:
           return 0;
@@ -320,9 +331,23 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
 
     _announcementsController = PageController(
-        initialPage:  _getCurrentIndex(),
+      initialPage:  _getCurrentIndex(),
 
     );
+    widget.navbarButton?.value = true;
+    _mapInput?.value = false;
+    _reserveInput?.value = false;
+    _currentAnnouncement = 1;
+    _shimmerController = AnimationController.unbounded(vsync: this)
+      ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
+
+    if(descriptions.isEmpty) {
+      isLoading = true;
+      load(currentChannel);
+    }
+    else {
+      isLoading = false;
+    }
 
     _scrollController = ScrollController();
     _scrollController.addListener(() {
@@ -340,6 +365,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _announcementsController.dispose();
     _shimmerController.dispose();
     _scrollController.dispose();
+    titles.clear();
+    descriptions.clear();
+    owners.clear();
     super.dispose();
 
 
@@ -357,10 +385,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   void _refresh() async {
     loaded = false;
+    titles.clear();
+    owners.clear();
+    descriptions.clear();
+    maximumCount = 0;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
       isLoading = true;
-      load();
+      load(currentChannel);
     });
   }
 
@@ -369,7 +401,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
      Navigator.push(context, PageRouteBuilder(
       pageBuilder: (context, a1, a2) =>
       SlideTransition(
-        position: Tween<Offset>(begin: Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
         child: const PostItPage(),
       )
     ));
@@ -378,12 +410,15 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   // ---------- Placeholder title ------------
-  String title = 'Lorem Ipsum Title';
-  String description = 'Lorem Ipsum Title Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Title Lorem Ipsum Title ';
+  String title = '';
+  String description = '';
 
   var device = window.physicalSize;
 
   late var currentWidth;
+
+  // Max max max posts
+
 
   //  <----------------- Alignment for the bar -------------->
   Alignment _alignment = Alignment.center;
@@ -446,7 +481,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                           ),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Container(
                           height: 2,
@@ -455,7 +490,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       )
                     ],
                   ),
-                  SizedBox(height: 25,),
+                  const SizedBox(height: 25,),
 
                   teachersBar(),
                   Padding(
@@ -476,7 +511,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                         child: PageView(
                           clipBehavior: Clip.hardEdge,
                           controller: _announcementsController,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           children: [
                             _buildLists(ColorsB.gray800),
                             _buildLists(Colors.amber),
@@ -540,6 +575,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               _alignment = Alignment.centerLeft;
                               _currentAnnouncement = 0;
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                              currentChannel = 'Students';
+                              _refresh();
                               print(currentWidth);
                             });
                             _announcementsController.animateToPage(
@@ -567,6 +604,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _alignment = Alignment.center;
                                 _currentAnnouncement = 1;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                currentChannel = 'Teachers';
+                                _refresh();
                                 print(currentWidth);
                               });
                               _announcementsController.animateToPage(
@@ -594,8 +633,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 _alignment = Alignment.centerRight;
                                 _currentAnnouncement = 2;
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                                currentChannel = 'Parents';
+                                _refresh();
                                 print(currentWidth);
                               });
+
                               _announcementsController.animateToPage(
                                   _currentAnnouncement,
                                   duration: Duration(milliseconds: 250),
@@ -606,7 +648,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     ),
                     AnimatedAlign(
                       curve: Curves.easeInOut,
-                      duration: Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 250),
                       child: Padding(
                         padding: EdgeInsets.symmetric(
                             horizontal: currentWidth/3),
@@ -634,15 +676,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
   }
 
-  List<String> posts = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
-  List<String>titles = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
-  List<String>owner = ["", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", "","", ""];
-  bool reloadable = true;
+
 
   Widget _buildLists(Color _color) {
     if(isLoading) {
       return ListView.builder(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         shrinkWrap: true,
         itemCount: maxScrollCount,
         itemBuilder: (_, index) =>
@@ -675,66 +714,75 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: maxScrollCount + 1,
+          itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
           itemBuilder: (_, index) {
+
+            title = titles[index];
+            description = descriptions[index];
+            var owner = owners[index];
+
             if(index != maxScrollCount){
               return Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: GestureDetector(
-                  onTap: () {
-                    _hero(context, title, description, 'By Mihai', _color);
-                  },
-                  child: SizedBox(
+                child: SizedBox(
+                  width: screenWidth * 0.75,
+                  height: 200,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
                     width: screenWidth * 0.75,
                     height: 200,
-                    child: Container(                         // Student containers. Maybe get rid of the hero
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _color,
-                        borderRadius: BorderRadius.circular(
-                            50),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(25.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                              ),
-                            ),
-                            Text(
-                              'By Mihai',     //  Hard coded!!
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 15,
-                              ),
-                            ),
-                            SizedBox(height: 25,),
-
-                            Flexible(
-                              child: Text(
-                                description,
-                                overflow: TextOverflow
-                                    .ellipsis,
-                                maxLines: 3,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(50),
+                        onTap: () {
+                          _hero(context, titles[index], descriptions[index], owners[index], _color);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                            children: [
+                              Text(
+                                title,
                                 style: TextStyle(
-                                    color: Colors.white
-                                        .withOpacity(0.25),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight
-                                        .bold
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold
                                 ),
                               ),
-                            ),
+                              Text(
+                                'by ' + owner,     //  Hard coded!!
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 25,),
 
-                          ],
+                              Flexible(
+                                child: Text(
+                                  description,
+                                  overflow: TextOverflow
+                                      .ellipsis,
+                                  maxLines: 3,
+                                  style: TextStyle(
+                                      color: Colors.white
+                                          .withOpacity(0.25),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight
+                                          .bold
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -742,7 +790,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ),
               );
             }
-            else {
+            else{
               return Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Shimmer.fromColors(
@@ -770,7 +818,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   //  <------------------- Hardcoded loader ------------------>
 
-  void load() async {
+
+
+
+
+  Future<int> load(String channel) async {
     /*
       await Future.delayed(const Duration(seconds: 3));
       setState(() {
@@ -782,7 +834,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       var url = Uri.parse('https://automemeapp.com/selectposts.php');
           final response = await http.post(url, body: {
             "index": "0",
-            "channel": "Student",
+            "channel": channel,
           });
       print(response.statusCode);
       if (response.statusCode == 200) {
@@ -794,27 +846,29 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           });
         } else {
           if (jsondata["1"]["success"]) {
-            // bool reloadable = true;
-            // index ------> global variable
-            // maxindex = index + 10;
-            for(int i = 2; i <= 10; i++) //index; index <= maxindex; index++
+
+            for(int i = 2; i <= 52; i++)
             {
-              if(jsondata[i.toString()]["post"].toString() != "null")
-                {
-                  posts[i] = jsondata[i.toString()]["post"].toString();
-                  titles[i] = jsondata[i.toString()]["title"].toString();
-                  owner[i] = jsondata[i.toString()]["owner"].toString();
-                }
-              else
-              {
-                reloadable = false; //------> nu o sa se incarce mai multe postari
-                break;
+              String post = jsondata[i.toString()]["post"].toString();
+              String title = jsondata[i.toString()]["title"].toString();
+              String owner = jsondata[i.toString()]["owner"].toString();
+
+
+              if(post != "null" && post != null){
+                titles.add(title);
+                descriptions.add(post);
+                owners.add(owner);
+                ++maximumCount;
               }
 
+              /* if(post != "null")
+              {
+                print(post+ " this is the post");
+                print(title+" this is the title");
+                print(owner+ " this is the owner");
+              } */
+
             }
-            print(posts);
-            print(titles);
-            print(owner);
             setState(() {
               isLoading = false;
               loaded = true;
@@ -826,6 +880,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       }
+
+      return 0;
 
   }
 
@@ -841,7 +897,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: 'By Mihai',),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author,),
               )
         )
     );
@@ -901,7 +957,7 @@ class BigNewsContainer extends StatelessWidget {
                           ),
                         ),
                         Text(
-                            author,
+                            "by " + author,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -1132,7 +1188,20 @@ class Calendar extends StatefulWidget {
   State<Calendar> createState() => _CalendarState();
 }
 
-class _CalendarState extends State<Calendar> {
+
+class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
+
+
+  late List<EdgeInsetsGeometry> _padding;
+  late List<Color> _wordColor;
+
+  late AnimationController _clipAnimation;
+  late Animation<double> _clipAnimationValue;
+
+  late AnimationController _containerAnim;
+  late Animation<double> _containerAnimValue;
+
+  int maxStep = 0;
 
   @override
   void initState() {
@@ -1141,23 +1210,586 @@ class _CalendarState extends State<Calendar> {
     widget.navbarButton?.value = true;
     _announcementsInput?.value = false;
     _mapInput?.value = false;
+    currentPage = 0;
+    _stepsColors = [
+      ColorsB.yellow500,
+      ColorsB.gray800,
+      ColorsB.gray800,
+      ColorsB.gray800,
+    ];
+    _padding = [
+      const EdgeInsets.only(bottom: 50),
+      EdgeInsets.zero,
+      EdgeInsets.zero,
+      EdgeInsets.zero,
+    ];
+    _wordColor = [
+      Colors.white,
+      ColorsB.gray800,
+      ColorsB.gray800,
+      ColorsB.gray800,
+    ];
+
+    _clipAnimation = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _containerAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+
+    _clipAnimationValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1).animate(CurvedAnimation(
+        parent: _clipAnimation,
+        curve: Curves.easeInOut
+    ));
+    _containerAnimValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1 + 20).animate(CurvedAnimation(
+        parent: _containerAnim,
+        curve: Curves.easeInOut
+    ));
+
+    maxStep = 0;
+    
+
+
+  }
+
+  @override
+  void dispose() {
+    _clipAnimation.dispose();
+    _stepsColors.clear();
+    _padding.clear();
+    _wordColor.clear();
+    _containerAnim.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Room Manager', position: 2, accType: 'Student account'),
+        const CurvedAppbar(name: 'Room Manager', position: 2, accType: 'Student account'),
 
         SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
+            child: Row(
+              children: [
+                AnimatedBuilder(
+                  animation: _clipAnimation,
+                  builder: (_, __) =>
+                      Stack(
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: _clipAnimationValue.value),
+                              const SizedBox(width: 2),
+                              GestureDetector(
+                                onTap: () {
+                                  if(_clipAnimation.status == AnimationStatus.dismissed){
+                                    _clipAnimation.forward();
+                                    _containerAnim.forward();
+                                  }
+                                  else {
+                                    _clipAnimation.reverse();
+                                    _containerAnim.reverse();
+                                  }
+                                },
+                                child: Container(
+                                  width: 10,
+                                  height: screenHeight * 0.5,
+                                  color: Colors.transparent,
+                                  child: Center(
+                                    child: RotationTransition(
+                                      turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
+                                      child: const Icon(
+                                        Icons.keyboard_arrow_right_rounded,
+                                        color: Colors.white,
+                                        size: 20
+                                      ),
+                                    ),
+                                  )
+                                ),
+                              )
+                            ],
+                          ),
 
+                          ClipRect(
+                            clipper: CustomClipBar(widthFactor: _clipAnimationValue.value),
+                            child: SizedBox(
+                                height: screenHeight * 0.5,
+                                width:  _clipAnimationValue.value <= screenWidth * 0.2 ? _containerAnimValue.value : screenWidth * 0.25,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    AnimatedPadding(
+                                      curve: Curves.easeInOut,
+                                      duration: const Duration(milliseconds: 250),
+                                      padding: _padding[0],
+                                      child: Row(
+                                        children: [
+                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              color: _stepsColors[0],
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                            child: const Center(
+                                              child: Text(
+                                                '1',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.normal
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 15,),
+                                          Flexible(
+                                            child: AnimatedDefaultTextStyle(
+                                              duration: const Duration(milliseconds: 250),
+                                              style: TextStyle(
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[0],
+                                                fontSize: 10,
+                                                fontFamily: 'Nunito',
+                                              ),
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select your hall.',
+                                              ),
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    ),
+                                    AnimatedPadding(
+                                      curve: Curves.easeInOut,
+                                      duration: const Duration(milliseconds: 250),
+                                      padding: _padding[1],
+                                      child: Row(
+                                        children: [
+                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              color: _stepsColors[1],
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                            child: const Center(
+                                              child: Text(
+                                                '2',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.normal
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 15,),
+                                          Flexible(
+                                            child: AnimatedDefaultTextStyle(
+                                              duration: const Duration(milliseconds: 250),
+                                              style: TextStyle(
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[1],
+                                                fontSize: 10,
+                                                fontFamily: 'Nunito',
+                                              ),
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the day of interest.',
+                                              ),
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    ),
+                                    AnimatedPadding(
+                                      curve: Curves.easeInOut,
+                                      duration: const Duration(milliseconds: 250),
+                                      padding: _padding[2],
+                                      child: Row(
+                                        children: [
+                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              color: _stepsColors[2],
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                            child: const Center(
+                                              child: Text(
+                                                '3',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.normal
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 15,),
+                                          Flexible(
+                                            child: AnimatedDefaultTextStyle(
+                                              duration: const Duration(milliseconds: 250),
+                                              style: TextStyle(
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[2],
+                                                fontSize: 10,
+                                                fontFamily: 'Nunito',
+                                              ),
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the time interval.',
+                                              ),
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    ),
+                                    AnimatedPadding(
+                                      curve: Curves.easeInOut,
+                                      duration: const Duration(milliseconds: 250),
+                                      padding: _padding[3],
+                                      child: Row(
+                                        children: [
+                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              color: _stepsColors[3],
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                            child: const Center(
+                                              child: Text(
+                                                '4',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.normal
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 15,),
+                                          Flexible(
+                                            child: AnimatedDefaultTextStyle(
+                                              duration: const Duration(milliseconds: 250),
+                                              style: TextStyle(
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[3],
+                                                fontSize: 10,
+                                                fontFamily: 'Nunito',
+                                              ),
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Profit!',
+                                              ),
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                            ),
+                          ),
+                        ],
+                      )
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Stack(
+                          children: [
+                            SizedBox(
+                              height: screenHeight * 0.5,
+                              child: PageTransitionSwitcher(
+                                duration: const Duration(milliseconds: 750),
+                                reverse: true,
+                                transitionBuilder: (child, animation, anim2) {
+                                  return SharedAxisTransition(
+                                    fillColor: ColorsB.gray900,
+                                    animation: animation,
+                                    secondaryAnimation: anim2,
+                                    child: child,
+                                    transitionType: SharedAxisTransitionType.vertical,
+                                  );
+                                },
+                                child: _pages(),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: Offset(0, screenHeight * 0.5 - 20),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if(currentPage != 0){
+
+                                        _changePage(currentPage-1);
+
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_back_ios,
+                                        color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                                        , size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: currentPage < maxStep ? Colors.white : Colors.white.withOpacity(0.5),
+                                        size: 30,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      if(currentPage < maxStep){
+
+                                        _changePage(currentPage+1);
+
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                  )
+              ],
+            ),
+          ),
         )
 
       ],
     );
   }
+
+  Widget _pages() {
+    switch(currentPage){
+      case 0:
+        return CalPag1(key: const Key('1'), changePage: _changePage);
+      case 1:
+        return CalPag2(key: const Key('2'), changePage: _changePage);
+    }
+    return const SizedBox(width: 0, height: 0);
+  }
+
+
+  //  TODO: Implement the page changing logic
+
+  //  <------------  Building the widgets for the animated switcher  ------------>
+  int currentPage = 1;
+
+  void _changePage(int page) {
+
+    setState(() {
+      _stepsColors[currentPage] = ColorsB.gray800;
+      _padding[currentPage] = EdgeInsets.zero;
+      _wordColor[currentPage] = ColorsB.gray800;
+
+      _padding[page] = const EdgeInsets.only(bottom: 50);
+      _stepsColors[page] = ColorsB.yellow500;
+      _wordColor[page] = Colors.white;
+
+      if(page > currentPage){
+        maxStep = page;
+      }
+
+
+      currentPage = page;
+    });
+  }
+
+
+  List<Color> _stepsColors = [
+    ColorsB.yellow500,
+    ColorsB.gray800,
+    ColorsB.gray800,
+    ColorsB.gray800,
+  ];
+
+
 }
+
+class CustomClipBar extends CustomClipper<Rect> {
+  final double widthFactor;
+
+  const CustomClipBar({required this.widthFactor});
+
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTRB(0, 0, widthFactor, size.height);
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Rect> oldClipper) {
+    return true;
+  }
+}
+
+
+
+//  <-----------------  Calendar page 1 ------------------>
+class CalPag1 extends StatelessWidget {
+
+  final Function(int) changePage;
+
+  const CalPag1({Key? key, required this.changePage}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: ListView.builder(
+        clipBehavior: Clip.none,
+        physics: const BouncingScrollPhysics(),
+        itemCount: 3,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 125,
+              decoration: BoxDecoration(
+                color: ColorsB.gray800,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(30),
+                  onTap: () {
+                    changePage(1);
+                  },
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ShaderMask(
+                          shaderCallback: (rect) {
+                            return const material.LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              stops: [0, 1],
+                              colors: [
+                                Colors.transparent,
+                                Colors.black,
+                              ],
+                            ).createShader(rect);
+                          },
+                          blendMode: BlendMode.dstIn,
+                          child: Icon(
+                            Icons.account_balance_sharp,
+                            color: ColorsB.gray700.withOpacity(0.25),
+                            size: 75,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.account_balance,
+                                  color: ColorsB.yellow500,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10,),
+                                Text(
+                                  'Hall $index',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Divider(
+                              color: Colors.white.withOpacity(0.1),
+                              thickness: 1,
+                            ),
+                            const SizedBox(height: 10,),
+                            Text(
+                              'Type: Large',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 10,
+                              ),
+                            ),
+                            Text(
+                              'Capacity: 30',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+//  <-----------------  Statefull cal page 2 ----------------->
+class CalPag2 extends StatefulWidget {
+  final Function(int) changePage;
+  const CalPag2({Key? key, required this.changePage}) : super(key: key);
+
+  @override
+  State<CalPag2> createState() => _CalPag2State();
+}
+
+class _CalPag2State extends State<CalPag2> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorsB.gray200,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TableCalendar(
+        firstDay: DateTime.utc(2022, 4, 11),
+        lastDay: DateTime.utc(2040, 4, 12),
+        focusedDay: DateTime.now(),
+      ),
+    );
+  }
+}
+
+
 
 
 class PostItPage extends StatefulWidget {
@@ -1218,7 +1850,7 @@ class _PostItPageState extends State<PostItPage> {
         bottomNavigationBar: const BackNavbar(variation: 1,),
         extendBody: true,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75),
+          preferredSize: const Size.fromHeight(75),
           child: AppBar(
             backgroundColor: ColorsB.gray900,
             automaticallyImplyLeading: false,
@@ -1307,19 +1939,19 @@ class _PostItPageState extends State<PostItPage> {
                         onPressed: () async {
                           if(_formKey.currentState!.validate()){
                             var url = Uri.parse('https://automemeapp.com/insertposts.php');
-                            final response = await http.post(url, body: {
-                              "title": _postTitleController.value.text,
-                              "channel": _className,
-                              "body": _postController.value.text,
-                              "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                            });
+                                final response = await http.post(url, body: {
+                                  "title": _postTitleController.value.text,
+                                  "channel": _className,
+                                  "body": _postController.value.text,
+                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                });
                             if (response.statusCode == 200) {
                               var jsondata = json.decode(response.body);
                               print(jsondata);
                               if (jsondata["error"]) {
                               } else {
                                 if (jsondata["success"]){
-                                    Navigator.pop(context);
+                                  Navigator.pop(context);
                                 }
                                 else
                                 {

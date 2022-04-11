@@ -26,6 +26,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -33,7 +34,7 @@ Future<void> main() async {
 
   Paint.enableDithering = true;
   
-  FlutterNativeSplash.removeAfter(initialization);
+  //FlutterNativeSplash.removeAfter(initialization);
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
@@ -65,9 +66,9 @@ void initialization(BuildContext context) async {
 Future<Widget> getPage() async {
 
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  print(prefs.getString('name').toString());
+  print(prefs.getString('email').toString());
 
-  if(!(prefs.getString('name') != null && prefs.getString("password") != null)){
+  if(!(prefs.getString('email') != null && prefs.getString("password") != null)){
     print(false);
     return Login();
   }
@@ -75,7 +76,7 @@ Future<Widget> getPage() async {
     //print(true);
     var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
     final response = await http.post(url, body: {
-      "username": prefs.getString('name').toString(),
+      "email": prefs.getString('email').toString(),
       "password": prefs.getString('password').toString(),
     });
     if (response.statusCode == 200) {

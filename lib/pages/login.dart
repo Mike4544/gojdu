@@ -103,10 +103,10 @@ class _LoginState extends State<Login> {
                             children: [
                               InputField(fieldName: "Email",
                                 isPassword: false,
-                                lengthLimiter: 15,
                                 controller: _nameController.value,
                                 errorMessage: nameError,
-                                isEmail: false,),
+                                isStudent: false,
+                                isEmail: true,),
 
                               const SizedBox(height: 50),
 
@@ -146,9 +146,9 @@ class _LoginState extends State<Login> {
                           valueListenable: _passController.value,
                           builder: (_, value, __) =>
                               TextButton(
-                                onPressed: _nameController.value.text
+                                onPressed: (_nameController.value.text
                                     .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty
+                                    _passController.value.text.isNotEmpty) || !isLoggingIn
                                     ? login
                                     : null,
                                 child: Padding(
@@ -289,8 +289,14 @@ class _LoginState extends State<Login> {
             String acc_type = jsondata["account"].toString();
             //String acc_type = 'Teacher';
 
-            await prefs2.setString('name', _nameController.value.text);
+            print(ln);
+            print(fn);
+            print(email);
+
+            await prefs2.setString('email', email);
             await prefs2.setString('password', _passController.value.text);
+            await prefs2.setString('first_name', fn);
+            await prefs2.setString('last_name', ln);
 
             print("The name is ${_nameController.value
                 .text} and the password is ${_passController.value.text}");
