@@ -1,5 +1,7 @@
 import 'dart:ffi';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -16,6 +18,7 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
+import 'package:gojdu/others/event.dart';
 
 class NewsPage extends StatefulWidget {
 
@@ -157,6 +160,7 @@ class _NewsPageState extends State<NewsPage>{
 
     return Scaffold(
       backgroundColor: ColorsB.gray900,
+      extendBody: true,
       bottomNavigationBar:
       Container(
         width: device.size.width,
@@ -647,7 +651,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     ),
                     AnimatedAlign(
                       curve: Curves.easeInOut,
-                      duration: Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 250),
                       child: Padding(
                         padding: EdgeInsets.symmetric(
                             horizontal: currentWidth/3),
@@ -723,61 +727,65 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             if(index != maxScrollCount){
               return Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: GestureDetector(
-                  onTap: () {
-                    _hero(context, titles[index], descriptions[index], owners[index], _color);
-                  },
-                  child: SizedBox(
+                child: SizedBox(
+                  width: screenWidth * 0.75,
+                  height: 200,
+                  child: Container(                         // Student containers. Maybe get rid of the hero
                     width: screenWidth * 0.75,
                     height: 200,
-                    child: Container(                         // Student containers. Maybe get rid of the hero
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: _color,
-                        borderRadius: BorderRadius.circular(
-                            50),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(25.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                              ),
-                            ),
-                            Text(
-                              'by ' + owner,     //  Hard coded!!
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 25,),
-
-                            Flexible(
-                              child: Text(
-                                description,
-                                overflow: TextOverflow
-                                    .ellipsis,
-                                maxLines: 3,
+                    decoration: BoxDecoration(
+                      color: _color,
+                      borderRadius: BorderRadius.circular(
+                          50),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(50),
+                        onTap: () {
+                          _hero(context, titles[index], descriptions[index], owners[index], _color);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                            children: [
+                              Text(
+                                title,
                                 style: TextStyle(
-                                    color: Colors.white
-                                        .withOpacity(0.25),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight
-                                        .bold
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold
                                 ),
                               ),
-                            ),
+                              Text(
+                                'by ' + owner,     //  Hard coded!!
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 25,),
 
-                          ],
+                              Flexible(
+                                child: Text(
+                                  description,
+                                  overflow: TextOverflow
+                                      .ellipsis,
+                                  maxLines: 3,
+                                  style: TextStyle(
+                                      color: Colors.white
+                                          .withOpacity(0.25),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight
+                                          .bold
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1184,7 +1192,7 @@ class Calendar extends StatefulWidget {
 }
 
 
-class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin{
+class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
 
   late List<EdgeInsetsGeometry> _padding;
@@ -1193,7 +1201,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
   late AnimationController _clipAnimation;
   late Animation<double> _clipAnimationValue;
 
+  late AnimationController _containerAnim;
+  late Animation<double> _containerAnimValue;
 
+  late Animation<double> _gradientAnim;
+
+  int maxStep = 0;
 
   @override
   void initState() {
@@ -1223,11 +1236,24 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
     ];
 
     _clipAnimation = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _containerAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _clipAnimationValue = Tween<double>(begin: 0, end: 1).animate(_clipAnimation);
+
     _clipAnimationValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1).animate(CurvedAnimation(
         parent: _clipAnimation,
         curve: Curves.easeInOut
     ));
-    
+    _containerAnimValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1 + 20).animate(CurvedAnimation(
+        parent: _containerAnim,
+        curve: Curves.easeInOut
+    ));
+
+    _gradientAnim = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
+        parent: _clipAnimation,
+        curve: Curves.easeInOut
+    ));
+
+    maxStep = 0;
     
 
 
@@ -1239,19 +1265,21 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
     _stepsColors.clear();
     _padding.clear();
     _wordColor.clear();
+    _containerAnim.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
+      clipBehavior: Clip.none,
       physics: const BouncingScrollPhysics(),
       slivers: [
-        const CurvedAppbar(name: 'Room Manager', position: 2, accType: 'Student account'),
+        const CurvedAppbar(name: 'Hall Manager', position: 2, accType: 'Student account'),
 
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
+            padding: const EdgeInsets.fromLTRB(25, 0, 0, 70),
             child: Row(
               children: [
                 AnimatedBuilder(
@@ -1267,18 +1295,20 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                 onTap: () {
                                   if(_clipAnimation.status == AnimationStatus.dismissed){
                                     _clipAnimation.forward();
+                                    _containerAnim.forward();
                                   }
                                   else {
                                     _clipAnimation.reverse();
+                                    _containerAnim.reverse();
                                   }
                                 },
                                 child: Container(
-                                  width: 20,
+                                  width: 15,
                                   height: screenHeight * 0.5,
                                   color: Colors.transparent,
                                   child: Center(
                                     child: RotationTransition(
-                                      turns: Tween<double>(begin: 0, end: -0.5).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
+                                      turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
                                       child: const Icon(
                                         Icons.keyboard_arrow_right_rounded,
                                         color: Colors.white,
@@ -1295,7 +1325,7 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                             clipper: CustomClipBar(widthFactor: _clipAnimationValue.value),
                             child: SizedBox(
                                 height: screenHeight * 0.5,
-                                width:  screenWidth * 0.25,
+                                width:  _clipAnimationValue.value <= screenWidth * 0.2 ? _containerAnimValue.value : screenWidth * 0.25,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
@@ -1328,12 +1358,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[0],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[0],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
-                                              child: const Text(
-                                                'Select your hall.',
+                                              child: Text(
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select your hall.',
                                               ),
                                             ),
                                           ),
@@ -1370,12 +1400,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[1],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[1],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Select the day of interest.',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the day of interest.',
                                               ),
                                             ),
                                           ),
@@ -1412,12 +1442,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[2],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[2],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Select the time interval.',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the time interval.',
                                               ),
                                             ),
                                           ),
@@ -1454,12 +1484,12 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                                             child: AnimatedDefaultTextStyle(
                                               duration: const Duration(milliseconds: 250),
                                               style: TextStyle(
-                                                color: _wordColor[3],
+                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[3],
                                                 fontSize: 10,
                                                 fontFamily: 'Nunito',
                                               ),
                                               child: Text(
-                                                'Profit!',
+                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Profit!',
                                               ),
                                             ),
                                           ),
@@ -1476,24 +1506,107 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: SizedBox(
-                    height: screenHeight * 0.5,
-                    child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 750),
-                      reverse: true,
-                      transitionBuilder: (child, animation, anim2) {
-                        return SharedAxisTransition(
-                          fillColor: ColorsB.gray900,
-                          animation: animation,
-                          secondaryAnimation: anim2,
-                          child: child,
-                          transitionType: SharedAxisTransitionType.vertical,
-                        );
-                      },
-                      child: _pages(),
-                    ),
-                    )
+                  child: AnimatedBuilder(
+                    animation: _clipAnimation,
+                    builder: (_, __) =>
+                        Stack(
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (rect) {
+                                return material.LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      ColorsB.gray900.withOpacity(_gradientAnim.value),
+                                      ColorsB.gray900,
+                                    ],
+                                ).createShader(rect);
+                            },
+                              blendMode: BlendMode.dstATop,
+                              child: SizedBox(
+                                height: screenHeight * 0.5,
+                                child: PageTransitionSwitcher(
+                                  duration: const Duration(milliseconds: 750),
+                                  reverse: true,
+                                  transitionBuilder: (child, animation, anim2) {
+                                    return SharedAxisTransition(
+                                      fillColor: ColorsB.gray900,
+                                      animation: animation,
+                                      secondaryAnimation: anim2,
+                                      child: child,
+                                      transitionType: SharedAxisTransitionType.vertical,
+                                    );
+                                  },
+                                  child: _pages(),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: Offset(0, screenHeight * 0.5 - 40),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if(currentPage != 0){
+
+                                        _changePage(currentPage-1);
+
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_back_ios,
+                                        color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                                        , size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 15,
+                                            spreadRadius: 10,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: currentPage < maxStep ? Colors.white : Colors.white.withOpacity(0.5),
+                                        size: 30,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      if(currentPage < maxStep){
+
+                                        _changePage(currentPage+1);
+
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                   ),
+                  )
               ],
             ),
           ),
@@ -1529,6 +1642,10 @@ class _CalendarState extends State<Calendar> with SingleTickerProviderStateMixin
       _padding[page] = const EdgeInsets.only(bottom: 50);
       _stepsColors[page] = ColorsB.yellow500;
       _wordColor[page] = Colors.white;
+
+      if(page > currentPage){
+        maxStep = page;
+      }
 
 
       currentPage = page;
@@ -1576,7 +1693,7 @@ class CalPag1 extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: ListView.builder(
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.hardEdge,         //  Find a way to do it better
         physics: const BouncingScrollPhysics(),
         itemCount: 3,
         itemBuilder: (context, index) {
@@ -1684,16 +1801,149 @@ class CalPag2 extends StatefulWidget {
   State<CalPag2> createState() => _CalPag2State();
 }
 
-class _CalPag2State extends State<CalPag2> {
+class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
+
+  //  <---------------- Animations for the calendar --------------------->
+
+
+  var _focusedDay;
+  var _selectedDay;
+  var _calendarFormat;
+  
+  @override
+  void initState() {
+    // TODO: implement 
+    _focusedDay = DateTime.now();
+    _selectedDay = null;
+    _calendarFormat = CalendarFormat.week;
+    selectedEvents = {};
+    
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  late Map<DateTime, List<Event>> selectedEvents;
+
+  List<Event> _getEventsFromDay(DateTime date){
+    return selectedEvents[date] ?? [];
+  }
+  
+  final _textController = TextEditingController();
+
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: ColorsB.yellow500,
-      child: TextButton(
-        onPressed: () {
-          widget.changePage(0);
-        },
-        child: const Text('GoBack'),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: ClipRect(
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              height: 250,
+              decoration: BoxDecoration(
+                color: ColorsB.gray800,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TableCalendar(
+
+
+                      eventLoader: _getEventsFromDay,
+
+                      daysOfWeekHeight: 30,
+                      daysOfWeekStyle: DaysOfWeekStyle(
+                        weekdayStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        weekendStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                      headerStyle: HeaderStyle(
+                        decoration: BoxDecoration(
+                          color: ColorsB.yellow500.withOpacity(1),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                        ),
+                        titleCentered: true,
+                        leftChevronIcon: const Icon(
+                          Icons.chevron_left,
+                          color: Colors.white,
+                        ),
+                        rightChevronIcon: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white,
+                        ),
+                        titleTextStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                        formatButtonShowsNext: false,
+                        formatButtonVisible: false,
+                      ),
+                      shouldFillViewport: false,
+                      calendarStyle: CalendarStyle(
+                        defaultTextStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        disabledTextStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.25),
+                          fontSize: 12,
+                        ),
+                        weekendTextStyle: TextStyle(
+                          color: Colors.grey.withOpacity(0.25),
+                          fontSize: 12,
+                        ),
+
+                        selectedDecoration: BoxDecoration(
+                            color: ColorsB.yellow500,
+                            shape: BoxShape.circle
+                        ),
+                        isTodayHighlighted: false,
+                      ),
+                      firstDay: DateTime.now().toUtc(),
+                      lastDay: DateTime.utc(2040, 4, 12),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (day) {
+                        return isSameDay(_selectedDay, day);
+                      },
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+                          _selectedDay = selectedDay;
+                          _focusedDay = focusedDay;
+                        });
+                      },
+                      calendarFormat: _calendarFormat,
+                      onFormatChanged: (format) {
+                        setState(() {
+                          _calendarFormat = format;
+                        });
+                      },
+                      onPageChanged: (focusedDay) {
+                        _focusedDay = focusedDay;
+                      },
+                    ),
+
+                  ],
+                ),
+              )
+            ),
+          ],
+        )
       ),
     );
   }
@@ -1760,7 +2010,7 @@ class _PostItPageState extends State<PostItPage> {
         bottomNavigationBar: const BackNavbar(variation: 1,),
         extendBody: true,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(75),
+          preferredSize: const Size.fromHeight(75),
           child: AppBar(
             backgroundColor: ColorsB.gray900,
             automaticallyImplyLeading: false,

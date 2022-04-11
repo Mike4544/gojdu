@@ -8,6 +8,7 @@ import 'package:gojdu/pages/news.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
@@ -164,6 +165,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         );
                         //await Future.delayed(Duration(seconds: 3));
 
+                        final _prefs = await SharedPreferences.getInstance();
+
                         var url = Uri.parse('https://automemeapp.com/register_student.php');
                         final response = await http.post(url, body: {
                           "first_name": _username.value.text,
@@ -185,7 +188,14 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               //and navigate to home page
                               String? user = jsondata["username"];
                               String? email = jsondata["email"];
+                              String first_name = jsondata["first_name"];
+                              String last_name = jsondata["last_name"];
                               String? acc_type = jsondata["account"];
+
+                              _prefs.setString('email', email!);
+                              _prefs.setString('first_name', first_name);
+                              _prefs.setString('last_name', last_name);
+
                               Navigator.of(context).pop('dialog');
 
                               final loginMap = {
