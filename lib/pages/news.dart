@@ -19,6 +19,8 @@ import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
 import 'package:gojdu/others/event.dart';
+import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
 
 class NewsPage extends StatefulWidget {
 
@@ -253,6 +255,13 @@ class Announcements extends StatefulWidget {
   _AnnouncementsState createState() => _AnnouncementsState();
 }
 
+
+// Test
+
+//var currentChannel = "";
+
+int maximumCount = 0;
+
 class _AnnouncementsState extends State<Announcements> with SingleTickerProviderStateMixin {
 
 
@@ -287,15 +296,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   final GlobalKey _textKeyParent = GlobalKey();
 
 
-  late List<String> titles = [];
-  late List<String> descriptions = [];
-  late List<String> owners = [];
 
-  int maximumCount = 0;
 
   late var currentChannel = "";
 
-
+  late List<String> titles;
+  late List<String> descriptions;
+  late List<String> owners;
 
 
 
@@ -311,7 +318,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
     maximumCount = 0;
 
-    var currentChannel = "";
+
 
 
     int _getCurrentIndex() {
@@ -435,7 +442,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   Size _textSize(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
-        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr)
+        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: ui.TextDirection.ltr)
       ..layout(minWidth: 0, maxWidth: double.infinity);
     return textPainter.size;
   }
@@ -1537,7 +1544,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                                       transitionType: SharedAxisTransitionType.vertical,
                                     );
                                   },
-                                  child: _pages(),
+                                  child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
                                 ),
                               ),
                             ),
@@ -1550,7 +1557,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                                     onTap: () {
                                       if(currentPage != 0){
 
-                                        _changePage(currentPage-1);
+                                        _changePage(0);
 
                                       }
                                     },
@@ -1614,16 +1621,6 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
       ],
     );
-  }
-
-  Widget _pages() {
-    switch(currentPage){
-      case 0:
-        return CalPag1(key: const Key('1'), changePage: _changePage);
-      case 1:
-        return CalPag2(key: const Key('2'), changePage: _changePage);
-    }
-    return const SizedBox(width: 0, height: 0);
   }
 
 
@@ -1809,6 +1806,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
   var _focusedDay;
   var _selectedDay;
   var _calendarFormat;
+
+  late double width;
   
   @override
   void initState() {
@@ -1816,7 +1815,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     _focusedDay = DateTime.now();
     _selectedDay = null;
     _calendarFormat = CalendarFormat.week;
-    selectedEvents = {};
+    _events = {};
+    _selectedEvents = [];
+    width = 175;
     
     super.initState();
   }
@@ -1826,13 +1827,20 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  late Map<DateTime, List<Event>> selectedEvents;
+  late Map<DateTime, List<dynamic>> _events;
+  late List<dynamic> _selectedEvents;
 
-  List<Event> _getEventsFromDay(DateTime date){
-    return selectedEvents[date] ?? [];
+  List<dynamic> _getEventsFromDay(DateTime date){
+    return _events[date] ?? [];
   }
-  
-  final _textController = TextEditingController();
+
+  // <-----------------  Time Pickers ----------------->
+  late String _time1;
+  late String _time2;
+
+
+  // TODO: Get the data from the server and shit.
+
 
 
   @override
@@ -1844,8 +1852,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
         child: Column(
           children: [
             AnimatedContainer(
+              curve: Curves.easeInOut,
               duration: const Duration(milliseconds: 500),
-              height: 250,
+              height: width,
               decoration: BoxDecoration(
                 color: ColorsB.gray800,
                 borderRadius: BorderRadius.circular(30),
@@ -1855,8 +1864,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TableCalendar(
-
-
                       eventLoader: _getEventsFromDay,
 
                       daysOfWeekHeight: 30,
@@ -1878,7 +1885,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                             topRight: Radius.circular(30),
                           ),
                         ),
-                        titleCentered: true,
                         leftChevronIcon: const Icon(
                           Icons.chevron_left,
                           color: Colors.white,
@@ -1893,9 +1899,14 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                         ),
                         formatButtonShowsNext: false,
                         formatButtonVisible: false,
+                        titleCentered: true,
                       ),
                       shouldFillViewport: false,
                       calendarStyle: CalendarStyle(
+                        markerDecoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
                         defaultTextStyle: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -1923,8 +1934,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                       },
                       onDaySelected: (selectedDay, focusedDay) {
                         setState(() {
+
+
+
+
+
+
+                          widget.changePage(2);
                           _selectedDay = selectedDay;
                           _focusedDay = focusedDay;
+                          width = 300;
                         });
                       },
                       calendarFormat: _calendarFormat,
@@ -1937,6 +1956,274 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                         _focusedDay = focusedDay;
                       },
                     ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Occupied Hours',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 30,
+                                child: TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        var timeText = TextEditingController();
+                                        var timeText2 = TextEditingController();
+
+                                        TimeOfDay? parsedTime1;
+                                        TimeOfDay? parsedTime2;
+
+                                        var _formKey = GlobalKey<FormState>();
+                                        var errorText1, errorText2;
+
+                                        return AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            backgroundColor: ColorsB.gray900,
+                                            content: SizedBox(
+                                              height: 200,
+                                              child: Center(
+                                                child: Form(
+                                                  key: _formKey,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          const Text(
+                                                            'From: ',
+                                                            style: TextStyle(
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          SizedBox(
+                                                            width: 200,
+                                                            height: 50,
+                                                            child: TextFormField(
+                                                              controller: timeText,
+                                                              style: const TextStyle(
+                                                                fontSize: 15,
+                                                                color: Colors.white,
+                                                              ),
+
+                                                              readOnly: true,
+                                                              decoration: InputDecoration(
+                                                                errorText: errorText1,
+                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                labelText: "Enter Time", //label text of field
+                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                focusedBorder: UnderlineInputBorder(
+                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                ),
+                                                                enabledBorder: UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                ),
+
+                                                              onTap: () async {
+                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                if(pickedTime != null){
+                                                                  parsedTime1 = pickedTime;
+                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                  //  print(formattedTime);
+                                                                  setState(() {
+                                                                    timeText.text = formattedTime;
+                                                                    _time1 = formattedTime;
+                                                                  });
+                                                                }
+
+                                                              },
+
+                                                              validator: (value) {
+                                                                if(value == null || value.isEmpty){
+                                                                  return "Please enter time";
+                                                                }
+                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                    return "Please enter valid time";
+                                                                  }
+                                                                }
+                                                                return null;
+                                                              },
+
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          const Text(
+                                                            'To: ',
+                                                            style: TextStyle(
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          SizedBox(
+                                                            width: 200,
+                                                            height: 50,
+                                                            child: TextFormField(
+                                                              controller: timeText2,
+                                                              style: const TextStyle(
+                                                                fontSize: 15,
+                                                                color: Colors.white,
+                                                              ),
+
+                                                              readOnly: true,
+                                                              decoration: InputDecoration(
+                                                                errorText: errorText2,
+                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                labelText: "Enter Time", //label text of field
+                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                focusedBorder: UnderlineInputBorder(
+                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                ),
+                                                                enabledBorder: UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                              ),
+
+                                                              onTap: () async {
+                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                parsedTime2 = pickedTime;
+                                                                if(pickedTime != null){
+                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                  //  print(formattedTime);
+                                                                  setState(() {
+                                                                    timeText2.text = formattedTime;
+                                                                    _time2 = formattedTime;
+                                                                  });
+                                                                }
+                                                              },
+                                                              validator: (value) {
+                                                                if(value == null || value.isEmpty){
+                                                                  return "Please enter time";
+                                                                }
+                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                    return "Please enter valid time";
+                                                                  }
+                                                                }
+                                                                return null;
+                                                              },
+
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      TextButton.icon(
+                                                        onPressed: () {
+                                                          if(_formKey.currentState!.validate()){
+                                                            setState(() {
+                                                              if(_events[_selectedDay] != null){
+                                                                _events[_selectedDay]!
+                                                                    .add("$_time1 - $_time2");
+                                                              }
+                                                              else {
+                                                                _events[_selectedDay] = ["$_time1 - $_time2"];
+                                                              }
+                                                            });
+                                                            print(_events[_selectedDay]);//add event to list
+
+                                                            widget.changePage(3);
+
+
+                                                            Navigator.of(context).pop();
+                                                          }
+                                                        },
+                                                        icon: const Icon(
+                                                          Icons.add_circle,
+                                                          color: Colors.white,
+                                                        ),
+                                                        label: const Text(
+                                                          'Reserve',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                        );
+                                      }
+
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Reserve',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  style: ButtonStyle(
+                                    elevation: MaterialStateProperty.all(0),
+                                    backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
+                                    shape: MaterialStateProperty.all<OutlinedBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                    ),
+                                  )
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(0),
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _events[_selectedDay]?.length ?? 0,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Container(
+                                  margin: EdgeInsets.symmetric(vertical: 5),
+                                  child: Text(
+                                    _events[_selectedDay]![index],
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+
+                        ],
+                      )
+                    )
 
                   ],
                 ),

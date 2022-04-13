@@ -43,6 +43,7 @@ dependencies:
   flutter_svg: ^1.0.3
   shared_preferences: ^2.0.13
   table_calendar: ^3.0.5
+  intl: ^0.17.0
 
 flutter_native_splash:
   color: '#1A202C'
