@@ -426,6 +426,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           _currentAnnouncement = 2;
           currentChannel = 'Parents';
           return 2;
+        case 'Admin':
+          _currentAnnouncement = 1;
+          currentChannel = 'Teachers';
+          return 1;
         default:
           return 0;
       }
@@ -529,7 +533,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   List<String> labels = [
     'Students',
     'Teachers',
-    'Parents'
+    'Parents',
   ];
 
   Size _textSize(String text, TextStyle style) {
@@ -572,7 +576,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       ),
                       const SizedBox(width: 10,),
                       Visibility(
-                        visible: globalMap['account'] == 'Teacher' ? true : false, // cHANGE IT,
+                        visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
                         child: GestureDetector(
                           onTap: _showWritable,
                           child: const Icon(
@@ -636,7 +640,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   Widget teachersBar() {
-    if(globalMap['account'] == 'Teacher') {
+    if(globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
