@@ -343,12 +343,7 @@ Future<void> logoff(BuildContext context) async {
   await prefs.remove('name');
   await prefs.remove('password');
 
-  Navigator.pushReplacement(context, MaterialPageRoute(
-      builder: (context) =>
-          const Login()
-  ));
-  
-
+  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
 }
 
 

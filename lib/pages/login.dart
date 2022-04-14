@@ -45,13 +45,12 @@ class _LoginState extends State<Login> {
   //  <-------------  Login Indicator ------------>
   bool isLoggingIn = false;
 
-
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
     nameError = '';
     isLoggingIn = false;
+    super.initState();
+
   }
 
 
@@ -148,7 +147,7 @@ class _LoginState extends State<Login> {
                               TextButton(
                                 onPressed: (_nameController.value.text
                                     .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty) || !isLoggingIn
+                                    _passController.value.text.isNotEmpty) || isLoggingIn
                                     ? login
                                     : null,
                                 child: Padding(

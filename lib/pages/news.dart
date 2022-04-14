@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -9,7 +11,6 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
-import 'package:gojdu/widgets/navbar.dart';
 import 'package:rive/rive.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/floor_selector.dart';
@@ -17,6 +18,19 @@ import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
+import 'package:gojdu/others/event.dart';
+import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
+
+//  Connectivity
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart' as con;
+
+// SVG
+import 'package:flutter_svg/flutter_svg.dart';
+
+
+
 
 class NewsPage extends StatefulWidget {
 
@@ -33,6 +47,7 @@ SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
 late Map globalMap;
+
 
 
 
@@ -55,6 +70,11 @@ class _NewsPageState extends State<NewsPage>{
 
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
+
+  ConnectivityResult? connectionStatus, lastConnectionStatus;
+  late StreamSubscription subscription;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
   //Change the animations function
@@ -83,10 +103,67 @@ class _NewsPageState extends State<NewsPage>{
     initialPage: 1,
   );
 
+  void checkConnectivity() {
+    if(connectionStatus == ConnectivityResult.none){
+
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
+        content: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            child: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text("No internet connection", style: TextStyle(fontFamily: 'Nunito', fontSize: 10),),
+              ],
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        duration: const Duration(days: 1),
+        backgroundColor: Colors.red,
+      ));
+
+    } else if(lastConnectionStatus == ConnectivityResult.none && connectionStatus != ConnectivityResult.none){
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
+        content: Container(
+          child: Row(
+            children: const [
+              Icon(Icons.check, color: Colors.white, size: 17,),
+              SizedBox(width: 10),
+              Text("Internet connection restored", style: TextStyle(fontFamily: 'Nunito', fontSize: 10),),
+            ],
+          ),
+        ),
+        duration: const Duration(seconds: 3),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        backgroundColor: Colors.green,
+      ));
+    }
+  }
+
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    print(1);
+  }
 
   @override
   void initState() {
-    // TODO: implement initState
+
+    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        connectionStatus = result;
+
+      });
+      print(result);
+      print(lastConnectionStatus);
+      checkConnectivity();
+      lastConnectionStatus = connectionStatus;
+    });
+
     super.initState();
 
     // <---------- Load the acc type -------------->
@@ -143,10 +220,14 @@ class _NewsPageState extends State<NewsPage>{
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _pageController.dispose();
     globalMap.clear();
+    lastConnectionStatus = null;
+    connectionStatus = null;
+    subscription.cancel();
+    super.dispose();
+
+
   }
 
 
@@ -157,7 +238,9 @@ class _NewsPageState extends State<NewsPage>{
     var device = MediaQuery.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorsB.gray900,
+      extendBody: true,
       bottomNavigationBar:
       Container(
         width: device.size.width,
@@ -220,7 +303,7 @@ class _NewsPageState extends State<NewsPage>{
                     setState(() {
                       _currentIndex = 2;
                     });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
                 ),
               ),
@@ -240,6 +323,15 @@ class _NewsPageState extends State<NewsPage>{
   }
 }
 
+
+
+
+
+
+
+
+
+
 class Announcements extends StatefulWidget {
 
   final SMIInput<bool>? navbarButton;
@@ -249,6 +341,13 @@ class Announcements extends StatefulWidget {
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
 }
+
+
+// Test
+
+//var currentChannel = "";
+
+int maximumCount = 0;
 
 class _AnnouncementsState extends State<Announcements> with SingleTickerProviderStateMixin {
 
@@ -272,6 +371,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   //  <-------------- Loading bool for shimmer loading -------------------->
   late bool isLoading;
 
+  //  <-------------- Error bool  -------------------->
+  late bool isError;
+
   //  <---------------  Scrollcontroller  ------------------------->
 
   late ScrollController  _scrollController;
@@ -284,15 +386,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   final GlobalKey _textKeyParent = GlobalKey();
 
 
-  late List<String> titles = [];
-  late List<String> descriptions = [];
-  late List<String> owners = [];
 
-  int maximumCount = 0;
 
   late var currentChannel = "";
 
-
+  late List<String> titles;
+  late List<String> descriptions;
+  late List<String> owners;
 
 
 
@@ -307,8 +407,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     owners = [];
 
     maximumCount = 0;
+    isError = false;
 
-    var currentChannel = "";
+
 
 
     int _getCurrentIndex() {
@@ -384,6 +485,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
+    isError = false;
     loaded = false;
     titles.clear();
     owners.clear();
@@ -432,7 +534,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   Size _textSize(String text, TextStyle style) {
     final TextPainter textPainter = TextPainter(
-        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: TextDirection.ltr)
+        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: ui.TextDirection.ltr)
       ..layout(minWidth: 0, maxWidth: double.infinity);
     return textPainter.size;
   }
@@ -679,119 +781,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Widget _buildLists(Color _color) {
-    if(isLoading) {
-      return ListView.builder(
-        physics: const BouncingScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: maxScrollCount,
-        itemBuilder: (_, index) =>
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Shimmer.fromColors(
-                baseColor: ColorsB.gray800,
-                highlightColor: ColorsB.gray700,
-                child: Container(                         // Student containers. Maybe get rid of the hero
-                    width: screenWidth * 0.75,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: _color,
-                      borderRadius: BorderRadius.circular(
-                          50),
-                    ),
-                  ),
-              ),
-              ),
-      );
-    }
-    else {
-      return RefreshIndicator(
-        backgroundColor: ColorsB.gray900,
-        color: _color,
-        onRefresh: () async {
-          _refresh();
-        },
-        child: ListView.builder(
-          controller: _scrollController,
+    if(!isError) {
+      if(isLoading) {
+        return ListView.builder(
           physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
-          itemBuilder: (_, index) {
-
-            title = titles[index];
-            description = descriptions[index];
-            var owner = owners[index];
-
-            if(index != maxScrollCount){
-              return Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: screenWidth * 0.75,
-                  height: 200,
-                  child: Container(                         // Student containers. Maybe get rid of the hero
-                    width: screenWidth * 0.75,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: _color,
-                      borderRadius: BorderRadius.circular(
-                          50),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () {
-                          _hero(context, titles[index], descriptions[index], owners[index], _color);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(25.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment
-                                .start,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              Text(
-                                'by ' + owner,     //  Hard coded!!
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 25,),
-
-                              Flexible(
-                                child: Text(
-                                  description,
-                                  overflow: TextOverflow
-                                      .ellipsis,
-                                  maxLines: 3,
-                                  style: TextStyle(
-                                      color: Colors.white
-                                          .withOpacity(0.25),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight
-                                          .bold
-                                  ),
-                                ),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-            else{
-              return Padding(
+          itemCount: maxScrollCount,
+          itemBuilder: (_, index) =>
+              Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Shimmer.fromColors(
                   baseColor: ColorsB.gray800,
@@ -800,17 +797,175 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     width: screenWidth * 0.75,
                     height: 200,
                     decoration: BoxDecoration(
-                      color: _color,
+                      color: ColorsB.gray800,
                       borderRadius: BorderRadius.circular(
                           50),
                     ),
                   ),
                 ),
-              );
-            }
-          }
+              ),
+        );
+      }
+      else {
+        return RefreshIndicator(
+          backgroundColor: ColorsB.gray900,
+          color: _color,
+          onRefresh: () async {
+            _refresh();
+          },
+          child: ListView.builder(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+              itemBuilder: (_, index) {
 
-        ),
+                title = titles[index];
+                description = descriptions[index];
+                var owner = owners[index];
+
+                if(index != maxScrollCount){
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      width: screenWidth * 0.75,
+                      height: 200,
+                      child: Container(                         // Student containers. Maybe get rid of the hero
+                        width: screenWidth * 0.75,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: _color,
+                          borderRadius: BorderRadius.circular(
+                              50),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: () {
+                              _hero(context, titles[index], descriptions[index], owners[index], _color);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(25.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  Text(
+                                    'by ' + owner,     //  Hard coded!!
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 25,),
+
+                                  Flexible(
+                                    child: Text(
+                                      description,
+                                      overflow: TextOverflow
+                                          .ellipsis,
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                          color: Colors.white
+                                              .withOpacity(0.25),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight
+                                              .bold
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                else{
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Shimmer.fromColors(
+                      baseColor: ColorsB.gray800,
+                      highlightColor: ColorsB.gray700,
+                      child: Container(                         // Student containers. Maybe get rid of the hero
+                        width: screenWidth * 0.75,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: _color,
+                          borderRadius: BorderRadius.circular(
+                              50),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+              }
+
+          ),
+        );
+      }
+    }
+    else {
+      return Center(
+        child: Column(
+          children: [
+            SizedBox(
+              height: screenHeight * 0.3,
+              child: SvgPicture.asset('assets/svgs/404.svg'),
+            ),
+            const Text(
+              'Zap! Something went wrong!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white
+              ),
+            ),
+            Text(
+              "Please retry.",
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white.withOpacity(0.25),
+              ),
+            ),
+            const SizedBox(height: 20,),
+            TextButton.icon(
+              icon: Icon(
+                Icons.refresh,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Refresh',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+              ),
+              onPressed: () {
+                _refresh();
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: ColorsB.yellow500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      50),
+                ),
+              )
+            ),
+          ],
+        )
       );
     }
 
@@ -823,62 +978,61 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Future<int> load(String channel) async {
-    /*
-      await Future.delayed(const Duration(seconds: 3));
-      setState(() {
-        isLoading = false;
-        loaded = true;
-      });
 
-     */
-      var url = Uri.parse('https://automemeapp.com/selectposts.php');
-          final response = await http.post(url, body: {
-            "index": "0",
-            "channel": channel,
-          });
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
+      try {
+        var url = Uri.parse('https://automemeapp.com/selectposts.php');
+        final response = await http.post(url, body: {
+          "index": "0",
+          "channel": channel,
+        });
+        print(response.statusCode);
+        if (response.statusCode == 200) {
+          var jsondata = json.decode(response.body);
 
-        if (jsondata["1"]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata["1"]["success"]) {
+          if (jsondata["1"]["error"]) {
+            setState(() {
+              //nameError = jsondata["message"];
+            });
+          } else {
+            if (jsondata["1"]["success"]) {
 
-            for(int i = 2; i <= 52; i++)
-            {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
+              for(int i = 2; i <= 52; i++)
+              {
+                String post = jsondata[i.toString()]["post"].toString();
+                String title = jsondata[i.toString()]["title"].toString();
+                String owner = jsondata[i.toString()]["owner"].toString();
 
 
-              if(post != "null" && post != null){
-                titles.add(title);
-                descriptions.add(post);
-                owners.add(owner);
-                ++maximumCount;
-              }
+                if(post != "null" && post != null){
+                  titles.add(title);
+                  descriptions.add(post);
+                  owners.add(owner);
+                  ++maximumCount;
+                }
 
-              /* if(post != "null")
+                /* if(post != "null")
               {
                 print(post+ " this is the post");
                 print(title+" this is the title");
                 print(owner+ " this is the owner");
               } */
 
+              }
+              setState(() {
+                isLoading = false;
+                loaded = true;
+              });
             }
-            setState(() {
-              isLoading = false;
-              loaded = true;
-            });
-          }
-          else
-          {
-            print(jsondata["1"]["message"]);
+            else
+            {
+              print(jsondata["1"]["message"]);
+            }
           }
         }
+      } catch (e) {
+        setState(() {
+          isError = true;
+        });
       }
 
       return 0;
@@ -1245,7 +1399,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
         curve: Curves.easeInOut
     ));
 
-    _gradientAnim = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(
+    _gradientAnim = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
         parent: _clipAnimation,
         curve: Curves.easeInOut
     ));
@@ -1269,13 +1423,14 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
+      clipBehavior: Clip.none,
       physics: const BouncingScrollPhysics(),
       slivers: [
-        const CurvedAppbar(name: 'Room Manager', position: 2, accType: 'Student account'),
+        CurvedAppbar(name: 'Hall Manager', position: 2, accType: '${globalMap['account']} account'),
 
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
+            padding: const EdgeInsets.fromLTRB(25, 0, 0, 70),
             child: Row(
               children: [
                 AnimatedBuilder(
@@ -1533,12 +1688,12 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                                       transitionType: SharedAxisTransitionType.vertical,
                                     );
                                   },
-                                  child: _pages(),
+                                  child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
                                 ),
                               ),
                             ),
                             Transform.translate(
-                              offset: Offset(0, screenHeight * 0.5 - 20),
+                              offset: Offset(0, screenHeight * 0.5 - 40),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -1546,7 +1701,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                                     onTap: () {
                                       if(currentPage != 0){
 
-                                        _changePage(currentPage-1);
+                                        _changePage(0);
 
                                       }
                                     },
@@ -1610,16 +1765,6 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
       ],
     );
-  }
-
-  Widget _pages() {
-    switch(currentPage){
-      case 0:
-        return CalPag1(key: const Key('1'), changePage: _changePage);
-      case 1:
-        return CalPag2(key: const Key('2'), changePage: _changePage);
-    }
-    return const SizedBox(width: 0, height: 0);
   }
 
 
@@ -1688,104 +1833,124 @@ class CalPag1 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
-      child: ListView.builder(
-        clipBehavior: Clip.none,
-        physics: const BouncingScrollPhysics(),
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 125,
-              decoration: BoxDecoration(
-                color: ColorsB.gray800,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(30),
-                  onTap: () {
-                    changePage(1);
-                  },
-                  child: Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: ShaderMask(
-                          shaderCallback: (rect) {
-                            return const material.LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              stops: [0, 1],
-                              colors: [
-                                Colors.transparent,
-                                Colors.black,
-                              ],
-                            ).createShader(rect);
-                          },
-                          blendMode: BlendMode.dstIn,
-                          child: Icon(
-                            Icons.account_balance_sharp,
-                            color: ColorsB.gray700.withOpacity(0.25),
-                            size: 75,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      child: FutureBuilder(
+        future: _loadHalls(),
+        builder: (_, snapshot) {
+          if(snapshot.hasData){
+            return ListView.builder(
+              clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+              physics: const BouncingScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 125,
+                    decoration: BoxDecoration(
+                      color: ColorsB.gray800,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(30),
+                        onTap: () {
+                          changePage(1);
+                        },
+                        child: Stack(
                           children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.account_balance,
-                                  color: ColorsB.yellow500,
-                                  size: 20,
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: ShaderMask(
+                                shaderCallback: (rect) {
+                                  return const material.LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    stops: [0, 1],
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black,
+                                    ],
+                                  ).createShader(rect);
+                                },
+                                blendMode: BlendMode.dstIn,
+                                child: Icon(
+                                  Icons.account_balance_sharp,
+                                  color: ColorsB.gray700.withOpacity(0.25),
+                                  size: 75,
                                 ),
-                                const SizedBox(width: 10,),
-                                Text(
-                                  'Hall $index',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.account_balance,
+                                        color: ColorsB.yellow500,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 10,),
+                                      Text(
+                                        'Hall $index',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            Divider(
-                              color: Colors.white.withOpacity(0.1),
-                              thickness: 1,
-                            ),
-                            const SizedBox(height: 10,),
-                            Text(
-                              'Type: Large',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 10,
+                                  Divider(
+                                    color: Colors.white.withOpacity(0.1),
+                                    thickness: 1,
+                                  ),
+                                  const SizedBox(height: 10,),
+                                  Text(
+                                    'Type: Large',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Capacity: 30',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              'Capacity: 30',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 10,
-                              ),
-                            ),
+                            )
                           ],
                         ),
-                      )
-                    ],
+                      ),
+                    ),
                   ),
-                ),
+                );
+              },
+            );
+          }
+          else {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
               ),
-            ),
-          );
-        },
+            );
+          }
+        }
       ),
     );
   }
+}
+
+Future<int> _loadHalls() async {
+  await Future.delayed(const Duration(seconds: 1));
+  // This is where the halls are loaded.
+  return 1;
 }
 
 //  <-----------------  Statefull cal page 2 ----------------->
@@ -1797,18 +1962,461 @@ class CalPag2 extends StatefulWidget {
   State<CalPag2> createState() => _CalPag2State();
 }
 
-class _CalPag2State extends State<CalPag2> {
+class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
+
+  //  <---------------- Animations for the calendar --------------------->
+
+
+  var _focusedDay;
+  var _selectedDay;
+  var _calendarFormat;
+
+  late double width;
+  
+  @override
+  void initState() {
+    // TODO: implement 
+    _focusedDay = DateTime.now();
+    _selectedDay = null;
+    _calendarFormat = CalendarFormat.week;
+    _events = {};
+    _selectedEvents = [];
+    width = 175;
+    
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  late Map<DateTime, List<dynamic>> _events;
+  late List<dynamic> _selectedEvents;
+
+  List<dynamic> _getEventsFromDay(DateTime date){
+    return _events[date] ?? [];
+  }
+
+  // <-----------------  Time Pickers ----------------->
+  late String _time1;
+  late String _time2;
+
+
+  // TODO: Get the data from the server and shit.
+
+
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: ColorsB.gray200,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2022, 4, 11),
-        lastDay: DateTime.utc(2040, 4, 12),
-        focusedDay: DateTime.now(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: ClipRect(
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          children: [
+            AnimatedContainer(
+              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 500),
+              height: width,
+              decoration: BoxDecoration(
+                color: ColorsB.gray800,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TableCalendar(
+                      eventLoader: _getEventsFromDay,
+
+                      daysOfWeekHeight: 30,
+                      daysOfWeekStyle: DaysOfWeekStyle(
+                        weekdayStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        weekendStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                      headerStyle: HeaderStyle(
+                        decoration: BoxDecoration(
+                          color: ColorsB.yellow500.withOpacity(1),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                        ),
+                        leftChevronIcon: const Icon(
+                          Icons.chevron_left,
+                          color: Colors.white,
+                        ),
+                        rightChevronIcon: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white,
+                        ),
+                        titleTextStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                        formatButtonShowsNext: false,
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                      ),
+                      shouldFillViewport: false,
+                      calendarStyle: CalendarStyle(
+                        markerDecoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        defaultTextStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        disabledTextStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.25),
+                          fontSize: 12,
+                        ),
+                        weekendTextStyle: TextStyle(
+                          color: Colors.grey.withOpacity(0.25),
+                          fontSize: 12,
+                        ),
+
+                        selectedDecoration: BoxDecoration(
+                            color: ColorsB.yellow500,
+                            shape: BoxShape.circle
+                        ),
+                        isTodayHighlighted: false,
+                      ),
+                      firstDay: DateTime.now().toUtc(),
+                      lastDay: DateTime.utc(2040, 4, 12),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (day) {
+                        return isSameDay(_selectedDay, day);
+                      },
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+
+
+
+
+
+
+                          widget.changePage(2);
+                          _selectedDay = selectedDay;
+                          _focusedDay = focusedDay;
+                          width = 300;
+                        });
+                      },
+                      calendarFormat: _calendarFormat,
+                      onFormatChanged: (format) {
+                        setState(() {
+                          _calendarFormat = format;
+                        });
+                      },
+                      onPageChanged: (focusedDay) {
+                        _focusedDay = focusedDay;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Occupied Hours',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 30,
+                                child: TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        var timeText = TextEditingController();
+                                        var timeText2 = TextEditingController();
+
+                                        TimeOfDay? parsedTime1;
+                                        TimeOfDay? parsedTime2;
+
+                                        var _formKey = GlobalKey<FormState>();
+                                        var errorText1, errorText2;
+
+
+
+                                        return AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            backgroundColor: ColorsB.gray900,
+                                            content: SizedBox(
+                                              height: 200,
+                                              child: Center(
+                                                child: Form(
+                                                  key: _formKey,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          const Text(
+                                                            'From: ',
+                                                            style: TextStyle(
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          SizedBox(
+                                                            width: 200,
+                                                            height: 50,
+                                                            child: TextFormField(
+                                                              controller: timeText,
+                                                              style: const TextStyle(
+                                                                fontSize: 15,
+                                                                color: Colors.white,
+                                                              ),
+
+                                                              readOnly: true,
+                                                              decoration: InputDecoration(
+                                                                errorText: errorText1,
+                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                labelText: "Enter Time", //label text of field
+                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                focusedBorder: UnderlineInputBorder(
+                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                ),
+                                                                enabledBorder: UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                ),
+
+                                                              onTap: () async {
+                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                if(pickedTime != null){
+                                                                  parsedTime1 = pickedTime;
+                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                  //  print(formattedTime);
+                                                                  setState(() {
+                                                                    timeText.text = formattedTime;
+                                                                    _time1 = formattedTime;
+                                                                  });
+                                                                }
+
+                                                              },
+
+                                                              validator: (value) {
+                                                                if(value == null || value.isEmpty){
+                                                                  return "Please enter time";
+                                                                }
+                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                    return "Please enter valid time";
+                                                                  }
+                                                                }
+                                                                return null;
+                                                              },
+
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          const Text(
+                                                            'To: ',
+                                                            style: TextStyle(
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          SizedBox(
+                                                            width: 200,
+                                                            height: 50,
+                                                            child: TextFormField(
+                                                              controller: timeText2,
+                                                              style: const TextStyle(
+                                                                fontSize: 15,
+                                                                color: Colors.white,
+                                                              ),
+
+                                                              readOnly: true,
+                                                              decoration: InputDecoration(
+                                                                errorText: errorText2,
+                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                labelText: "Enter Time", //label text of field
+                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                focusedBorder: UnderlineInputBorder(
+                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                ),
+                                                                enabledBorder: UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                              ),
+
+                                                              onTap: () async {
+                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                parsedTime2 = pickedTime;
+                                                                if(pickedTime != null){
+                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                  //  print(formattedTime);
+                                                                  setState(() {
+                                                                    timeText2.text = formattedTime;
+                                                                    _time2 = formattedTime;
+                                                                  });
+                                                                }
+                                                              },
+                                                              validator: (value) {
+                                                                if(value == null || value.isEmpty){
+                                                                  return "Please enter time";
+                                                                }
+                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                    return "Please enter valid time";
+                                                                  }
+                                                                }
+                                                                return null;
+                                                              },
+
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      TextButton.icon(
+                                                        onPressed: () {
+                                                          if(_formKey.currentState!.validate()){
+                                                            setState(() {
+                                                              if(_events[_selectedDay] != null){
+                                                                _events[_selectedDay]!
+                                                                    .add("$_time1 - $_time2");
+                                                              }
+                                                              else {
+                                                                _events[_selectedDay] = ["$_time1 - $_time2"];
+                                                              }
+                                                            });
+                                                            print(_events[_selectedDay]);//add event to list
+
+                                                            widget.changePage(3);
+
+
+                                                            Navigator.of(context).pop();
+                                                          }
+                                                        },
+                                                        icon: const Icon(
+                                                          Icons.add_circle,
+                                                          color: Colors.white,
+                                                        ),
+                                                        label: const Text(
+                                                          'Reserve',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                        );
+                                      }
+
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Reserve',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  style: ButtonStyle(
+                                    elevation: MaterialStateProperty.all(0),
+                                    backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
+                                    shape: MaterialStateProperty.all<OutlinedBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                    ),
+                                  )
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 100,
+                            child: _events[_selectedDay] != null
+                                    ? ListView.builder(
+                                      physics: const BouncingScrollPhysics(),
+                                      padding: EdgeInsets.zero,
+                                      itemCount: _events[_selectedDay]!.length,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(2.5),
+                                          child: Container(
+                                            child: Text(
+                                              _events[_selectedDay]![index],
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                : Center(
+                                  child: FadeTransition(
+                                    opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
+                                      vsync: this,
+                                      duration: Duration(milliseconds: 500),
+                                    )..forward()),
+                                    child: Text(
+                                    'No events for this day. Yay!',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white.withOpacity(0.25),
+                                    ),
+                            ),
+                                  ),
+                                )
+                          ),
+
+
+                        ],
+                      )
+                    )
+
+                  ],
+                ),
+              )
+            ),
+          ],
+        )
       ),
     );
   }

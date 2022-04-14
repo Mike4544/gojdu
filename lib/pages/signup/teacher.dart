@@ -8,6 +8,7 @@ import 'package:gojdu/widgets/styled_dropdown.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TeacherSignUp extends StatefulWidget {
   const TeacherSignUp({Key? key}) : super(key: key);
@@ -240,6 +241,7 @@ class _FirstPageState extends State<FirstPage> {
                         )
                     );
                     //await Future.delayed(Duration(seconds: 3));
+                    final _prefs = await SharedPreferences.getInstance();
 
                     var url = Uri.parse('https://automemeapp.com/register_teacher.php');
                     final response = await http.post(url, body: {
@@ -264,6 +266,13 @@ class _FirstPageState extends State<FirstPage> {
                           String? user = jsondata["username"];
                           String? email = jsondata["email"];
                           String? acc_type = jsondata["account"];
+                          String first_name = jsondata["first_name"];
+                          String last_name = jsondata["last_name"];
+
+                          _prefs.setString('email', email!);
+                          _prefs.setString('first_name', first_name);
+                          _prefs.setString('last_name', last_name);
+
                           print(acc_type.toString());
                           Navigator.of(context).pop('dialog');
 

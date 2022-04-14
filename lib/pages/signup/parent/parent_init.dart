@@ -9,6 +9,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:gojdu/pages/news.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String? fntopass;
 String? lntopass;
@@ -342,164 +343,170 @@ class _SecondPageState extends State<SecondPage> {
         padding: const EdgeInsets.all(20.0),
         child: Form(
 
-        key: _formKey,
+          key: _formKey,
 
-        child: Column(
-          children: [
-            const Text(
-              "One more thing...",
-              style: TextStyle(
-                color: ColorsB.yellow500,
-                fontSize: 40,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-
-            const Divider(
-              height: 25,
-              thickness: 2,
-              color: ColorsB.yellow500,
-            ),
-
-            SizedBox(
-              height: device.size.height * 0.025,
-            ),
-
-            const Text(
-              "Before you can create your account, please input your child's email below.",
-              style: TextStyle(
-                color: ColorsB.yellow500,
-                fontSize: 20,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-
-            SizedBox(
-              height: device.size.height * 0.1,
-            ),
-            InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: false, errorMessage: _errorText, lengthLimiter: 30,),
-
-            SizedBox(
-              height: device.size.height * 0.05,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () async{
-                    if(_formKey.currentState!.validate()){
-                      showDialog(context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                          const Center(
-                            child: SpinKitRing(
-                              color: ColorsB.yellow500,
-                            ),
-                          )
-                      );
-
-                      email2topass = _childUsername.value.text;
-
-                      print(fntopass);
-                      print(lntopass);
-                      print(pass1topass);
-                      print(pass2topass);
-                      print(email1topass);
-                      print(email2topass);
-
-                      var url = Uri.parse('https://automemeapp.com/register_parent.php');
-                      final response = await http.post(url, body: {
-                        "first_name": fntopass,
-                        "last_name": lntopass,
-                        "password_1": pass1topass,
-                        "password_2": pass2topass,
-                        "email": email1topass,
-                        "kid": email2topass,
-                      });
-                      if(response.statusCode == 200){
-                        print(response.statusCode);
-                        var jsondata = json.decode(response.body);
-                        if(jsondata["error"]){
-                          setState(() {
-                            _errorText = jsondata["message"];
-                            Navigator.of(context).pop('dialog');
-                          });
-                        }else{
-                          if(jsondata["success"]){
-                            //save the data returned from server
-                            //and navigate to home page
-                            String? user = jsondata["username"];
-                            String? email = jsondata["email"];
-                            String? acc_type = jsondata["account"];
-                            String? kid = jsondata["kid"];
-                            Navigator.of(context).pop('dialog');
-
-                            final loginMap = {
-                              "username": user,
-                              "email": email,
-                              "account": acc_type,
-                              "kid": kid,
-                            };
-
-                            Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (context) => NewsPage(data: loginMap,)
-                            ));
-                            //user shared preference to save data
-                          }else{
-                            _errorText = "Error connecting.";
-                            print(jsondata);
-                            Navigator.of(context).pop('dialog');
-                          }
-                        }
-                      }else{
-                        setState(() {
-                          _errorText = "wtf?";
-                          Navigator.of(context).pop('dialog');
-
-                        });
-                      }
-
-
-
-                      //TODO: Add funtionality to the student register button
-                    }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                    child: Text(
-                        "Finish",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.normal,
-                          fontFamily: 'Nunito',
-                          letterSpacing: 2.5,
-                        )),
-                  ),
-                  style: TextButton.styleFrom(
-                      backgroundColor: ColorsB.yellow500,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
-                      )
-                  ),
+          child: Column(
+            children: [
+              const Text(
+                "One more thing...",
+                style: TextStyle(
+                  color: ColorsB.yellow500,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
-            ),
-            SizedBox(
-              height: device.size.height * 0.05,
-            ),
+              ),
 
-            StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require parents\' and students\' accounts to be linked.',
-              description: 'To keep third-parties from making fake accounts of parents, we require this type of account to be verified.',
-              controller: _iconController,
-            ),
+              const Divider(
+                height: 25,
+                thickness: 2,
+                color: ColorsB.yellow500,
+              ),
+
+              SizedBox(
+                height: device.size.height * 0.025,
+              ),
+
+              const Text(
+                "Before you can create your account, please input your child's email below.",
+                style: TextStyle(
+                  color: ColorsB.yellow500,
+                  fontSize: 20,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+
+              SizedBox(
+                height: device.size.height * 0.1,
+              ),
+              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText, lengthLimiter: 30, isStudent: false),
+
+              SizedBox(
+                height: device.size.height * 0.05,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () async{
+
+                      final _prefs = await SharedPreferences.getInstance();
+
+                      if(_formKey.currentState!.validate()){
+                        showDialog(context: context,
+                            barrierDismissible: false,
+                            builder: (_) =>
+                            const Center(
+                              child: SpinKitRing(
+                                color: ColorsB.yellow500,
+                              ),
+                            )
+                        );
+
+                        email2topass = _childUsername.value.text;
+
+                        print(fntopass);
+                        print(lntopass);
+                        print(pass1topass);
+                        print(pass2topass);
+                        print(email1topass);
+                        print(email2topass);
+
+                        _prefs.setString('email', email1topass!);
+                        _prefs.setString('first_name', fntopass!);
+                        _prefs.setString('last_name', lntopass!);
+
+                        var url = Uri.parse('https://automemeapp.com/register_parent.php');
+                        final response = await http.post(url, body: {
+                          "first_name": fntopass,
+                          "last_name": lntopass,
+                          "password_1": pass1topass,
+                          "password_2": pass2topass,
+                          "email": email1topass,
+                          "kid": email2topass,
+                        });
+                        if(response.statusCode == 200){
+                          print(response.statusCode);
+                          var jsondata = json.decode(response.body);
+                          if(jsondata["error"]){
+                            setState(() {
+                              _errorText = jsondata["message"];
+                              Navigator.of(context).pop('dialog');
+                            });
+                          }else{
+                            if(jsondata["success"]){
+                              //save the data returned from server
+                              //and navigate to home page
+                              String? user = jsondata["username"];
+                              String? email = jsondata["email"];
+                              String? acc_type = jsondata["account"];
+                              String? kid = jsondata["kid"];
+                              Navigator.of(context).pop('dialog');
+
+                              final loginMap = {
+                                "username": user,
+                                "email": email,
+                                "account": acc_type,
+                                "kid": kid,
+                              };
+
+                              Navigator.pushReplacement(context, MaterialPageRoute(
+                                  builder: (context) => NewsPage(data: loginMap,)
+                              ));
+                              //user shared preference to save data
+                            }else{
+                              _errorText = "Error connecting.";
+                              print(jsondata);
+                              Navigator.of(context).pop('dialog');
+                            }
+                          }
+                        }else{
+                          setState(() {
+                            _errorText = "wtf?";
+                            Navigator.of(context).pop('dialog');
+
+                          });
+                        }
 
 
-          ],
+
+                        //TODO: Add funtionality to the student register button
+                      }
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                      child: Text(
+                          "Finish",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.normal,
+                            fontFamily: 'Nunito',
+                            letterSpacing: 2.5,
+                          )),
+                    ),
+                    style: TextButton.styleFrom(
+                        backgroundColor: ColorsB.yellow500,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        )
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: device.size.height * 0.05,
+              ),
+
+              StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require parents\' and students\' accounts to be linked.',
+                description: 'To keep third-parties from making fake accounts of parents, we require this type of account to be verified.',
+                controller: _iconController,
+              ),
+
+
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
 }
-
