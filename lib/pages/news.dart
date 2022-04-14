@@ -2316,10 +2316,10 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                             DateTime begin, end;
 
-                                                            begin = join(_selectedDay, parsedTime1!);
-                                                            print(begin.toString().substring(0, begin.toString().length-4 ));
+                                                            print(_events);
 
                                                             widget.changePage(3);
+
 
 
                                                             Navigator.of(context).pop();
