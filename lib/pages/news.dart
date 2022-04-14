@@ -1994,6 +1994,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     super.initState();
   }
 
+  Future<int> load_events(int hall) async
+  {
+
+
+    return 0;
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -2448,11 +2455,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     );
   }
 }
-
-DateTime join(DateTime date, TimeOfDay time) {
-  return DateTime(date.year, date.month, date.day, time.hour, time.minute);
-}
-
 
 
 
