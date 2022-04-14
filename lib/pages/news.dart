@@ -23,7 +23,7 @@ import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
 //  Connectivity
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 // SVG
 import 'package:flutter_svg/flutter_svg.dart';

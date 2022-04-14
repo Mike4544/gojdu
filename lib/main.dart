@@ -27,7 +27,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 // Import Connectivity
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 
 
