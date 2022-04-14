@@ -2312,6 +2312,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                             });
                                                             print(_events[_selectedDay]);//add event to list
 
+                                                            // INCEPUT
+
+                                                            DateTime begin, end;
+
+                                                            begin = join(_selectedDay, parsedTime1!);
+                                                            print(begin.toString().substring(0, begin.toString().length-4 ));
+
                                                             widget.changePage(3);
 
 
@@ -2416,6 +2423,10 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
       ),
     );
   }
+}
+
+DateTime join(DateTime date, TimeOfDay time) {
+  return DateTime(date.year, date.month, date.day, time.hour, time.minute);
 }
 
 
