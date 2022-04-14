@@ -45,13 +45,12 @@ class _LoginState extends State<Login> {
   //  <-------------  Login Indicator ------------>
   bool isLoggingIn = false;
 
-
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
     nameError = '';
     isLoggingIn = false;
+    super.initState();
+
   }
 
 

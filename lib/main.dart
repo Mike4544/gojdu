@@ -54,6 +54,7 @@ Future<void> main() async {
 
     home: homeWidget,
     routes: {
+      '/login': (context) => const Login(),
       '/signup': (context) => const SignupSelect(),
       '/signup/student': (context) => const StudentSignUp(),
       '/signup/teachers': (context) => const TeacherSignUp(),

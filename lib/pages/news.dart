@@ -24,6 +24,7 @@ import 'dart:ui' as ui;
 
 //  Connectivity
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart' as con;
 
 // SVG
 import 'package:flutter_svg/flutter_svg.dart';
@@ -70,8 +71,8 @@ class _NewsPageState extends State<NewsPage>{
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
 
-  var connectionStatus, lastConnectionStatus;
-  var subscription;
+  ConnectivityResult? connectionStatus, lastConnectionStatus;
+  late StreamSubscription subscription;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -144,6 +145,12 @@ class _NewsPageState extends State<NewsPage>{
 
 
   @override
+  void deactivate() {
+    super.deactivate();
+    print(1);
+  }
+
+  @override
   void initState() {
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
@@ -151,6 +158,8 @@ class _NewsPageState extends State<NewsPage>{
         connectionStatus = result;
 
       });
+      print(result);
+      print(lastConnectionStatus);
       checkConnectivity();
       lastConnectionStatus = connectionStatus;
     });
@@ -213,8 +222,11 @@ class _NewsPageState extends State<NewsPage>{
   void dispose() {
     _pageController.dispose();
     globalMap.clear();
+    lastConnectionStatus = null;
+    connectionStatus = null;
     subscription.cancel();
     super.dispose();
+
 
   }
 
@@ -1821,104 +1833,124 @@ class CalPag1 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
-      child: ListView.builder(
-        clipBehavior: Clip.hardEdge,         //  Find a way to do it better
-        physics: const BouncingScrollPhysics(),
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 125,
-              decoration: BoxDecoration(
-                color: ColorsB.gray800,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(30),
-                  onTap: () {
-                    changePage(1);
-                  },
-                  child: Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: ShaderMask(
-                          shaderCallback: (rect) {
-                            return const material.LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              stops: [0, 1],
-                              colors: [
-                                Colors.transparent,
-                                Colors.black,
-                              ],
-                            ).createShader(rect);
-                          },
-                          blendMode: BlendMode.dstIn,
-                          child: Icon(
-                            Icons.account_balance_sharp,
-                            color: ColorsB.gray700.withOpacity(0.25),
-                            size: 75,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      child: FutureBuilder(
+        future: _loadHalls(),
+        builder: (_, snapshot) {
+          if(snapshot.hasData){
+            return ListView.builder(
+              clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+              physics: const BouncingScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 125,
+                    decoration: BoxDecoration(
+                      color: ColorsB.gray800,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(30),
+                        onTap: () {
+                          changePage(1);
+                        },
+                        child: Stack(
                           children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.account_balance,
-                                  color: ColorsB.yellow500,
-                                  size: 20,
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: ShaderMask(
+                                shaderCallback: (rect) {
+                                  return const material.LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    stops: [0, 1],
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black,
+                                    ],
+                                  ).createShader(rect);
+                                },
+                                blendMode: BlendMode.dstIn,
+                                child: Icon(
+                                  Icons.account_balance_sharp,
+                                  color: ColorsB.gray700.withOpacity(0.25),
+                                  size: 75,
                                 ),
-                                const SizedBox(width: 10,),
-                                Text(
-                                  'Hall $index',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.account_balance,
+                                        color: ColorsB.yellow500,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 10,),
+                                      Text(
+                                        'Hall $index',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            Divider(
-                              color: Colors.white.withOpacity(0.1),
-                              thickness: 1,
-                            ),
-                            const SizedBox(height: 10,),
-                            Text(
-                              'Type: Large',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 10,
+                                  Divider(
+                                    color: Colors.white.withOpacity(0.1),
+                                    thickness: 1,
+                                  ),
+                                  const SizedBox(height: 10,),
+                                  Text(
+                                    'Type: Large',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Capacity: 30',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              'Capacity: 30',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 10,
-                              ),
-                            ),
+                            )
                           ],
                         ),
-                      )
-                    ],
+                      ),
+                    ),
                   ),
-                ),
+                );
+              },
+            );
+          }
+          else {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
               ),
-            ),
-          );
-        },
+            );
+          }
+        }
       ),
     );
   }
+}
+
+Future<int> _loadHalls() async {
+  await Future.delayed(const Duration(seconds: 1));
+  // This is where the halls are loaded.
+  return 1;
 }
 
 //  <-----------------  Statefull cal page 2 ----------------->
