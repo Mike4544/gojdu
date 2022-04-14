@@ -1855,6 +1855,7 @@ class CalPag1 extends StatelessWidget {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(30),
                         onTap: () {
+                          _currentHall = index;
                           changePage(1);
                         },
                         child: Stack(
@@ -1953,6 +1954,11 @@ Future<int> _loadHalls() async {
   return 1;
 }
 
+// <------------------ Current Hall ------------------------>
+
+int? _currentHall;
+
+
 //  <-----------------  Statefull cal page 2 ----------------->
 class CalPag2 extends StatefulWidget {
   final Function(int) changePage;
@@ -1961,6 +1967,8 @@ class CalPag2 extends StatefulWidget {
   @override
   State<CalPag2> createState() => _CalPag2State();
 }
+
+
 
 class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
@@ -2299,7 +2307,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                         ],
                                                       ),
                                                       TextButton.icon(
-                                                        onPressed: () {
+                                                        onPressed: () async {
                                                           if(_formKey.currentState!.validate()){
                                                             setState(() {
                                                               if(_events[_selectedDay] != null){
@@ -2312,20 +2320,33 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                             });
 
 
-
                                                             print(_events[_selectedDay]);//add event to list
-
                                                             // INCEPUT
 
-                                                            DateTime begin, end;
-
-                                                            begin = join(_selectedDay, parsedTime1!);
-                                                            print(begin.toString().substring(0, begin.toString().length-4 ));
+                                                            var url = Uri.parse('https://automemeapp.com/insertbookings.php');
+                                                                final response = await http.post(url, body: {
+                                                                  "day": _selectedDay.toString(),
+                                                                  "start": _time1+":00",
+                                                                  "end": _time2+":00",
+                                                                  "hall": _currentHall.toString(),
+                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                });
+                                                            if (response.statusCode == 200) {
+                                                              var jsondata = json.decode(response.body);
+                                                              print(jsondata);
+                                                              if (jsondata["error"]) {
+                                                              } else {
+                                                                if (jsondata["success"]){
+                                                                  Navigator.pop(context);
+                                                                }
+                                                                else
+                                                                {
+                                                                  print(jsondata["message"]);
+                                                                }
+                                                              }
+                                                            }
 
                                                             widget.changePage(3);
-
-
-                                                            Navigator.of(context).pop();
                                                           }
                                                         },
                                                         icon: const Icon(
