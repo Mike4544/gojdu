@@ -39,7 +39,7 @@ Future<void> main() async {
 
   Paint.enableDithering = true;
   
-  FlutterNativeSplash.removeAfter(initialization);
+  //FlutterNativeSplash.removeAfter(initialization);
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
