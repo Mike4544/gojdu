@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
@@ -57,7 +58,7 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 
 //  TODO: Make variables for the name, password, mail etc
 
-
+ConnectivityResult? _connectionStatus;
 
 class _NewsPageState extends State<NewsPage>{
 
@@ -156,7 +157,7 @@ class _NewsPageState extends State<NewsPage>{
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
         connectionStatus = result;
-
+        _connectionStatus = result;
       });
       print(result);
       print(lastConnectionStatus);
@@ -1657,79 +1658,8 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: AnimatedBuilder(
-                    animation: _clipAnimation,
-                    builder: (_, __) =>
-                        Stack(
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (rect) {
-                                return material.LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      ColorsB.gray900.withOpacity(_gradientAnim.value),
-                                      ColorsB.gray900,
-                                    ],
-                                ).createShader(rect);
-                            },
-                              blendMode: BlendMode.dstATop,
-                              child: SizedBox(
-                                height: screenHeight * 0.5,
-                                child: PageTransitionSwitcher(
-                                  duration: const Duration(milliseconds: 750),
-                                  reverse: true,
-                                  transitionBuilder: (child, animation, anim2) {
-                                    return SharedAxisTransition(
-                                      fillColor: ColorsB.gray900,
-                                      animation: animation,
-                                      secondaryAnimation: anim2,
-                                      child: child,
-                                      transitionType: SharedAxisTransitionType.vertical,
-                                    );
-                                  },
-                                  child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
-                                ),
-                              ),
-                            ),
-                            Transform.translate(
-                              offset: Offset(0, screenHeight * 0.5 - 40),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      if(currentPage != 0){
+                  child: _calendarBuild(),
 
-                                        _changePage(0);
-
-                                      }
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(50),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 15,
-                                            spreadRadius: 10,
-                                            offset: Offset(0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        Icons.arrow_back_ios,
-                                        color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
-                                        , size: 30,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                  ),
                   )
               ],
             ),
@@ -1739,6 +1669,111 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
       ],
     );
   }
+
+  Widget _calendarBuild() {
+    if(_connectionStatus == ConnectivityResult.none){
+      return  Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: screenHeight * 0.3,
+                child: SvgPicture.asset('assets/svgs/calendar.svg'),
+              ),
+              const Text(
+                'Aww! Something went wrong!',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white
+                ),
+              ),
+              const SizedBox(height: 10,),
+              Text(
+                "To be able to use our hall booking feature, please connect to the Internet.",
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withOpacity(0.25),
+                ),
+              ),
+            ],
+          )
+      );
+    }
+    return AnimatedBuilder(
+      animation: _clipAnimation,
+      builder: (_, __) =>
+          Stack(
+            children: [
+              ShaderMask(
+                shaderCallback: (rect) {
+                  return material.LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      ColorsB.gray900.withOpacity(_gradientAnim.value),
+                      ColorsB.gray900,
+                    ],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstATop,
+                child: SizedBox(
+                  height: screenHeight * 0.5,
+                  child: PageTransitionSwitcher(
+                      duration: const Duration(milliseconds: 750),
+                      reverse: true,
+                      transitionBuilder: (child, animation, anim2) {
+                        return SharedAxisTransition(
+                          fillColor: ColorsB.gray900,
+                          animation: animation,
+                          secondaryAnimation: anim2,
+                          child: child,
+                          transitionType: SharedAxisTransitionType.vertical,
+                        );
+                      },
+                      child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
+                  ),
+                ),
+              ),
+              Transform.translate(
+                offset: Offset(0, screenHeight * 0.5 - 40),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        if(currentPage != 0){
+
+                          _changePage(0);
+
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 15,
+                              spreadRadius: 10,
+                              offset: Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                          , size: 30,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
 
 
   //  TODO: Implement the page changing logic
@@ -2055,16 +2090,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
       var _beginTime = DateTime.parse('20120227 $begin');
       var _endTime = DateTime.parse('20120227 $end');
       
-      if(_selectedBeginTime.isAfter(_beginTime) && _selectedBeginTime.isBefore(_endTime) ||
-          _selectedBeginTime.isBefore(_beginTime) && _selectedEndTime.isAfter(_beginTime) ||
-          _selectedBeginTime.isBefore(_endTime) && _selectedEndTime.isAfter(_endTime) ||
-          _selectedBeginTime.isBefore(_beginTime) && _selectedEndTime.isBefore(_endTime) ||
-          _selectedBeginTime.isAfter(_beginTime) && _selectedEndTime.isAfter(_endTime)){
-        return false;
+      if(_selectedBeginTime.isBefore(_beginTime) && _selectedEndTime.isBefore(_beginTime) ||
+        _selectedBeginTime.isAfter(_endTime) && _selectedEndTime.isAfter(_endTime)){
+        return true;
       }
 
     }
-    return true;
+    return false;
 
 
   }
@@ -2221,6 +2253,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                               var _formKey = GlobalKey<FormState>();
                                               var errorText1, errorText2;
+
+                                              bool clicked = false;
 
 
 
@@ -2385,6 +2419,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                                       if(_formKey.currentState!.validate()){
                                                                         try {
+                                                                          setState(() {
+                                                                            clicked = true;
+                                                                          });
                                                                           var url = Uri.parse('https://automemeapp.com/insertbookings.php');
                                                                           final response = await http.post(url, body: {
                                                                             "day": _selectedDay.toString(),
@@ -2418,17 +2455,19 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                         }
                                                                       }
                                                                     },
-                                                                    icon: const Icon(
+                                                                    icon: !clicked ? const Icon(
                                                                       Icons.add_circle,
                                                                       color: Colors.white,
-                                                                    ),
-                                                                    label: const Text(
+                                                                    ) : const SizedBox(),
+                                                                    label: !clicked ? const Text(
                                                                       'Reserve',
                                                                       style: TextStyle(
                                                                         color: Colors.white,
                                                                       ),
+                                                                    ) : const CircularProgressIndicator(
+                                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                                                     ),
-                                                                  )
+                                                                    )
 
                                                                 ],
                                                               ),
