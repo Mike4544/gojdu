@@ -73,7 +73,6 @@ class _InputFieldState extends State<InputField> {
                 borderSide: BorderSide.none,
               ),
              constraints: BoxConstraints(
-                minWidth: size.size.width*0.75,
                 minHeight: 40,
                 maxWidth: size.size.width * 0.9, //Previous value *.75
                 maxHeight: 70,

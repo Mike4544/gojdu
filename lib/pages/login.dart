@@ -148,7 +148,7 @@ class _LoginState extends State<Login> {
                               TextButton(
                                 onPressed: (_nameController.value.text
                                     .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty) || !isLoggingIn
+                                    _passController.value.text.isNotEmpty) || isLoggingIn
                                     ? login
                                     : null,
                                 child: Padding(

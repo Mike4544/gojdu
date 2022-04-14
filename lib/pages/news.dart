@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
@@ -10,7 +11,6 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
-import 'package:gojdu/widgets/navbar.dart';
 import 'package:rive/rive.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/floor_selector.dart';
@@ -21,6 +21,15 @@ import 'package:animations/animations.dart';
 import 'package:gojdu/others/event.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
+
+//  Connectivity
+import 'package:connectivity/connectivity.dart';
+
+// SVG
+import 'package:flutter_svg/flutter_svg.dart';
+
+
+
 
 class NewsPage extends StatefulWidget {
 
@@ -37,6 +46,7 @@ SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
 late Map globalMap;
+
 
 
 
@@ -59,6 +69,11 @@ class _NewsPageState extends State<NewsPage>{
 
 
   Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
+
+  var connectionStatus, lastConnectionStatus;
+  var subscription;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
   //Change the animations function
@@ -87,10 +102,59 @@ class _NewsPageState extends State<NewsPage>{
     initialPage: 1,
   );
 
+  void checkConnectivity() {
+    if(connectionStatus == ConnectivityResult.none){
+
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
+        content: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            child: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text("No internet connection", style: TextStyle(fontFamily: 'Nunito', fontSize: 10),),
+              ],
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        duration: const Duration(days: 1),
+        backgroundColor: Colors.red,
+      ));
+
+    } else if(lastConnectionStatus == ConnectivityResult.none && connectionStatus != ConnectivityResult.none){
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
+        content: Container(
+          child: Row(
+            children: const [
+              Icon(Icons.check, color: Colors.white, size: 17,),
+              SizedBox(width: 10),
+              Text("Internet connection restored", style: TextStyle(fontFamily: 'Nunito', fontSize: 10),),
+            ],
+          ),
+        ),
+        duration: const Duration(seconds: 3),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        backgroundColor: Colors.green,
+      ));
+    }
+  }
+
 
   @override
   void initState() {
-    // TODO: implement initState
+
+    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        connectionStatus = result;
+
+      });
+      checkConnectivity();
+      lastConnectionStatus = connectionStatus;
+    });
+
     super.initState();
 
     // <---------- Load the acc type -------------->
@@ -147,10 +211,11 @@ class _NewsPageState extends State<NewsPage>{
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _pageController.dispose();
     globalMap.clear();
+    subscription.cancel();
+    super.dispose();
+
   }
 
 
@@ -161,6 +226,7 @@ class _NewsPageState extends State<NewsPage>{
     var device = MediaQuery.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorsB.gray900,
       extendBody: true,
       bottomNavigationBar:
@@ -225,7 +291,7 @@ class _NewsPageState extends State<NewsPage>{
                     setState(() {
                       _currentIndex = 2;
                     });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
                 ),
               ),
@@ -244,6 +310,15 @@ class _NewsPageState extends State<NewsPage>{
     );
   }
 }
+
+
+
+
+
+
+
+
+
 
 class Announcements extends StatefulWidget {
 
@@ -284,6 +359,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   //  <-------------- Loading bool for shimmer loading -------------------->
   late bool isLoading;
 
+  //  <-------------- Error bool  -------------------->
+  late bool isError;
+
   //  <---------------  Scrollcontroller  ------------------------->
 
   late ScrollController  _scrollController;
@@ -317,6 +395,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     owners = [];
 
     maximumCount = 0;
+    isError = false;
 
 
 
@@ -394,6 +473,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
+    isError = false;
     loaded = false;
     titles.clear();
     owners.clear();
@@ -689,119 +769,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Widget _buildLists(Color _color) {
-    if(isLoading) {
-      return ListView.builder(
-        physics: const BouncingScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: maxScrollCount,
-        itemBuilder: (_, index) =>
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Shimmer.fromColors(
-                baseColor: ColorsB.gray800,
-                highlightColor: ColorsB.gray700,
-                child: Container(                         // Student containers. Maybe get rid of the hero
-                    width: screenWidth * 0.75,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: _color,
-                      borderRadius: BorderRadius.circular(
-                          50),
-                    ),
-                  ),
-              ),
-              ),
-      );
-    }
-    else {
-      return RefreshIndicator(
-        backgroundColor: ColorsB.gray900,
-        color: _color,
-        onRefresh: () async {
-          _refresh();
-        },
-        child: ListView.builder(
-          controller: _scrollController,
+    if(!isError) {
+      if(isLoading) {
+        return ListView.builder(
           physics: const BouncingScrollPhysics(),
           shrinkWrap: true,
-          itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
-          itemBuilder: (_, index) {
-
-            title = titles[index];
-            description = descriptions[index];
-            var owner = owners[index];
-
-            if(index != maxScrollCount){
-              return Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: screenWidth * 0.75,
-                  height: 200,
-                  child: Container(                         // Student containers. Maybe get rid of the hero
-                    width: screenWidth * 0.75,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: _color,
-                      borderRadius: BorderRadius.circular(
-                          50),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () {
-                          _hero(context, titles[index], descriptions[index], owners[index], _color);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(25.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment
-                                .start,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              Text(
-                                'by ' + owner,     //  Hard coded!!
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 25,),
-
-                              Flexible(
-                                child: Text(
-                                  description,
-                                  overflow: TextOverflow
-                                      .ellipsis,
-                                  maxLines: 3,
-                                  style: TextStyle(
-                                      color: Colors.white
-                                          .withOpacity(0.25),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight
-                                          .bold
-                                  ),
-                                ),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-            else{
-              return Padding(
+          itemCount: maxScrollCount,
+          itemBuilder: (_, index) =>
+              Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Shimmer.fromColors(
                   baseColor: ColorsB.gray800,
@@ -810,17 +785,175 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                     width: screenWidth * 0.75,
                     height: 200,
                     decoration: BoxDecoration(
-                      color: _color,
+                      color: ColorsB.gray800,
                       borderRadius: BorderRadius.circular(
                           50),
                     ),
                   ),
                 ),
-              );
-            }
-          }
+              ),
+        );
+      }
+      else {
+        return RefreshIndicator(
+          backgroundColor: ColorsB.gray900,
+          color: _color,
+          onRefresh: () async {
+            _refresh();
+          },
+          child: ListView.builder(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+              itemBuilder: (_, index) {
 
-        ),
+                title = titles[index];
+                description = descriptions[index];
+                var owner = owners[index];
+
+                if(index != maxScrollCount){
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      width: screenWidth * 0.75,
+                      height: 200,
+                      child: Container(                         // Student containers. Maybe get rid of the hero
+                        width: screenWidth * 0.75,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: _color,
+                          borderRadius: BorderRadius.circular(
+                              50),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: () {
+                              _hero(context, titles[index], descriptions[index], owners[index], _color);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(25.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  Text(
+                                    'by ' + owner,     //  Hard coded!!
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 25,),
+
+                                  Flexible(
+                                    child: Text(
+                                      description,
+                                      overflow: TextOverflow
+                                          .ellipsis,
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                          color: Colors.white
+                                              .withOpacity(0.25),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight
+                                              .bold
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                else{
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Shimmer.fromColors(
+                      baseColor: ColorsB.gray800,
+                      highlightColor: ColorsB.gray700,
+                      child: Container(                         // Student containers. Maybe get rid of the hero
+                        width: screenWidth * 0.75,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: _color,
+                          borderRadius: BorderRadius.circular(
+                              50),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+              }
+
+          ),
+        );
+      }
+    }
+    else {
+      return Center(
+        child: Column(
+          children: [
+            SizedBox(
+              height: screenHeight * 0.3,
+              child: SvgPicture.asset('assets/svgs/404.svg'),
+            ),
+            const Text(
+              'Zap! Something went wrong!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white
+              ),
+            ),
+            Text(
+              "Please retry.",
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white.withOpacity(0.25),
+              ),
+            ),
+            const SizedBox(height: 20,),
+            TextButton.icon(
+              icon: Icon(
+                Icons.refresh,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Refresh',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+              ),
+              onPressed: () {
+                _refresh();
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: ColorsB.yellow500,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      50),
+                ),
+              )
+            ),
+          ],
+        )
       );
     }
 
@@ -833,62 +966,61 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Future<int> load(String channel) async {
-    /*
-      await Future.delayed(const Duration(seconds: 3));
-      setState(() {
-        isLoading = false;
-        loaded = true;
-      });
 
-     */
-      var url = Uri.parse('https://automemeapp.com/selectposts.php');
-          final response = await http.post(url, body: {
-            "index": "0",
-            "channel": channel,
-          });
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
+      try {
+        var url = Uri.parse('https://automemeapp.com/selectposts.php');
+        final response = await http.post(url, body: {
+          "index": "0",
+          "channel": channel,
+        });
+        print(response.statusCode);
+        if (response.statusCode == 200) {
+          var jsondata = json.decode(response.body);
 
-        if (jsondata["1"]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata["1"]["success"]) {
+          if (jsondata["1"]["error"]) {
+            setState(() {
+              //nameError = jsondata["message"];
+            });
+          } else {
+            if (jsondata["1"]["success"]) {
 
-            for(int i = 2; i <= 52; i++)
-            {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
+              for(int i = 2; i <= 52; i++)
+              {
+                String post = jsondata[i.toString()]["post"].toString();
+                String title = jsondata[i.toString()]["title"].toString();
+                String owner = jsondata[i.toString()]["owner"].toString();
 
 
-              if(post != "null" && post != null){
-                titles.add(title);
-                descriptions.add(post);
-                owners.add(owner);
-                ++maximumCount;
-              }
+                if(post != "null" && post != null){
+                  titles.add(title);
+                  descriptions.add(post);
+                  owners.add(owner);
+                  ++maximumCount;
+                }
 
-              /* if(post != "null")
+                /* if(post != "null")
               {
                 print(post+ " this is the post");
                 print(title+" this is the title");
                 print(owner+ " this is the owner");
               } */
 
+              }
+              setState(() {
+                isLoading = false;
+                loaded = true;
+              });
             }
-            setState(() {
-              isLoading = false;
-              loaded = true;
-            });
-          }
-          else
-          {
-            print(jsondata["1"]["message"]);
+            else
+            {
+              print(jsondata["1"]["message"]);
+            }
           }
         }
+      } catch (e) {
+        setState(() {
+          isError = true;
+        });
       }
 
       return 0;
@@ -1282,7 +1414,7 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
       clipBehavior: Clip.none,
       physics: const BouncingScrollPhysics(),
       slivers: [
-        const CurvedAppbar(name: 'Hall Manager', position: 2, accType: 'Student account'),
+        CurvedAppbar(name: 'Hall Manager', position: 2, accType: '${globalMap['account']} account'),
 
         SliverToBoxAdapter(
           child: Padding(
@@ -1860,6 +1992,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1988,6 +2121,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                         var _formKey = GlobalKey<FormState>();
                                         var errorText1, errorText2;
+
+
 
                                         return AlertDialog(
                                             shape: RoundedRectangleBorder(
@@ -2200,24 +2335,43 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                             height: 100,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.all(0),
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: _events[_selectedDay]?.length ?? 0,
-                              itemBuilder: (BuildContext context, int index) {
-                                return Container(
-                                  margin: EdgeInsets.symmetric(vertical: 5),
-                                  child: Text(
-                                    _events[_selectedDay]![index],
+                            child: _events[_selectedDay] != null
+                                    ? ListView.builder(
+                                      physics: const BouncingScrollPhysics(),
+                                      padding: EdgeInsets.zero,
+                                      itemCount: _events[_selectedDay]!.length,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(2.5),
+                                          child: Container(
+                                            child: Text(
+                                              _events[_selectedDay]![index],
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                : Center(
+                                  child: FadeTransition(
+                                    opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
+                                      vsync: this,
+                                      duration: Duration(milliseconds: 500),
+                                    )..forward()),
+                                    child: Text(
+                                    'No events for this day. Yay!',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.white.withOpacity(0.25),
                                     ),
-                                  ),
-                                );
-                              },
                             ),
+                                  ),
+                                )
                           ),
 
 

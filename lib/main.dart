@@ -1,4 +1,5 @@
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -25,6 +26,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// Import Connectivity
+import 'package:connectivity/connectivity.dart';
+
+
 
 
 Future<void> main() async {
@@ -36,7 +41,7 @@ Future<void> main() async {
   
   FlutterNativeSplash.removeAfter(initialization);
 
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   runApp(MaterialApp(
 
@@ -60,7 +65,7 @@ Future<void> main() async {
 }
 
 void initialization(BuildContext context) async {
-  await Future.delayed(Duration(seconds: 2));
+  await Future.delayed(const Duration(seconds: 2));
 }
 
 Future<Widget> getPage() async {
@@ -70,44 +75,48 @@ Future<Widget> getPage() async {
 
   if(!(prefs.getString('email') != null && prefs.getString("password") != null)){
     print(false);
-    return Login();
+    return const Login();
   }
   else {
-    //print(true);
-    var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
-    final response = await http.post(url, body: {
-      "email": prefs.getString('email').toString(),
-      "password": prefs.getString('password').toString(),
-    });
-    if (response.statusCode == 200) {
-      var jsondata = json.decode(response.body);
-      if (jsondata["error"]) {
-        return Login();
-      } else {
-        if (jsondata["success"]) {
-          String fn = jsondata["first_name"].toString();
-          String ln = jsondata["last_name"].toString();
-          String email = jsondata["email"].toString();
-          String acc_type = jsondata["account"].toString();
-          //String acc_type = 'Teacher';
-
-
-
-          final loginMap = {
-            'first_name': fn,
-            'last_name': ln,
-            'email': email,
-            'account': acc_type,
-          };
-
-
-          return NewsPage(data: loginMap,);
-        } else {
+    try {
+      //print(true);
+      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+      final response = await http.post(url, body: {
+        "email": prefs.getString('email').toString(),
+        "password": prefs.getString('password').toString(),
+      });
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata["error"]) {
           return Login();
+        } else {
+          if (jsondata["success"]) {
+            String fn = jsondata["first_name"].toString();
+            String ln = jsondata["last_name"].toString();
+            String email = jsondata["email"].toString();
+            String acc_type = jsondata["account"].toString();
+            //String acc_type = 'Teacher';
+
+
+
+            final loginMap = {
+              'first_name': fn,
+              'last_name': ln,
+              'email': email,
+              'account': acc_type,
+            };
+
+
+            return NewsPage(data: loginMap,);
+          } else {
+            return const Login();
+          }
         }
+      } else {
+        return const Login();
       }
-    } else {
-      return Login();
+    } catch (e) {
+      return const Login();
     }
     //return NewsPage(isAdmin: false);
   }
