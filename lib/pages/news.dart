@@ -2100,13 +2100,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                       onDaySelected: (selectedDay, focusedDay) {
                         setState(() {
 
-
-
-
-
-
                           widget.changePage(2);
                           _selectedDay = selectedDay;
+                          print(_selectedDay);
                           _focusedDay = focusedDay;
                           width = 300;
                         });

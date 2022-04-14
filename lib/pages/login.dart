@@ -262,80 +262,86 @@ class _LoginState extends State<Login> {
 
     if (_formKey.currentState!.validate()) {
 
-      setState(() {
-        isLoggingIn = true;
-      });
-
-      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
-      final response = await http.post(url, body: {
-        "email": _nameController.value.text,
-        "password": _passController.value.text,
-      });
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
-        if (jsondata["error"]) {
-          setState(() {
-            isLoggingIn = false;
-            nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata["success"]) {
-            //save the data returned from server
-            //and navigate to home page
-            String fn = jsondata["first_name"].toString();
-            String ln = jsondata["last_name"].toString();
-            String email = jsondata["email"].toString();
-            String acc_type = jsondata["account"].toString();
-            //String acc_type = 'Teacher';
-
-            print(ln);
-            print(fn);
-            print(email);
-
-            await prefs2.setString('email', email);
-            await prefs2.setString('password', _passController.value.text);
-            await prefs2.setString('first_name', fn);
-            await prefs2.setString('last_name', ln);
-
-            print("The name is ${_nameController.value
-                .text} and the password is ${_passController.value.text}");
-            //TODO: D: Send info to the server - Darius fa-ti magia
-            //TODO: M: Make page transition animation
-            /*TODO: M/D: Make a 'remember me' check.
-                                        We wouldn't want to make the users uncomfy UwU
-                                 */
+        try {
             setState(() {
-              isLoggingIn = false;
+              isLoggingIn = true;
             });
 
-            final loginMap = {
-              'first_name': fn,
-              'last_name': ln,
-              'email': email,
-              'account': acc_type,
-            };
+            var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+            final response = await http.post(url, body: {
+              "email": _nameController.value.text,
+              "password": _passController.value.text,
+            });
+            if (response.statusCode == 200) {
+              var jsondata = json.decode(response.body);
+              if (jsondata["error"]) {
+                setState(() {
+                  isLoggingIn = false;
+                  nameError = jsondata["message"];
+                });
+              } else {
+                if (jsondata["success"]) {
+                  //save the data returned from server
+                  //and navigate to home page
+                  String fn = jsondata["first_name"].toString();
+                  String ln = jsondata["last_name"].toString();
+                  String email = jsondata["email"].toString();
+                  String acc_type = jsondata["account"].toString();
+                  //String acc_type = 'Teacher';
 
-            loginInfo = loginMap;
+                  print(ln);
+                  print(fn);
+                  print(email);
 
-            _tWidth.value = globalSize.width;
-            _tHeight.value = globalSize.height;
-            _radius.value = 0;
-            //user shared preference to save data
-          } else {
-            isLoggingIn = false;
-            nameError = "Something went wrong.";
+                  await prefs2.setString('email', email);
+                  await prefs2.setString('password', _passController.value.text);
+                  await prefs2.setString('first_name', fn);
+                  await prefs2.setString('last_name', ln);
+
+                  print("The name is ${_nameController.value
+                      .text} and the password is ${_passController.value.text}");
+                  //TODO: D: Send info to the server - Darius fa-ti magia
+                  //TODO: M: Make page transition animation
+                  /*TODO: M/D: Make a 'remember me' check.
+                                          We wouldn't want to make the users uncomfy UwU
+                                   */
+                  setState(() {
+                    isLoggingIn = false;
+                  });
+
+                  final loginMap = {
+                    'first_name': fn,
+                    'last_name': ln,
+                    'email': email,
+                    'account': acc_type,
+                  };
+
+                  loginInfo = loginMap;
+
+                  _tWidth.value = globalSize.width;
+                  _tHeight.value = globalSize.height;
+                  _radius.value = 0;
+                  //user shared preference to save data
+                } else {
+                  isLoggingIn = false;
+                  nameError = "Something went wrong.";
+                  setState(() {
+
+                  });
+                }
+              }
+            } else {
+              setState(() {
+                isLoggingIn = false;
+                nameError = "Error during connecting to server.";
+              });
+            }
+          } catch (e) {
             setState(() {
-
+              isLoggingIn = false;
+              nameError = "Error during connecting to server.";
             });
           }
         }
-      } else {
-        setState(() {
-          isLoggingIn = false;
-          nameError = "Error during connecting to server.";
-        });
       }
-    }
   }
-
-}

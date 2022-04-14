@@ -89,7 +89,7 @@ Future<Widget> getPage() async {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          return Login();
+          return const Login();
         } else {
           if (jsondata["success"]) {
             String fn = jsondata["first_name"].toString();
@@ -106,6 +106,8 @@ Future<Widget> getPage() async {
               'email': email,
               'account': acc_type,
             };
+
+
 
 
             return NewsPage(data: loginMap,);
