@@ -154,26 +154,6 @@ class _NewsPageState extends State<NewsPage>{
   @override
   void initState() {
 
-    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      setState(() {
-        connectionStatus = result;
-        _connectionStatus = result;
-      });
-      print(result);
-      print(lastConnectionStatus);
-      checkConnectivity();
-      lastConnectionStatus = connectionStatus;
-    });
-
-    super.initState();
-
-    // <---------- Load the acc type -------------->
-    accType = widget.data['account'];
-    globalMap = widget.data;
-
-    //  <-----------  Loaded  ------------------>
-    loaded = false;
-    //Initialising the navbar icons -
     rootBundle.load('assets/map.riv').then((data){
       final file = RiveFile.import(data);
       final artboard = file.mainArtboard;
@@ -213,6 +193,30 @@ class _NewsPageState extends State<NewsPage>{
       });
     });
 
+
+    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        connectionStatus = result;
+        _connectionStatus = result;
+      });
+      print(result);
+      print(lastConnectionStatus);
+      checkConnectivity();
+      lastConnectionStatus = connectionStatus;
+    });
+
+
+    super.initState();
+
+    // <---------- Load the acc type -------------->
+    accType = widget.data['account'];
+    globalMap = widget.data;
+
+    //  <-----------  Loaded  ------------------>
+    loaded = false;
+    //Initialising the navbar icons -
+
+
     //-
 
 
@@ -238,89 +242,96 @@ class _NewsPageState extends State<NewsPage>{
 
     var device = MediaQuery.of(context);
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: ColorsB.gray900,
-      extendBody: true,
-      bottomNavigationBar:
-      Container(
-        width: device.size.width,
-        height: 75,
-        decoration: BoxDecoration(
-          color: ColorsB.gray800,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              spreadRadius: 10,
-              blurRadius: 10,
-              offset: Offset(0, 3),
-            )
-          ]
-        ),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
+    if(_mapArtboard != null && _announcementsArtboard != null && _reserveArtboard != null) {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: ColorsB.gray900,
+        extendBody: true,
+        bottomNavigationBar:
+        Container(
+          width: device.size.width,
+          height: 75,
+          decoration: BoxDecoration(
+              color: ColorsB.gray800,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  spreadRadius: 10,
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                )
+              ]
+          ),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  child: GestureDetector(
+                    child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_mapInput);
+                      setState(() {
+                        _currentIndex = 0;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    },
                   ),
-                  onTap: () {
-                    _mapExpandAnim(_mapInput);
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                  },
                 ),
-              ),
 
-              Container(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                Container(
+                  width: 50,
+                  height: 50,
+                  child: GestureDetector(
+                      child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                      ),
+                      onTap: () {
+                        _mapExpandAnim(_announcementsInput);
+                        setState(() {
+                          _currentIndex = 1;
+                        });
+                        _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                      }
                   ),
-                  onTap: () {
-                    _mapExpandAnim(_announcementsInput);
-                    setState(() {
-                      _currentIndex = 1;
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                  }
                 ),
-              ),
 
-              Container(
-                width: 60,
-                height: 50,
-                child: GestureDetector(
-                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
+                Container(
+                  width: 60,
+                  height: 50,
+                  child: GestureDetector(
+                    child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_reserveInput);
+                      setState(() {
+                        _currentIndex = 2;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    },
                   ),
-                  onTap: () {
-                    _mapExpandAnim(_reserveInput);
-                    setState(() {
-                      _currentIndex = 2;
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                  },
                 ),
-              ),
-            ]
+              ]
+          ),
         ),
-      ),
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _pageController,
-        children: [
-          MapPage(navbarButton: _mapInput),
-          Announcements(navbarButton: _announcementsInput),
-          Calendar(navbarButton: _reserveInput,)
-        ],
-      ),
-    );
+        body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          children: [
+            MapPage(navbarButton: _mapInput),
+            Announcements(navbarButton: _announcementsInput),
+            Calendar(navbarButton: _reserveInput,)
+          ],
+        ),
+      );
+    }
+    else {
+      return Container(
+        color: ColorsB.gray900,
+      );
+    }
   }
 }
 
@@ -808,114 +819,167 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         );
       }
       else {
-        return RefreshIndicator(
-          backgroundColor: ColorsB.gray900,
-          color: _color,
-          onRefresh: () async {
-            _refresh();
-          },
-          child: ListView.builder(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
-              itemBuilder: (_, index) {
+        if(descriptions.isNotEmpty){
+          return RefreshIndicator(
+            backgroundColor: ColorsB.gray900,
+            color: _color,
+            onRefresh: () async {
+              _refresh();
+            },
+            child: ListView.builder(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+                itemBuilder: (_, index) {
 
-                title = titles[index];
-                description = descriptions[index];
-                var owner = owners[index];
+                  title = titles[index];
+                  description = descriptions[index];
+                  var owner = owners[index];
 
-                if(index != maxScrollCount){
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      child: Container(                         // Student containers. Maybe get rid of the hero
+                  if(index != maxScrollCount){
+                    return Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: SizedBox(
                         width: screenWidth * 0.75,
                         height: 200,
-                        decoration: BoxDecoration(
-                          color: _color,
-                          borderRadius: BorderRadius.circular(
-                              50),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(50),
-                            onTap: () {
-                              _hero(context, titles[index], descriptions[index], owners[index], _color);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(25.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment
-                                    .start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  Text(
-                                    'by ' + owner,     //  Hard coded!!
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 25,),
-
-                                  Flexible(
-                                    child: Text(
-                                      description,
-                                      overflow: TextOverflow
-                                          .ellipsis,
-                                      maxLines: 3,
-                                      style: TextStyle(
-                                          color: Colors.white
-                                              .withOpacity(0.25),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight
-                                              .bold
+                        child: Container(                         // Student containers. Maybe get rid of the hero
+                          width: screenWidth * 0.75,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: _color,
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(50),
+                              onTap: () {
+                                _hero(context, titles[index], descriptions[index], owners[index], _color);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(25.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment
+                                      .start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold
                                       ),
                                     ),
-                                  ),
+                                    Text(
+                                      'by ' + owner,     //  Hard coded!!
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.5),
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 25,),
 
-                                ],
+                                    Flexible(
+                                      child: Text(
+                                        description,
+                                        overflow: TextOverflow
+                                            .ellipsis,
+                                        maxLines: 3,
+                                        style: TextStyle(
+                                            color: Colors.white
+                                                .withOpacity(0.25),
+                                            fontSize: 15,
+                                            fontWeight: FontWeight
+                                                .bold
+                                        ),
+                                      ),
+                                    ),
+
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
+                    );
+                  }
+                  else{
+                    return Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Shimmer.fromColors(
+                        baseColor: ColorsB.gray800,
+                        highlightColor: ColorsB.gray700,
+                        child: Container(                         // Student containers. Maybe get rid of the hero
+                          width: screenWidth * 0.75,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: _color,
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                 }
-                else{
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Shimmer.fromColors(
-                      baseColor: ColorsB.gray800,
-                      highlightColor: ColorsB.gray700,
-                      child: Container(                         // Student containers. Maybe get rid of the hero
-                        width: screenWidth * 0.75,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: _color,
+
+            ),
+          );
+        }
+        else {
+          return Center(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: screenHeight * 0.3,
+                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                  ),
+                  const Text(
+                    'Wow! Such empty. So class.',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
+                    ),
+                  ),
+                  Text(
+                    "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white.withOpacity(0.25),
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+                  TextButton.icon(
+                      icon: Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        'Refresh',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
+                      onPressed: () {
+                        _refresh();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: ColorsB.yellow500,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                               50),
                         ),
-                      ),
-                    ),
-                  );
-                }
-              }
-
-          ),
-        );
+                      )
+                  ),
+                ],
+              )
+          );
+        }
       }
     }
     else {
@@ -1998,7 +2062,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     _events = {};
     _selectedEvents = [];
     width = 175;
-    _getList(_selectedDay);
 
     super.initState();
   }
@@ -2048,7 +2111,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                   //print(end);
                   //print(owner);
 
-                  if(begin != null && end != null && owner != null){
+                  if(begin != 'null' && end != 'null' && owner != 'null'){
                     if(_events[date] != null && !(_events[date]!.contains('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}')) ){
                       _events[_selectedDay]!.add('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}');
                     }
@@ -2077,6 +2140,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     }
     return 0;
   }
+
+  Future<int> _getWeekEvents(DateTime date) async {
+
+    for(int i = 0; i < 7; i++){
+      await _getList(date);
+      date = date.add(const Duration(days: 1));
+    }
+    return 0;
+  }
+
 
   bool overlap(String _selectedBegin, String _selectedEnd) {
     
@@ -2116,461 +2189,465 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       child: ClipRect(
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          children: [
-            AnimatedContainer(
-              curve: Curves.easeInOut,
-              duration: const Duration(milliseconds: 500),
-              height: width,
-              decoration: BoxDecoration(
-                color: ColorsB.gray800,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TableCalendar(
-                      eventLoader: _getEventsFromDay,
+          clipBehavior: Clip.hardEdge,
+          child: Column(
+            children: [
+              AnimatedContainer(
+                curve: Curves.easeInOut,
+                duration: const Duration(milliseconds: 500),
+                height: width,
+                decoration: BoxDecoration(
+                  color: ColorsB.gray800,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TableCalendar(
+                        eventLoader: _getEventsFromDay,
 
-                      daysOfWeekHeight: 30,
-                      daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        weekendStyle: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 12,
-                        ),
-                      ),
-                      headerStyle: HeaderStyle(
-                        decoration: BoxDecoration(
-                          color: ColorsB.yellow500.withOpacity(1),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
+                        daysOfWeekHeight: 30,
+                        daysOfWeekStyle: DaysOfWeekStyle(
+                          weekdayStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          weekendStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 12,
                           ),
                         ),
-                        leftChevronIcon: const Icon(
-                          Icons.chevron_left,
-                          color: Colors.white,
+                        headerStyle: HeaderStyle(
+                          decoration: BoxDecoration(
+                            color: ColorsB.yellow500.withOpacity(1),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
+                            ),
+                          ),
+                          leftChevronIcon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.white,
+                          ),
+                          rightChevronIcon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.white,
+                          ),
+                          titleTextStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                          formatButtonShowsNext: false,
+                          formatButtonVisible: false,
+                          titleCentered: true,
                         ),
-                        rightChevronIcon: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.white,
-                        ),
-                        titleTextStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                        formatButtonShowsNext: false,
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                      ),
-                      shouldFillViewport: false,
-                      calendarStyle: CalendarStyle(
-                        markerDecoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        defaultTextStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        disabledTextStyle: TextStyle(
-                          color: Colors.white.withOpacity(0.25),
-                          fontSize: 12,
-                        ),
-                        weekendTextStyle: TextStyle(
-                          color: Colors.grey.withOpacity(0.25),
-                          fontSize: 12,
-                        ),
+                        shouldFillViewport: false,
+                        calendarStyle: CalendarStyle(
+                          markerDecoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          defaultTextStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          disabledTextStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.25),
+                            fontSize: 12,
+                          ),
+                          weekendTextStyle: TextStyle(
+                            color: Colors.grey.withOpacity(0.25),
+                            fontSize: 12,
+                          ),
 
-                        selectedDecoration: BoxDecoration(
-                            color: ColorsB.yellow500,
-                            shape: BoxShape.circle
+                          selectedDecoration: BoxDecoration(
+                              color: ColorsB.yellow500,
+                              shape: BoxShape.circle
+                          ),
+                          isTodayHighlighted: false,
                         ),
-                        isTodayHighlighted: false,
-                      ),
-                      firstDay: DateTime.now().toUtc(),
-                      lastDay: DateTime.utc(2040, 4, 12),
-                      focusedDay: _focusedDay,
-                      selectedDayPredicate: (day) {
-                        return isSameDay(_selectedDay, day);
-                      },
-                      onDaySelected: (selectedDay, focusedDay) {
-                        setState(() {
+                        firstDay: DateTime.now().toUtc(),
+                        lastDay: DateTime.utc(2040, 4, 12),
+                        focusedDay: _focusedDay,
+                        selectedDayPredicate: (day) {
+                          return isSameDay(_selectedDay, day);
+                        },
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
 
-                          widget.changePage(2);
-                          _selectedDay = selectedDay;
-                          print(_selectedDay);
+                            widget.changePage(2);
+                            _selectedDay = selectedDay;
+                            print(_selectedDay);
+                            _focusedDay = focusedDay;
+                            width = 300;
+                          });
+                        },
+                        calendarFormat: _calendarFormat,
+                        onFormatChanged: (format) {
+                          setState(() {
+                            _calendarFormat = format;
+                          });
+                        },
+                        onPageChanged: (focusedDay) {
                           _focusedDay = focusedDay;
-                          width = 300;
-                        });
-                      },
-                      calendarFormat: _calendarFormat,
-                      onFormatChanged: (format) {
-                        setState(() {
-                          _calendarFormat = format;
-                        });
-                      },
-                      onPageChanged: (focusedDay) {
-                        _focusedDay = focusedDay;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Occupied Hours',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Occupied Hours',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(
-                                  height: 30,
-                                  child: TextButton(
-                                      onPressed: () {
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              var timeText = TextEditingController();
-                                              var timeText2 = TextEditingController();
+                                  SizedBox(
+                                    height: 30,
+                                    child: TextButton(
+                                        onPressed: () {
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                var timeText = TextEditingController();
+                                                var timeText2 = TextEditingController();
 
-                                              TimeOfDay? parsedTime1;
-                                              TimeOfDay? parsedTime2;
+                                                TimeOfDay? parsedTime1;
+                                                TimeOfDay? parsedTime2;
 
-                                              var _formKey = GlobalKey<FormState>();
-                                              var errorText1, errorText2;
+                                                var _formKey = GlobalKey<FormState>();
+                                                var errorText1, errorText2;
 
-                                              bool clicked = false;
-
+                                                bool clicked = false;
 
 
-                                              return StatefulBuilder(
-                                                builder: (_, StateSetter setState) =>
-                                                    AlertDialog(
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(30),
-                                                        ),
-                                                        backgroundColor: ColorsB.gray900,
-                                                        content: SizedBox(
-                                                          height: 200,
-                                                          child: Center(
-                                                            child: Form(
-                                                              key: _formKey,
-                                                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                                                              child: Column(
-                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                children: [
-                                                                  Row(
+
+                                                return StatefulBuilder(
+                                                    builder: (_, StateSetter setState) =>
+                                                        AlertDialog(
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(30),
+                                                            ),
+                                                            backgroundColor: ColorsB.gray900,
+                                                            content: SizedBox(
+                                                              height: 200,
+                                                              child: Center(
+                                                                child: Form(
+                                                                  key: _formKey,
+                                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                                  child: Column(
+                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                     children: [
-                                                                      const Text(
-                                                                        'From: ',
-                                                                        style: TextStyle(
-                                                                          fontSize: 15,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.white,
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width: 10,
-                                                                      ),
-                                                                      SizedBox(
-                                                                        width: 200,
-                                                                        height: 50,
-                                                                        child: TextFormField(
-                                                                          controller: timeText,
-                                                                          style: const TextStyle(
-                                                                            fontSize: 15,
-                                                                            color: Colors.white,
-                                                                          ),
-
-                                                                          readOnly: true,
-                                                                          decoration: InputDecoration(
-                                                                            errorText: errorText1,
-                                                                            icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                            labelText: "Enter Time", //label text of field
-                                                                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                            focusedBorder: UnderlineInputBorder(
-                                                                              borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                      Row(
+                                                                        children: [
+                                                                          const Text(
+                                                                            'From: ',
+                                                                            style: TextStyle(
+                                                                              fontSize: 15,
+                                                                              fontWeight: FontWeight.bold,
+                                                                              color: Colors.white,
                                                                             ),
-                                                                            enabledBorder: UnderlineInputBorder(
-                                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
                                                                           ),
-
-                                                                          onTap: () async {
-                                                                            TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                            if(pickedTime != null){
-                                                                              parsedTime1 = pickedTime;
-                                                                              DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                              String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                              //  print(formattedTime);
-                                                                              setState(() {
-                                                                                timeText.text = formattedTime;
-                                                                                _time1 = formattedTime;
-                                                                              });
-                                                                            }
-
-                                                                          },
-
-                                                                          validator: (value) {
-                                                                            if(value == null || value.isEmpty){
-                                                                              return "Please enter time";
-                                                                            }
-                                                                            else if(parsedTime1 != null && parsedTime2 != null){
-                                                                              if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                return "Please enter valid time";
-                                                                              }
-                                                                            }
-                                                                            return null;
-                                                                          },
-
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  Row(
-                                                                    children: [
-                                                                      const Text(
-                                                                        'To: ',
-                                                                        style: TextStyle(
-                                                                          fontSize: 15,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.white,
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width: 10,
-                                                                      ),
-                                                                      SizedBox(
-                                                                        width: 200,
-                                                                        height: 50,
-                                                                        child: TextFormField(
-                                                                          controller: timeText2,
-                                                                          style: const TextStyle(
-                                                                            fontSize: 15,
-                                                                            color: Colors.white,
+                                                                          const SizedBox(
+                                                                            width: 10,
                                                                           ),
+                                                                          SizedBox(
+                                                                            width: 200,
+                                                                            height: 50,
+                                                                            child: TextFormField(
+                                                                              controller: timeText,
+                                                                              style: const TextStyle(
+                                                                                fontSize: 15,
+                                                                                color: Colors.white,
+                                                                              ),
 
-                                                                          readOnly: true,
-                                                                          decoration: InputDecoration(
-                                                                            errorText: errorText2,
-                                                                            icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                            labelText: "Enter Time", //label text of field
-                                                                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                            focusedBorder: UnderlineInputBorder(
-                                                                              borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                              readOnly: true,
+                                                                              decoration: InputDecoration(
+                                                                                errorText: errorText1,
+                                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                labelText: "Enter Time", //label text of field
+                                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                focusedBorder: UnderlineInputBorder(
+                                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                ),
+                                                                                enabledBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                              ),
+
+                                                                              onTap: () async {
+                                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                if(pickedTime != null){
+                                                                                  parsedTime1 = pickedTime;
+                                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                  //  print(formattedTime);
+                                                                                  setState(() {
+                                                                                    timeText.text = formattedTime;
+                                                                                    _time1 = formattedTime;
+                                                                                  });
+                                                                                }
+
+                                                                              },
+
+                                                                              validator: (value) {
+                                                                                if(value == null || value.isEmpty){
+                                                                                  return "Please enter time";
+                                                                                }
+                                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                    return "Please enter valid time";
+                                                                                  }
+                                                                                }
+                                                                                return null;
+                                                                              },
+
                                                                             ),
-                                                                            enabledBorder: UnderlineInputBorder(
-                                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
                                                                           ),
-
-                                                                          onTap: () async {
-                                                                            TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                            parsedTime2 = pickedTime;
-                                                                            if(pickedTime != null){
-                                                                              DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                              String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                              //  print(formattedTime);
-                                                                              setState(() {
-                                                                                timeText2.text = formattedTime;
-                                                                                _time2 = formattedTime;
-                                                                              });
-                                                                            }
-                                                                          },
-                                                                          validator: (value) {
-                                                                            if(value == null || value.isEmpty){
-                                                                              return "Please enter time";
-                                                                            }
-                                                                            else if(parsedTime1 != null && parsedTime2 != null){
-                                                                              if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                return "Please enter valid time";
-                                                                              }
-                                                                            }
-                                                                            return null;
-                                                                          },
-
-                                                                        ),
+                                                                        ],
                                                                       ),
-                                                                    ],
-                                                                  ),
-                                                                  TextButton.icon(
-                                                                    onPressed: () async {
-                                                                      if(_events[_selectedDay] != null){
-                                                                        if(!overlap(_time1, _time2)){
-                                                                          setState(() {
-                                                                            errorText1 = errorText2 = 'Overlapping!';
-                                                                          });
-                                                                          return;
-                                                                        }
-                                                                      }
+                                                                      Row(
+                                                                        children: [
+                                                                          const Text(
+                                                                            'To: ',
+                                                                            style: TextStyle(
+                                                                              fontSize: 15,
+                                                                              fontWeight: FontWeight.bold,
+                                                                              color: Colors.white,
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            width: 10,
+                                                                          ),
+                                                                          SizedBox(
+                                                                            width: 200,
+                                                                            height: 50,
+                                                                            child: TextFormField(
+                                                                              controller: timeText2,
+                                                                              style: const TextStyle(
+                                                                                fontSize: 15,
+                                                                                color: Colors.white,
+                                                                              ),
 
-                                                                      if(_formKey.currentState!.validate()){
-                                                                        try {
-                                                                          setState(() {
-                                                                            clicked = true;
-                                                                          });
-                                                                          var url = Uri.parse('https://automemeapp.com/insertbookings.php');
-                                                                          final response = await http.post(url, body: {
-                                                                            "day": _selectedDay.toString(),
-                                                                            "start": _time1+":00",
-                                                                            "end": _time2+":00",
-                                                                            "hall": _currentHall.toString(),
-                                                                            "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                          });
-                                                                          if (response.statusCode == 200) {
-                                                                            var jsondata = json.decode(response.body);
-                                                                            print(jsondata);
-                                                                            if (jsondata["error"]) {
-                                                                            } else {
-                                                                              if (jsondata["success"]){
-                                                                                Navigator.pop(context);
-                                                                              }
-                                                                              else
-                                                                              {
-                                                                                print(jsondata["message"]);
-                                                                              }
+                                                                              readOnly: true,
+                                                                              decoration: InputDecoration(
+                                                                                errorText: errorText2,
+                                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                labelText: "Enter Time", //label text of field
+                                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                focusedBorder: UnderlineInputBorder(
+                                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                ),
+                                                                                enabledBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                              ),
+
+                                                                              onTap: () async {
+                                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                parsedTime2 = pickedTime;
+                                                                                if(pickedTime != null){
+                                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                  //  print(formattedTime);
+                                                                                  setState(() {
+                                                                                    timeText2.text = formattedTime;
+                                                                                    _time2 = formattedTime;
+                                                                                  });
+                                                                                }
+                                                                              },
+                                                                              validator: (value) {
+                                                                                if(value == null || value.isEmpty){
+                                                                                  return "Please enter time";
+                                                                                }
+                                                                                else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                    return "Please enter valid time";
+                                                                                  }
+                                                                                }
+                                                                                return null;
+                                                                              },
+
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      TextButton.icon(
+                                                                        onPressed: () async {
+                                                                          if(_events[_selectedDay] != null){
+                                                                            if(!overlap(_time1, _time2)){
+                                                                              setState(() {
+                                                                                errorText1 = errorText2 = 'Overlapping!';
+                                                                              });
+                                                                              return;
                                                                             }
                                                                           }
-                                                                          print(_events);
 
-                                                                          widget.changePage(3);
-                                                                          setState(() {
+                                                                          if(_formKey.currentState!.validate()){
+                                                                            try {
+                                                                              setState(() {
+                                                                                clicked = true;
+                                                                              });
+                                                                              var url = Uri.parse('https://automemeapp.com/insertbookings.php');
+                                                                              final response = await http.post(url, body: {
+                                                                                "day": _selectedDay.toString(),
+                                                                                "start": _time1+":00",
+                                                                                "end": _time2+":00",
+                                                                                "hall": _currentHall.toString(),
+                                                                                "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                              });
+                                                                              if (response.statusCode == 200) {
+                                                                                var jsondata = json.decode(response.body);
+                                                                                print(jsondata);
+                                                                                if (jsondata["error"]) {
+                                                                                } else {
+                                                                                  if (jsondata["success"]){
+                                                                                    Navigator.pop(context);
+                                                                                  }
+                                                                                  else
+                                                                                  {
+                                                                                    print(jsondata["message"]);
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                              print(_events);
 
-                                                                          });
-                                                                        } catch (e){
-                                                                          _events[_selectedDay] = ['Error! Please try again!'];
-                                                                        }
-                                                                      }
-                                                                    },
-                                                                    icon: !clicked ? const Icon(
-                                                                      Icons.add_circle,
-                                                                      color: Colors.white,
-                                                                    ) : const SizedBox(),
-                                                                    label: !clicked ? const Text(
-                                                                      'Reserve',
-                                                                      style: TextStyle(
-                                                                        color: Colors.white,
-                                                                      ),
-                                                                    ) : const CircularProgressIndicator(
-                                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                                    ),
-                                                                    )
+                                                                              widget.changePage(3);
+                                                                              setState(() {
 
-                                                                ],
+                                                                              });
+                                                                            } catch (e){
+                                                                              _events[_selectedDay] = ['Error! Please try again!'];
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        icon: !clicked ? const Icon(
+                                                                          Icons.add_circle,
+                                                                          color: Colors.white,
+                                                                        ) : const SizedBox(),
+                                                                        label: !clicked ? const Text(
+                                                                          'Reserve',
+                                                                          style: TextStyle(
+                                                                            color: Colors.white,
+                                                                          ),
+                                                                        ) : const CircularProgressIndicator(
+                                                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                        ),
+                                                                      )
+
+                                                                    ],
+                                                                  ),
+                                                                ),
                                                               ),
-                                                            ),
-                                                          ),
+                                                            )
                                                         )
-                                                    )
-                                              );
-                                            }
+                                                );
+                                              }
 
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Reserve',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      style: ButtonStyle(
-                                        elevation: MaterialStateProperty.all(0),
-                                        backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
-                                        shape: MaterialStateProperty.all<OutlinedBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(50),
+                                          );
+                                        },
+                                        child: const Text(
+                                          'Reserve',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
                                         ),
-                                      )
-                                  ),
-                                )
-                              ],
-                            ),
-                            FutureBuilder(
-                              future: _getList(_selectedDay),
-                              builder: (context, snpshot) {
-                                if(snpshot.hasData) {
-                                  return SizedBox(
-                                      height: 100,
-                                      child: _events[_selectedDay] != null
-                                          ? ListView.builder(
-                                        physics: const BouncingScrollPhysics(),
-                                        padding: EdgeInsets.zero,
-                                        itemCount: _events[_selectedDay]!.length,
-                                        itemBuilder: (BuildContext context, int index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(2.5),
-                                            child: Container(
+                                        style: ButtonStyle(
+                                          elevation: MaterialStateProperty.all(0),
+                                          backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
+                                          shape: MaterialStateProperty.all<OutlinedBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                          ),
+                                        )
+                                    ),
+                                  )
+                                ],
+                              ),
+                              FutureBuilder(
+                                  future: _getList(_selectedDay),
+                                  builder: (context, snpshot) {
+                                    if(snpshot.hasData) {
+                                      return SizedBox(
+                                          height: 100,
+                                          child: _events[_selectedDay] != null
+                                              ? ListView.builder(
+                                            physics: const BouncingScrollPhysics(),
+                                            padding: EdgeInsets.zero,
+                                            itemCount: _events[_selectedDay]!.length,
+                                            itemBuilder: (BuildContext context, int index) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(2.5),
+                                                child: Container(
+                                                  child: Text(
+                                                    _events[_selectedDay]![index],
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                              : Center(
+                                            child: FadeTransition(
+                                              opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
+                                                vsync: this,
+                                                duration: const Duration(milliseconds: 500),
+                                              )..forward()),
                                               child: Text(
-                                                _events[_selectedDay]![index],
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
+                                                'No events for this day. Yay!',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.white.withOpacity(0.25),
                                                 ),
                                               ),
                                             ),
-                                          );
-                                        },
-                                      )
-                                          : Center(
-                                        child: FadeTransition(
-                                          opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
-                                            vsync: this,
-                                            duration: Duration(milliseconds: 500),
-                                          )..forward()),
-                                          child: Text(
-                                            'No events for this day. Yay!',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.white.withOpacity(0.25),
-                                            ),
-                                          ),
+                                          )
+                                      );
+                                    }
+                                    else {
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
                                         ),
-                                      )
-                                  );
-                                }
-                                else {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
-                                    ),
-                                  );
-                                }
-                              }
-                            )
+                                      );
+                                    }
+                                  }
+                              ),
 
 
-                          ],
-                        )
-                    )
+                            ],
+                          )
+                      )
 
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        )
+            ],
+          )
       ),
     );
   }
+
+
 }
+
+
 
 DateTime join(DateTime date, TimeOfDay time) {
   return DateTime(date.year, date.month, date.day, time.hour, time.minute);
