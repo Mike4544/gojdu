@@ -2078,7 +2078,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
   List<dynamic> _getEventsFromDay(DateTime date) {
 
-
     return _events[date] ?? [];
   }
 
@@ -2141,13 +2140,12 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     return 0;
   }
 
-  Future<int> _getWeekEvents(DateTime date) async {
+  void _getWeekEvents(DateTime date) {
 
     for(int i = 0; i < 7; i++){
-      await _getList(date);
+      _getList(date);
       date = date.add(const Duration(days: 1));
     }
-    return 0;
   }
 
 

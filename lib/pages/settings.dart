@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/pages/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gojdu/pages/change_password.dart';
+import 'package:animations/animations.dart';
 
 
 class SettingsPage extends StatefulWidget {
@@ -146,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 constraints: BoxConstraints(
                                     minWidth: 100,
-                                    maxWidth: device.width * 0.5,
+                                    maxWidth: device.width * 0.45,
                                 ),
                               )
                             ],
@@ -174,7 +176,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                 offset: const Offset(0, 5),
                                 child: TextButton(
                                   onPressed: () {
-                                    //  Change pass
+                                    Navigator.push(context, PageRouteBuilder(
+                                      transitionDuration: const Duration(milliseconds: 500),
+                                      reverseTransitionDuration: const Duration(milliseconds: 500),
+                                      pageBuilder: (context, a1, a2) => const ChangePassword(),
+                                      transitionsBuilder: (context, a1, a2, child) =>
+                                          SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
+                                    ));
                                   },
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),

@@ -6,6 +6,7 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gojdu/pages/forgot_password.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -118,7 +119,12 @@ class _LoginState extends State<Login> {
                               //TODO: Make the error text pop only on sign-in
 
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPassword()));
+                                },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 0),
@@ -228,7 +234,7 @@ class _LoginState extends State<Login> {
                 valueListenable: _tWidth,
                 builder: (_, width, __) =>
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 500),
                       curve: Curves.easeInOut,
                       width: _tWidth.value,
                       height: _tHeight.value,
