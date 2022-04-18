@@ -243,7 +243,7 @@ class _FirstPageState extends State<FirstPage> {
                     //await Future.delayed(Duration(seconds: 3));
                     final _prefs = await SharedPreferences.getInstance();
 
-                    var url = Uri.parse('https://automemeapp.com/register_teacher.php');
+                    var url = Uri.parse('https://automemeapp.com/gojdu/register_teacher.php');
                     final response = await http.post(url, body: {
                       "first_name": _username.value.text,
                       "last_name": _lastname.value.text,

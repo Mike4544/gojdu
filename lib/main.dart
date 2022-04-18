@@ -29,7 +29,13 @@ import 'package:http/http.dart' as http;
 // Import Connectivity
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
+
+String type = '';
 
 
 Future<void> main() async {
@@ -38,10 +44,22 @@ Future<void> main() async {
   final Widget homeWidget = await getPage();
 
   Paint.enableDithering = true;
+
   
   //FlutterNativeSplash.removeAfter(initialization);
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // SUBSCRIBING TO THE NOTIFICATIONS
+  await messaging.subscribeToTopic(type + 's');
+
+
 
   runApp(MaterialApp(
 
@@ -81,7 +99,7 @@ Future<Widget> getPage() async {
   else {
     try {
       //print(true);
-      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+      var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),
         "password": prefs.getString('password').toString(),
@@ -108,7 +126,7 @@ Future<Widget> getPage() async {
             };
 
 
-
+            type = acc_type;
 
             return NewsPage(data: loginMap,);
           } else {
@@ -125,5 +143,6 @@ Future<Widget> getPage() async {
   }
 
 }
+
 
 

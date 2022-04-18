@@ -415,7 +415,7 @@ class _SecondPageState extends State<SecondPage> {
                         _prefs.setString('first_name', fntopass!);
                         _prefs.setString('last_name', lntopass!);
 
-                        var url = Uri.parse('https://automemeapp.com/register_parent.php');
+                        var url = Uri.parse('https://automemeapp.com/gojdu/register_parent.php');
                         final response = await http.post(url, body: {
                           "first_name": fntopass,
                           "last_name": lntopass,

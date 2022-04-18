@@ -56,6 +56,8 @@ class _ChangePasswordState extends State<ChangePassword> {
             padding: const EdgeInsets.all(35.0),
             child: Column(
               children: [
+                InputField(fieldName: 'Current Password', isPassword: true, errorMessage: errorMessage1, isEmail: false,),
+                const SizedBox(height: 25),
                 InputField(fieldName: 'New Password', isPassword: true, errorMessage: errorMessage1, isEmail: false,),
                 const SizedBox(height: 25),
                 InputField(fieldName: 'Confirm Password', isPassword: true, errorMessage: errorMessage2, isEmail: false,),

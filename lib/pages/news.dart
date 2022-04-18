@@ -30,6 +30,9 @@ import 'package:connectivity_plus/connectivity_plus.dart' as con;
 // SVG
 import 'package:flutter_svg/flutter_svg.dart';
 
+// Firebase for messaging
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 
 
@@ -48,6 +51,9 @@ SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
 late Map globalMap;
+
+FirebaseMessaging messaging = FirebaseMessaging.instance;
+
 
 
 
@@ -154,6 +160,8 @@ class _NewsPageState extends State<NewsPage>{
   @override
   void initState() {
 
+
+
     rootBundle.load('assets/map.riv').then((data){
       final file = RiveFile.import(data);
       final artboard = file.mainArtboard;
@@ -208,6 +216,31 @@ class _NewsPageState extends State<NewsPage>{
 
     super.initState();
 
+    // Listening for the notifications
+    FirebaseMessaging.onMessage.listen((message) {
+
+
+        if(message.data['type'] == 'Post'){
+          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.notifications, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text('New posts available!', style: TextStyle(fontFamily: 'Nunito'),),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            backgroundColor: ColorsB.yellow500,
+          ));
+        }
+
+
+
+    });
+
+
+
+
     // <---------- Load the acc type -------------->
     accType = widget.data['account'];
     globalMap = widget.data;
@@ -217,7 +250,7 @@ class _NewsPageState extends State<NewsPage>{
     //Initialising the navbar icons -
 
 
-    //-
+
 
 
 
@@ -916,7 +949,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                           width: screenWidth * 0.75,
                           height: 200,
                           decoration: BoxDecoration(
-                            color: _color,
+                            color: ColorsB.gray800,
                             borderRadius: BorderRadius.circular(
                                 50),
                           ),
@@ -1045,7 +1078,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   Future<int> load(String channel) async {
 
       try {
-        var url = Uri.parse('https://automemeapp.com/selectposts.php');
+        var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
         final response = await http.post(url, body: {
           "index": "0",
           "channel": channel,
@@ -2083,7 +2116,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
   Future<int> _getList(DateTime date) async {
     try {
-      var url = Uri.parse('https://automemeapp.com/selectbookings.php');
+      var url = Uri.parse('https://automemeapp.com/gojdu/selectbookings.php');
       final response = await http.post(url, body: {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyy-MM-dd').format(date).toString(),
@@ -2493,7 +2526,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                               setState(() {
                                                                                 clicked = true;
                                                                               });
-                                                                              var url = Uri.parse('https://automemeapp.com/insertbookings.php');
+                                                                              var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
                                                                               final response = await http.post(url, body: {
                                                                                 "day": _selectedDay.toString(),
                                                                                 "start": _time1+":00",
@@ -2682,6 +2715,10 @@ class _PostItPageState extends State<PostItPage> {
     });
   }
 
+  // Firebase stuff
+
+
+
 
   @override
   void initState() {
@@ -2799,27 +2836,56 @@ class _PostItPageState extends State<PostItPage> {
                     children: [
                       TextButton(
                         onPressed: () async {
+
+                          showDialog(context: context, builder: (context) => Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
+
+
+
                           if(_formKey.currentState!.validate()){
-                            var url = Uri.parse('https://automemeapp.com/insertposts.php');
-                                final response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "channel": _className,
-                                  "body": _postController.value.text,
-                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                });
-                            if (response.statusCode == 200) {
-                              var jsondata = json.decode(response.body);
-                              print(jsondata);
-                              if (jsondata["error"]) {
-                              } else {
-                                if (jsondata["success"]){
-                                  Navigator.pop(context);
-                                }
-                                else
-                                {
-                                  print(jsondata["message"]);
+                            try {
+                              var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
+                              final response = await http.post(url, body: {
+                                "title": _postTitleController.value.text,
+                                "channel": _className,
+                                "body": _postController.value.text,
+                                "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                              });
+                              if (response.statusCode == 200) {
+                                var jsondata = json.decode(response.body);
+                                print(jsondata);
+                                if (jsondata["error"]) {
+                                  Navigator.of(context).pop();
+                                } else {
+                                  if (jsondata["success"]){
+
+                                    try {
+                                      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                      final response2 = await http.post(ulr2, body: {
+                                        "channel": _className,
+                                        "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                      });
+
+                                      if(response2.statusCode == 200){
+                                        var jsondata2 = json.decode(response2.body);
+                                        print(jsondata2);
+                                        Navigator.of(context).pop();
+                                        Navigator.pop(context);
+                                      }
+
+                                    } catch (e) {
+                                      print(e);
+                                    }
+                                  }
+                                  else
+                                  {
+                                    print(jsondata["message"]);
+                                    Navigator.of(context).pop();
+                                  }
                                 }
                               }
+                            } catch (e) {
+                              print(e);
+                              Navigator.of(context).pop();
                             }
                           }
                         },
