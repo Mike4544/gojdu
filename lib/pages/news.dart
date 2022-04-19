@@ -2858,6 +2858,9 @@ class _PostItPageState extends State<PostItPage> {
                                 } else {
                                   if (jsondata["success"]){
 
+                                    // Notifications
+
+
                                     try {
                                       var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
                                       final response2 = await http.post(ulr2, body: {
