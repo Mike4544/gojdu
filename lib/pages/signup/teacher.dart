@@ -10,6 +10,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class TeacherSignUp extends StatefulWidget {
   const TeacherSignUp({Key? key}) : super(key: key);
 
@@ -17,6 +21,7 @@ class TeacherSignUp extends StatefulWidget {
   _TeacherSignUpState createState() => _TeacherSignUpState();
 }
 
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _TeacherSignUpState extends State<TeacherSignUp> {
 
@@ -177,7 +182,7 @@ class _FirstPageState extends State<FirstPage> {
     var device = MediaQuery.of(context);
 
     return SingleChildScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Form(
@@ -242,6 +247,7 @@ class _FirstPageState extends State<FirstPage> {
                     );
                     //await Future.delayed(Duration(seconds: 3));
                     final _prefs = await SharedPreferences.getInstance();
+                    String? token = await _firebaseMessaging.getToken();
 
                     var url = Uri.parse('https://automemeapp.com/gojdu/register_teacher.php');
                     final response = await http.post(url, body: {
@@ -250,6 +256,7 @@ class _FirstPageState extends State<FirstPage> {
                       "password_1": _password.value.text,
                       "password_2": _repPassword.value.text,
                       "email": _mail.value.text,
+                      "token": token
                     });
                     print(response.statusCode);
                     if(response.statusCode == 200){
@@ -280,6 +287,7 @@ class _FirstPageState extends State<FirstPage> {
                             "username": user,
                             "email": email,
                             "account": acc_type,
+
                           };
 
                           widget.update!(false);

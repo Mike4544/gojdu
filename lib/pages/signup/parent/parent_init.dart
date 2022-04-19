@@ -11,12 +11,19 @@ import 'package:http/http.dart' as http;
 import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 String? fntopass;
 String? lntopass;
 String? email1topass;
 String? pass1topass;
 String? pass2topass;
 String? email2topass;
+
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 
 
@@ -414,6 +421,7 @@ class _SecondPageState extends State<SecondPage> {
                         _prefs.setString('email', email1topass!);
                         _prefs.setString('first_name', fntopass!);
                         _prefs.setString('last_name', lntopass!);
+                        String? token = await _firebaseMessaging.getToken();
 
                         var url = Uri.parse('https://automemeapp.com/gojdu/register_parent.php');
                         final response = await http.post(url, body: {
@@ -423,6 +431,7 @@ class _SecondPageState extends State<SecondPage> {
                           "password_2": pass2topass,
                           "email": email1topass,
                           "kid": email2topass,
+                          "token": token,
                         });
                         if(response.statusCode == 200){
                           print(response.statusCode);

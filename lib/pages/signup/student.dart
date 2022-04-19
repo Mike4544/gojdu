@@ -10,6 +10,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
 
@@ -18,6 +22,9 @@ class StudentSignUp extends StatefulWidget {
 }
 
 class _StudentSignUpState extends State<StudentSignUp> {
+
+  // Firebase Messaging
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   //Text controllers
 
@@ -166,6 +173,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         //await Future.delayed(Duration(seconds: 3));
 
                         final _prefs = await SharedPreferences.getInstance();
+                        String? token = await _firebaseMessaging.getToken();
 
                         var url = Uri.parse('https://automemeapp.com/gojdu/register_student.php');
                         final response = await http.post(url, body: {
@@ -174,6 +182,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                           "password_1": _password.value.text,
                           "password_2": _repPassword.value.text,
                           "email": _mail.value.text,
+                          "token": token,
                         });
                         if(response.statusCode == 200){
                           var jsondata = json.decode(response.body);

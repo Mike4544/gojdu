@@ -31,8 +31,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 // Firebase thingys
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
+
+// Import the verified page
+import 'package:gojdu/pages/verified.dart';
 
 
 String type = '';
@@ -40,6 +43,9 @@ String type = '';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+
+  await Firebase.initializeApp();
 
   final Widget homeWidget = await getPage();
 
@@ -50,14 +56,11 @@ Future<void> main() async {
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   // SUBSCRIBING TO THE NOTIFICATIONS
   await messaging.subscribeToTopic(type + 's');
+
 
 
 
@@ -92,6 +95,8 @@ Future<Widget> getPage() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   print(prefs.getString('email').toString());
 
+  String? token = await FirebaseMessaging.instance.getToken();
+
   if(!(prefs.getString('email') != null && prefs.getString("password") != null)){
     print(false);
     return const Login();
@@ -103,6 +108,7 @@ Future<Widget> getPage() async {
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),
         "password": prefs.getString('password').toString(),
+        "token" : token,
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
@@ -127,6 +133,7 @@ Future<Widget> getPage() async {
 
 
             type = acc_type;
+            await prefs.setString('type', type);
 
             return NewsPage(data: loginMap,);
           } else {

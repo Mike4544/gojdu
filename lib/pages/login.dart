@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:gojdu/pages/verified.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,12 +9,18 @@ import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gojdu/pages/forgot_password.dart';
 
+// Messaging token
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
 
   @override
   _LoginState createState() => _LoginState();
 }
+
+FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _LoginState extends State<Login> {
 
@@ -50,6 +57,17 @@ class _LoginState extends State<Login> {
   void initState() {
     nameError = '';
     isLoggingIn = false;
+
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+
+      if(message.data['type'] == 'Verify'){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const Verified()));
+      }
+
+    });
+
+
     super.initState();
 
   }
@@ -266,6 +284,9 @@ class _LoginState extends State<Login> {
 
     final SharedPreferences prefs2 = await prefs;
 
+    String? token = await _firebaseMessaging.getToken();
+    //print(token);
+
     if (_formKey.currentState!.validate()) {
 
         try {
@@ -273,10 +294,11 @@ class _LoginState extends State<Login> {
               isLoggingIn = true;
             });
 
-            var url = Uri.parse('https://automemeapp.com/godju/login_gojdu.php');
+            var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
             final response = await http.post(url, body: {
               "email": _nameController.value.text,
               "password": _passController.value.text,
+              "token": token,
             });
             if (response.statusCode == 200) {
               var jsondata = json.decode(response.body);
@@ -295,9 +317,10 @@ class _LoginState extends State<Login> {
                   String acc_type = jsondata["account"].toString();
                   //String acc_type = 'Teacher';
 
-                  print(ln);
-                  print(fn);
-                  print(email);
+                  // print(ln);
+                  // print(fn);
+                  // print(email);
+                  print(jsondata["token"]);
 
                   await prefs2.setString('email', email);
                   await prefs2.setString('password', _passController.value.text);

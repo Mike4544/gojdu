@@ -8,6 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gojdu/pages/change_password.dart';
 import 'package:animations/animations.dart';
 
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+FirebaseMessaging messaging = FirebaseMessaging.instance;
+
 
 class SettingsPage extends StatefulWidget {
 
@@ -19,6 +25,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
+
   late String? fn, ln, email;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
@@ -26,6 +33,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
 
@@ -347,6 +359,10 @@ class _SettingsPageState extends State<SettingsPage> {
 Future<void> logoff(BuildContext context) async {
   
   final prefs = await SharedPreferences.getInstance();
+
+  String type = prefs.getString('type')!;
+
+  await messaging.unsubscribeFromTopic(type + 's');
 
   await prefs.remove('name');
   await prefs.remove('password');

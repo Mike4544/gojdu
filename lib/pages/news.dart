@@ -52,7 +52,7 @@ late bool loaded;
 
 late Map globalMap;
 
-FirebaseMessaging messaging = FirebaseMessaging.instance;
+
 
 
 
@@ -71,6 +71,8 @@ class _NewsPageState extends State<NewsPage>{
   bool pressed = false; //????????????? Ii folosit undeva?????
 
   int _currentIndex = 1;
+
+
 
 
   late final accType;
@@ -161,7 +163,6 @@ class _NewsPageState extends State<NewsPage>{
   void initState() {
 
 
-
     rootBundle.load('assets/map.riv').then((data){
       final file = RiveFile.import(data);
       final artboard = file.mainArtboard;
@@ -214,6 +215,7 @@ class _NewsPageState extends State<NewsPage>{
     });
 
 
+
     super.initState();
 
     // Listening for the notifications
@@ -230,13 +232,38 @@ class _NewsPageState extends State<NewsPage>{
               ],
             ),
             duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
             backgroundColor: ColorsB.yellow500,
+          ));
+        }
+
+        if(message.data['type'] == 'Verify'){
+          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.check, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text('Account verified!', style: TextStyle(fontFamily: 'Nunito'),),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
           ));
         }
 
 
 
     });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      if(message.data['type'] == 'Post') {
+        if(_announcementsKey.currentState != null){
+          _announcementsKey.currentState!._refresh();
+        }
+      }
+    });
+
 
 
 
@@ -263,9 +290,136 @@ class _NewsPageState extends State<NewsPage>{
     lastConnectionStatus = null;
     connectionStatus = null;
     subscription.cancel();
+
+    _names.clear();
+    _emails.clear();
+    _types.clear();
+    _tokens.clear();
     super.dispose();
 
 
+  }
+
+  // Lists for the pending users
+  List<String> _names = [];
+  List<String> _emails = [];
+  List<String> _types = [];
+  List<String> _tokens = [];
+
+
+
+
+  // <----------  Load the pending users -------------->
+  Future<int> _loadUsers() async {
+
+    try {
+
+
+
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/select_users.php');
+      final response = await http.post(url, body: {
+        'state': 'Pending',
+      });
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+
+        if (jsondata["1"]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata["1"]["success"]) {
+
+            _names.clear();
+            _emails.clear();
+            _types.clear();
+            _tokens.clear();
+
+            for(int i = 2; i <= 12; i++)
+            {
+              String name = jsondata[i.toString()]["user"].toString();
+              String email = jsondata[i.toString()]["email"].toString();
+              String acc_type = jsondata[i.toString()]["type"].toString();
+              String token = jsondata[i.toString()]["token"].toString();
+
+
+              if(name != "null" && email != "null"){
+                _names.add(name);
+                _emails.add(email);
+                _types.add(acc_type);
+                _tokens.add(token);
+                ++maximumCount;
+              }
+
+              /* if(post != "null")
+              {
+                print(post+ " this is the post");
+                print(title+" this is the title");
+                print(owner+ " this is the owner");
+              } */
+
+            }
+          }
+          else
+          {
+            print(jsondata["1"]["message"]);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return 0;
+
+  }
+
+  // The notification
+  Future<void> _notifyUser(String? token) async {
+    try {
+      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+      final response2 = await http.post(ulr2, body: {
+        "action": "Verify",
+        "token": token,
+      });
+
+      if(response2.statusCode == 200){
+        var jsondata2 = json.decode(response2.body);
+        print(jsondata2);
+
+      }
+
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _verifyUser(String? token, String? email, String status, int index) async {
+    try {
+      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/verify_accounts.php');
+      final response2 = await http.post(ulr2, body: {
+        "email": email,
+        "status": status,
+      });
+
+      if (response2.statusCode == 200) {
+        var jsondata2 = json.decode(response2.body);
+        print(jsondata2);
+        if(jsondata2['error'] == false){
+          _notifyUser(token);
+
+          _names.removeAt(index);
+        }
+      }
+      else {
+        print(response2.statusCode);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
 
@@ -280,81 +434,13 @@ class _NewsPageState extends State<NewsPage>{
         key: _scaffoldKey,
         backgroundColor: ColorsB.gray900,
         extendBody: true,
-        bottomNavigationBar:
-        Container(
-          width: device.size.width,
-          height: 75,
-          decoration: BoxDecoration(
-              color: ColorsB.gray800,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  spreadRadius: 10,
-                  blurRadius: 10,
-                  offset: Offset(0, 3),
-                )
-              ]
-          ),
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  child: GestureDetector(
-                    child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
-                    ),
-                    onTap: () {
-                      _mapExpandAnim(_mapInput);
-                      setState(() {
-                        _currentIndex = 0;
-                      });
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                    },
-                  ),
-                ),
-
-                Container(
-                  width: 50,
-                  height: 50,
-                  child: GestureDetector(
-                      child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
-                      ),
-                      onTap: () {
-                        _mapExpandAnim(_announcementsInput);
-                        setState(() {
-                          _currentIndex = 1;
-                        });
-                        _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                      }
-                  ),
-                ),
-
-                Container(
-                  width: 60,
-                  height: 50,
-                  child: GestureDetector(
-                    child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
-                    ),
-                    onTap: () {
-                      _mapExpandAnim(_reserveInput);
-                      setState(() {
-                        _currentIndex = 2;
-                      });
-                      _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                    },
-                  ),
-                ),
-              ]
-          ),
-        ),
+        bottomNavigationBar: _bottomNavBar(),
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
           children: [
             MapPage(navbarButton: _mapInput),
-            Announcements(navbarButton: _announcementsInput),
+            Announcements(navbarButton: _announcementsInput, key: _announcementsKey,),
             Calendar(navbarButton: _reserveInput,)
           ],
         ),
@@ -366,12 +452,299 @@ class _NewsPageState extends State<NewsPage>{
       );
     }
   }
+
+
+  Widget _bottomNavBar() {
+    if(globalMap['account'] == 'Admin') {
+
+      return Container(
+        width: screenWidth,
+        height: 75,
+        decoration: BoxDecoration(
+            color: ColorsB.gray800,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                spreadRadius: 10,
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              )
+            ]
+        ),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FittedBox(
+                    child: GestureDetector(
+                      child: const Icon(Icons.verified_user_outlined, color: Colors.white),
+                      onTap: () {
+
+                        // Verification page for the admin
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            final ScrollController _scrollController = ScrollController();
+
+                            return StatefulBuilder(
+                                builder: (_, StateSetter setState1) =>
+                                    AlertDialog(
+
+                                      title: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children : [
+                                            Row(
+                                              children: const [
+                                                Icon(Icons.verified_user_outlined, color: Colors.white, size: 30,),
+                                                SizedBox(width: 10,),
+                                                Text('Verify Users', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+                                              ],
+                                            ),
+                                            const Divider(color: Colors.white,),
+                                          ]
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      backgroundColor: ColorsB.gray900,
+                                      content: SizedBox(
+                                        height: screenHeight * 0.75,
+                                        width: screenWidth * 0.8,
+                                        child: FutureBuilder(
+                                          future: _loadUsers(),
+                                          builder: (c, sn) {
+                                            if(sn.hasData){
+                                              return Scrollbar(
+                                                controller: _scrollController,
+                                                child: ListView.builder(
+                                                  controller: _scrollController,
+                                                  physics: const BouncingScrollPhysics(),
+                                                  itemCount: _names.length,
+                                                  itemBuilder: (context, index) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets.all(20.0),
+                                                      child: Row(
+                                                        children: [
+                                                          Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+
+                                                            children: [
+                                                              Text(
+                                                                _names[index],
+                                                                style: const TextStyle(fontSize: 15, color: Colors.white),
+                                                              ),
+                                                              const SizedBox(height: 5,),
+                                                              Text(
+                                                                'Type: ${_types[index]}',
+                                                                style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
+                                                              ),
+                                                              Text(
+                                                                'Email: ${_emails[index]}',
+                                                                style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          const Spacer(),
+                                                          GestureDetector(
+                                                            child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
+                                                            onTap: () async {
+                                                              print('Checked');
+                                                              await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
+                                                              setState1(() {
+
+                                                              });
+                                                            },
+                                                          ),
+                                                          const SizedBox(width: 10,),
+                                                          GestureDetector(
+                                                            child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
+                                                            onTap: () {
+                                                              print('Canceled');
+
+
+
+
+                                                              // TODO: Cancel feature + Check feature
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            }
+                                            else {
+                                              return const Center(
+                                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),)
+                                              );
+                                            }
+                                          }
+                                        )
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            _names.clear();
+                                            _emails.clear();
+                                            _types.clear();
+                                            _tokens.clear();
+
+
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Close', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    )
+                            );
+                          }
+
+                        );
+
+                      },
+                    ),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_mapInput);
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                  },
+                ),
+              ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_announcementsInput);
+                      setState(() {
+                        _currentIndex = 1;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    }
+                ),
+              ),
+
+              SizedBox(
+                width: 60,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_reserveInput);
+                    setState(() {
+                      _currentIndex = 2;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                  },
+                ),
+              ),
+            ]
+        ),
+      );
+    }
+    else {
+      return Container(
+        width: screenWidth,
+        height: 75,
+        decoration: BoxDecoration(
+            color: ColorsB.gray800,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                spreadRadius: 10,
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              )
+            ]
+        ),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_mapInput);
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                  },
+                ),
+              ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_announcementsInput);
+                      setState(() {
+                        _currentIndex = 1;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    }
+                ),
+              ),
+
+              SizedBox(
+                width: 60,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_reserveInput);
+                    setState(() {
+                      _currentIndex = 2;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                  },
+                ),
+              ),
+            ]
+        ),
+      );
+    }
+  }
+
 }
 
 
 
 
-
+// Global key
+final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_AnnouncementsState>();
 
 
 
@@ -471,6 +844,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           _currentAnnouncement = 2;
           currentChannel = 'Parents';
           return 2;
+          case 'Admin':
+            _currentAnnouncement = 1;
+            currentChannel = 'Teachers';
+            return 1;
         default:
           return 0;
       }
@@ -605,7 +982,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 75),
               child: Column(
                 children: [
                   Row(
@@ -620,7 +997,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       ),
                       const SizedBox(width: 10,),
                       Visibility(
-                        visible: globalMap['account'] == 'Teacher' ? true : false, // cHANGE IT,
+                        visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
                         child: GestureDetector(
                           onTap: _showWritable,
                           child: const Icon(
@@ -684,7 +1061,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   Widget teachersBar() {
-    if(globalMap['account'] == 'Teacher') {
+    if(globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -2873,6 +3250,7 @@ class _PostItPageState extends State<PostItPage> {
                                             final response2 = await http.post(ulr2, body: {
                                               "channel": _className,
                                               "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                              "action": "Post"
                                             });
 
                                             if(response2.statusCode == 200){
