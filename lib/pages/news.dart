@@ -514,6 +514,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     titles.clear();
     descriptions.clear();
     owners.clear();
+    isAlive = false;
     super.dispose();
 
 
@@ -563,6 +564,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   var device = window.physicalSize;
 
   late var currentWidth;
+
+  bool isAlive = true;
 
   // Max max max posts
 
@@ -1128,9 +1131,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       } catch (e) {
-        setState(() {
-          isError = true;
-        });
+        if(isAlive){
+          setState(() {
+            isError = true;
+          });
+        }
       }
 
       return 0;
@@ -1181,47 +1186,47 @@ class BigNewsContainer extends StatelessWidget {
     return Scaffold(
       bottomNavigationBar: BackNavbar(),
       backgroundColor: ColorsB.gray900,
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Hero(
-              tag: 'title-rectangle',
-              child: Container(
-                width: device.size.width,
-                height: device.size.height * 0.5,
-                color: color,
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold
-                          ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Hero(
+            tag: 'title-rectangle',
+            child: Container(
+              width: device.size.width,
+              height: device.size.height * 0.5,
+              color: color,
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold
                         ),
-                        Text(
-                            "by " + author,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            )
-                        )
-                      ],
-                    ),
+                      ),
+                      Text(
+                          "by " + author,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          )
+                      )
+                    ],
                   ),
                 ),
               ),
             ),
-            Padding(
+          ),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Text(
                 description,
@@ -1231,10 +1236,10 @@ class BigNewsContainer extends StatelessWidget {
                     fontWeight: FontWeight.normal
                 ),
               ),
-            )
+            ),
+          )
 
-          ],
-        )
+        ],
       ),
     ) ;
   }
@@ -2837,7 +2842,7 @@ class _PostItPageState extends State<PostItPage> {
                       TextButton(
                         onPressed: () async {
 
-                          showDialog(context: context, builder: (context) => Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
+                          showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
 
 
 
@@ -2860,24 +2865,28 @@ class _PostItPageState extends State<PostItPage> {
 
                                     // Notifications
 
+                                          // --------------------------------------------------
 
-                                    try {
-                                      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
-                                      final response2 = await http.post(ulr2, body: {
-                                        "channel": _className,
-                                        "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                      });
 
-                                      if(response2.statusCode == 200){
-                                        var jsondata2 = json.decode(response2.body);
-                                        print(jsondata2);
-                                        Navigator.of(context).pop();
-                                        Navigator.pop(context);
-                                      }
+                                          try {
+                                            var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                            final response2 = await http.post(ulr2, body: {
+                                              "channel": _className,
+                                              "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                            });
 
-                                    } catch (e) {
-                                      print(e);
-                                    }
+                                            if(response2.statusCode == 200){
+                                              var jsondata2 = json.decode(response2.body);
+                                              print(jsondata2);
+                                              Navigator.of(context).pop();
+                                              Navigator.pop(context);
+                                            }
+
+                                          } catch (e) {
+                                            print(e);
+                                          }
+
+                                          // -------------------------------------------------
                                   }
                                   else
                                   {
