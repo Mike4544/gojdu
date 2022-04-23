@@ -459,7 +459,7 @@ class _SecondPageState extends State<SecondPage> {
                               };
 
                               Navigator.pushReplacement(context, MaterialPageRoute(
-                                  builder: (context) => NewsPage(data: loginMap,)
+                                  builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
                               ));
                               //user shared preference to save data
                             }else{

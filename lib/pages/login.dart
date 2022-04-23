@@ -258,7 +258,7 @@ class _LoginState extends State<Login> {
                       height: _tHeight.value,
                       onEnd: () {
                         Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(data: loginInfo,))
+                            builder: (context) => NewsPage(data: loginInfo))
 
                           //TODO: Remove the hardcoded value
 
