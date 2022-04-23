@@ -591,7 +591,7 @@ class _NewsPageState extends State<NewsPage>{
                                                 Text('Verify Users', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                                               ],
                                             ),
-                                            const Divider(color: Colors.white,),
+                                            const Divider(color: Colors.white, thickness: 0.5, height: 20,),
                                           ]
                                       ),
                                       shape: RoundedRectangleBorder(
@@ -665,7 +665,7 @@ class _NewsPageState extends State<NewsPage>{
                                                     }
                                                     else {
                                                       return const Center(
-                                                        child: Text('No accounts needing approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
+                                                        child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
                                                       );
                                                     }
                                                   },
@@ -674,7 +674,7 @@ class _NewsPageState extends State<NewsPage>{
                                             }
                                             else if(sn.hasData && (_names.isEmpty || _emails.isEmpty || _types.isEmpty)){
                                               return const Center(
-                                                child: Text('No accounts needing approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
+                                                child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
                                               );
                                             }
                                             else {
@@ -1775,45 +1775,190 @@ class _MapPageState extends State<MapPage>{
 
     switch(floorNo) {
       case 0:
-        return Container(
-          key: Key('1'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.yellow500,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+          return GestureDetector(
+            key: Key('1'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/parter.png",
+              key: Key('1'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/parter.png",
+                          key: Key('1'),
+                        ),
+                      )
+              );
+            },
+          );
       case 1:
-        return Container(
-          key: Key('2'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray800,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+          return GestureDetector(
+            key: Key('2'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/et1.png",
+              key: Key('2'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/et1.png",
+                        ),
+                      )
+              );
+            },
+          );
+
       case 2:
-        return Container(
-          key: Key('3'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray700,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
-      case 3:
-        return Container(
-          key: Key('4'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray200,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+
+          return GestureDetector(
+            key: Key('3'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/et2.png",
+              key: Key('3'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/et2.png",
+                          key: Key('3'),
+                        ),
+                      )
+              );
+            },
+          );
+
     }
 
   }
@@ -1831,7 +1976,7 @@ class _MapPageState extends State<MapPage>{
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2844,255 +2989,317 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                     height: 30,
                                     child: TextButton(
                                         onPressed: () {
-                                          showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                var timeText = TextEditingController();
-                                                var timeText2 = TextEditingController();
+                                          if(globalMap['verification'] != "Pending"){
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  var timeText = TextEditingController();
+                                                  var timeText2 = TextEditingController();
 
-                                                TimeOfDay? parsedTime1;
-                                                TimeOfDay? parsedTime2;
+                                                  TimeOfDay? parsedTime1;
+                                                  TimeOfDay? parsedTime2;
 
-                                                var _formKey = GlobalKey<FormState>();
-                                                var errorText1, errorText2;
+                                                  var _formKey = GlobalKey<FormState>();
+                                                  var errorText1, errorText2;
 
-                                                bool clicked = false;
+                                                  bool clicked = false;
 
 
 
-                                                return StatefulBuilder(
-                                                    builder: (_, StateSetter setState) =>
-                                                        AlertDialog(
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius: BorderRadius.circular(30),
-                                                            ),
-                                                            backgroundColor: ColorsB.gray900,
-                                                            content: SizedBox(
-                                                              height: 200,
-                                                              child: Center(
-                                                                child: Form(
-                                                                  key: _formKey,
-                                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                                                                  child: Column(
-                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                    children: [
-                                                                      Row(
-                                                                        children: [
-                                                                          const Text(
-                                                                            'From: ',
-                                                                            style: TextStyle(
-                                                                              fontSize: 15,
-                                                                              fontWeight: FontWeight.bold,
-                                                                              color: Colors.white,
-                                                                            ),
-                                                                          ),
-                                                                          const SizedBox(
-                                                                            width: 10,
-                                                                          ),
-                                                                          SizedBox(
-                                                                            width: 200,
-                                                                            height: 50,
-                                                                            child: TextFormField(
-                                                                              controller: timeText,
-                                                                              style: const TextStyle(
+                                                  return StatefulBuilder(
+                                                      builder: (_, StateSetter setState) =>
+                                                          AlertDialog(
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(30),
+                                                              ),
+                                                              backgroundColor: ColorsB.gray900,
+                                                              content: SizedBox(
+                                                                height: 200,
+                                                                child: Center(
+                                                                  child: Form(
+                                                                    key: _formKey,
+                                                                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                                    child: Column(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Row(
+                                                                          children: [
+                                                                            const Text(
+                                                                              'From: ',
+                                                                              style: TextStyle(
                                                                                 fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
                                                                                 color: Colors.white,
                                                                               ),
-
-                                                                              readOnly: true,
-                                                                              decoration: InputDecoration(
-                                                                                errorText: errorText1,
-                                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                labelText: "Enter Time", //label text of field
-                                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                focusedBorder: UnderlineInputBorder(
-                                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
                                                                                 ),
-                                                                                enabledBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                              ),
 
-                                                                              onTap: () async {
-                                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                if(pickedTime != null){
-                                                                                  parsedTime1 = pickedTime;
-                                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                                  //  print(formattedTime);
-                                                                                  setState(() {
-                                                                                    timeText.text = formattedTime;
-                                                                                    _time1 = formattedTime;
-                                                                                  });
-                                                                                }
-
-                                                                              },
-
-                                                                              validator: (value) {
-                                                                                if(value == null || value.isEmpty){
-                                                                                  return "Please enter time";
-                                                                                }
-                                                                                else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                    return "Please enter valid time";
-                                                                                  }
-                                                                                }
-                                                                                return null;
-                                                                              },
-
-                                                                            ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      Row(
-                                                                        children: [
-                                                                          const Text(
-                                                                            'To: ',
-                                                                            style: TextStyle(
-                                                                              fontSize: 15,
-                                                                              fontWeight: FontWeight.bold,
-                                                                              color: Colors.white,
-                                                                            ),
-                                                                          ),
-                                                                          const SizedBox(
-                                                                            width: 10,
-                                                                          ),
-                                                                          SizedBox(
-                                                                            width: 200,
-                                                                            height: 50,
-                                                                            child: TextFormField(
-                                                                              controller: timeText2,
-                                                                              style: const TextStyle(
-                                                                                fontSize: 15,
-                                                                                color: Colors.white,
-                                                                              ),
-
-                                                                              readOnly: true,
-                                                                              decoration: InputDecoration(
-                                                                                errorText: errorText2,
-                                                                                icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                labelText: "Enter Time", //label text of field
-                                                                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                focusedBorder: UnderlineInputBorder(
-                                                                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText1,
+                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
                                                                                 ),
-                                                                                enabledBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  if(pickedTime != null){
+                                                                                    parsedTime1 = pickedTime;
+                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //  print(formattedTime);
+                                                                                    setState(() {
+                                                                                      timeText.text = formattedTime;
+                                                                                      _time1 = formattedTime;
+                                                                                    });
+                                                                                  }
+
+                                                                                },
+
+                                                                                validator: (value) {
+                                                                                  if(value == null || value.isEmpty){
+                                                                                    return "Please enter time";
+                                                                                  }
+                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                      return "Please enter valid time";
+                                                                                    }
+                                                                                  }
+                                                                                  return null;
+                                                                                },
+
                                                                               ),
-
-                                                                              onTap: () async {
-                                                                                TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                parsedTime2 = pickedTime;
-                                                                                if(pickedTime != null){
-                                                                                  DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                  String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                                  //  print(formattedTime);
-                                                                                  setState(() {
-                                                                                    timeText2.text = formattedTime;
-                                                                                    _time2 = formattedTime;
-                                                                                  });
-                                                                                }
-                                                                              },
-                                                                              validator: (value) {
-                                                                                if(value == null || value.isEmpty){
-                                                                                  return "Please enter time";
-                                                                                }
-                                                                                else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                  if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                    return "Please enter valid time";
-                                                                                  }
-                                                                                }
-                                                                                return null;
-                                                                              },
-
                                                                             ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      TextButton.icon(
-                                                                        onPressed: () async {
-                                                                          if(_events[_selectedDay] != null){
-                                                                            if(!overlap(_time1, _time2)){
-                                                                              setState(() {
-                                                                                errorText1 = errorText2 = 'Overlapping!';
-                                                                              });
-                                                                              return;
-                                                                            }
-                                                                          }
-
-                                                                          if(_formKey.currentState!.validate()){
-                                                                            try {
-                                                                              setState(() {
-                                                                                clicked = true;
-                                                                              });
-                                                                              var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
-                                                                              final response = await http.post(url, body: {
-                                                                                "day": _selectedDay.toString(),
-                                                                                "start": _time1+":00",
-                                                                                "end": _time2+":00",
-                                                                                "hall": _currentHall.toString(),
-                                                                                "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                              });
-                                                                              if (response.statusCode == 200) {
-                                                                                var jsondata = json.decode(response.body);
-                                                                                print(jsondata);
-                                                                                if (jsondata["error"]) {
-                                                                                } else {
-                                                                                  if (jsondata["success"]){
-                                                                                    Navigator.pop(context);
-                                                                                  }
-                                                                                  else
-                                                                                  {
-                                                                                    print(jsondata["message"]);
-                                                                                  }
-                                                                                }
-                                                                              }
-                                                                              print(_events);
-
-                                                                              widget.changePage(3);
-                                                                              setState(() {
-
-                                                                              });
-                                                                            } catch (e){
-                                                                              _events[_selectedDay] = ['Error! Please try again!'];
-                                                                            }
-                                                                          }
-                                                                        },
-                                                                        icon: !clicked ? const Icon(
-                                                                          Icons.add_circle,
-                                                                          color: Colors.white,
-                                                                        ) : const SizedBox(),
-                                                                        label: !clicked ? const Text(
-                                                                          'Reserve',
-                                                                          style: TextStyle(
-                                                                            color: Colors.white,
-                                                                          ),
-                                                                        ) : const CircularProgressIndicator(
-                                                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                          ],
                                                                         ),
-                                                                      )
+                                                                        Row(
+                                                                          children: [
+                                                                            const Text(
+                                                                              'To: ',
+                                                                              style: TextStyle(
+                                                                                fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText2,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
+                                                                                ),
 
-                                                                    ],
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText2,
+                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                ),
+
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  parsedTime2 = pickedTime;
+                                                                                  if(pickedTime != null){
+                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //  print(formattedTime);
+                                                                                    setState(() {
+                                                                                      timeText2.text = formattedTime;
+                                                                                      _time2 = formattedTime;
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                                validator: (value) {
+                                                                                  if(value == null || value.isEmpty){
+                                                                                    return "Please enter time";
+                                                                                  }
+                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                      return "Please enter valid time";
+                                                                                    }
+                                                                                  }
+                                                                                  return null;
+                                                                                },
+
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        TextButton.icon(
+                                                                          onPressed: () async {
+                                                                            if(_events[_selectedDay] != null){
+                                                                              if(!overlap(_time1, _time2)){
+                                                                                setState(() {
+                                                                                  errorText1 = errorText2 = 'Overlapping!';
+                                                                                });
+                                                                                return;
+                                                                              }
+                                                                            }
+
+                                                                            if(_formKey.currentState!.validate()){
+                                                                              try {
+                                                                                setState(() {
+                                                                                  clicked = true;
+                                                                                });
+                                                                                var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
+                                                                                final response = await http.post(url, body: {
+                                                                                  "day": _selectedDay.toString(),
+                                                                                  "start": _time1+":00",
+                                                                                  "end": _time2+":00",
+                                                                                  "hall": _currentHall.toString(),
+                                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                                });
+                                                                                if (response.statusCode == 200) {
+                                                                                  var jsondata = json.decode(response.body);
+                                                                                  print(jsondata);
+                                                                                  if (jsondata["error"]) {
+                                                                                  } else {
+                                                                                    if (jsondata["success"]){
+                                                                                      Navigator.pop(context);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                      print(jsondata["message"]);
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                                print(_events);
+
+                                                                                widget.changePage(3);
+                                                                                setState(() {
+
+                                                                                });
+                                                                              } catch (e){
+                                                                                _events[_selectedDay] = ['Error! Please try again!'];
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          icon: !clicked ? const Icon(
+                                                                            Icons.add_circle,
+                                                                            color: Colors.white,
+                                                                          ) : const SizedBox(),
+                                                                          label: !clicked ? const Text(
+                                                                            'Reserve',
+                                                                            style: TextStyle(
+                                                                              color: Colors.white,
+                                                                            ),
+                                                                          ) : const CircularProgressIndicator(
+                                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                          ),
+                                                                        )
+
+                                                                      ],
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            )
-                                                        )
-                                                );
-                                              }
+                                                              )
+                                                          )
+                                                  );
+                                                }
 
-                                          );
+                                            );
+                                          }
+                                          else {
+                                            showDialog(
+                                                barrierDismissible: false,
+                                                context: context,
+                                                builder: (_) =>
+                                                AlertDialog(
+                                                  backgroundColor: ColorsB.gray900,
+                                                  clipBehavior: Clip.hardEdge,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
+                                                    ),
+                                                  ],
+                                                  content: SizedBox(
+                                                    height: screenHeight * 0.5,
+                                                    child: Column(
+                                                      children: [
+                                                        SizedBox(
+                                                          height: 200,
+                                                          child: SvgPicture.asset(
+                                                            'assets/svgs/locked.svg',
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                        const Text(
+                                                          'Oops! You can\'t do that!',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Nunito',
+                                                            fontSize: 17.5,
+                                                            color: ColorsB.yellow500,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 25),
+                                                        Text(
+                                                          'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Nunito',
+                                                            fontSize: 13,
+                                                            color: Colors.white.withOpacity(0.5),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
+                                            );
+                                          }
                                         },
-                                        child: const Text(
+                                        child: globalMap['verification'] != "Pending"
+                                        ? const Text(
                                           'Reserve',
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
                                           ),
+                                        )
+                                        : const Icon(
+                                          Icons.lock_outline,
+                                          color: Colors.white,
+                                          size: 15,
                                         ),
                                         style: ButtonStyle(
                                           elevation: MaterialStateProperty.all(0),
-                                          backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
+                                          backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
                                           shape: MaterialStateProperty.all<OutlinedBorder>(
                                             RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(50),

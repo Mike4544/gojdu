@@ -343,6 +343,7 @@ class _LoginState extends State<Login> {
                     'last_name': ln,
                     'email': email,
                     'account': acc_type,
+                    'verification': jsondata['verification']
                   };
 
                   loginInfo = loginMap;

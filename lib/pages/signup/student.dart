@@ -211,6 +211,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                 "username": user,
                                 "email": email,
                                 "account": acc_type,
+                                'verification': 'Pending',
                               };
 
                               Navigator.pushReplacement(context, MaterialPageRoute(
