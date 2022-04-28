@@ -53,6 +53,8 @@ late bool loaded;
 
 late Map globalMap;
 
+List<String> titles = [];
+List<String> sizes = [];
 
 
 
@@ -2571,98 +2573,127 @@ class CalPag1 extends StatelessWidget {
                   return ListView.builder(
                     clipBehavior: Clip.hardEdge,         //  Find a way to do it better
                     physics: const BouncingScrollPhysics(),
-                    itemCount: 3,
+                    itemCount: titles.isNotEmpty ? titles.length : 1,
                     itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          height: 125,
-                          decoration: BoxDecoration(
-                            color: ColorsB.gray800,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
+                      if(titles.isNotEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 125,
+                            decoration: BoxDecoration(
+                              color: ColorsB.gray800,
                               borderRadius: BorderRadius.circular(30),
-                              onTap: () {
-                                _currentHall = index;
-                                changePage(1);
-                              },
-                              child: Stack(
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: ShaderMask(
-                                      shaderCallback: (rect) {
-                                        return const material.LinearGradient(
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                          stops: [0, 1],
-                                          colors: [
-                                            Colors.transparent,
-                                            Colors.black,
-                                          ],
-                                        ).createShader(rect);
-                                      },
-                                      blendMode: BlendMode.dstIn,
-                                      child: Icon(
-                                        Icons.account_balance_sharp,
-                                        color: ColorsB.gray700.withOpacity(0.25),
-                                        size: 75,
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(30),
+                                onTap: () {
+                                  _currentHall = index;
+                                  changePage(1);
+                                },
+                                child: Stack(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ShaderMask(
+                                        shaderCallback: (rect) {
+                                          return const material.LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            stops: [0, 1],
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black,
+                                            ],
+                                          ).createShader(rect);
+                                        },
+                                        blendMode: BlendMode.dstIn,
+                                        child: Icon(
+                                          Icons.account_balance_sharp,
+                                          color: ColorsB.gray700.withOpacity(0.25),
+                                          size: 75,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(15.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.account_balance,
-                                              color: ColorsB.yellow500,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 10,),
-                                            Text(
-                                              'Hall $index',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 15,
+                                    Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.account_balance,
+                                                color: ColorsB.yellow500,
+                                                size: 20,
                                               ),
+                                              const SizedBox(width: 10,),
+                                              Text(
+                                                titles[index],
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Divider(
+                                            color: Colors.white.withOpacity(0.1),
+                                            thickness: 1,
+                                          ),
+                                          const SizedBox(height: 10,),
+                                          Text(
+                                            'Type: ${sizes[index]}',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(0.5),
+                                              fontSize: 10,
                                             ),
-                                          ],
-                                        ),
-                                        Divider(
-                                          color: Colors.white.withOpacity(0.1),
-                                          thickness: 1,
-                                        ),
-                                        const SizedBox(height: 10,),
-                                        Text(
-                                          'Type: Large',
-                                          style: TextStyle(
-                                            color: Colors.white.withOpacity(0.5),
-                                            fontSize: 10,
                                           ),
-                                        ),
-                                        Text(
-                                          'Capacity: 30',
-                                          style: TextStyle(
-                                            color: Colors.white.withOpacity(0.5),
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ],
+
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
+                        );
+                      }
+                      else {
+                        // Return a nice No halls found message followed by the no_posts svg
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Wow, such empty!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 10,),
+                              Text(
+                                'No halls found',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 20,),
+                              SvgPicture.asset(
+                                'assets/svgs/no_posts.svg',
+                                height: 200,
+                              ),
+                            ],
+                          ),
+                        );
+
+
+
+                      }
                     },
                   );
                 }
@@ -2676,13 +2707,243 @@ class CalPag1 extends StatelessWidget {
               }
           ),
           Visibility(
-          visible: globalMap['account'] == 'Admin' ? true : false,
+            visible: globalMap['account'] == 'Admin' ? true : false,
             child: Align(
               alignment: Alignment.bottomRight,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: FloatingActionButton(
-                  onPressed: () {},
+                  onPressed: () {
+
+                    // Title controller
+                    final TextEditingController titleController = TextEditingController();
+
+                    //  Form key
+                    final formKey = GlobalKey<FormState>();
+                    var size, errorText;
+                    bool clicked = false;
+
+                    showDialog(
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (_) =>
+                          StatefulBuilder(
+                            builder: (_, setState){
+                              return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  backgroundColor: ColorsB.gray900,
+                                  actions: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextButton(
+                                        onPressed: () {
+                                          //  titleController.dispose();
+                                          errorText = size = null;
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                  ],
+                                  content: SizedBox(
+                                    height: 250,
+                                    child: Center(
+                                      child: Form(
+                                        key: formKey,
+                                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                                        child: Column(
+                                          children: [
+                                            // Title form text field and a dropdown with 3 options: Small, Medium, Large
+                                            TextFormField(
+                                              cursorColor: ColorsB.yellow500,
+                                              controller: titleController,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Title',
+                                                labelStyle: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                                enabledBorder: UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                focusedBorder: UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: ColorsB.yellow500,
+                                                  ),
+                                                ),
+                                              ),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                              ),
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a title';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            // Drowpdown with 3 options: Small, Medium, Large
+                                            DropdownButtonFormField(
+                                              decoration: InputDecoration(
+                                                labelText: 'Size',
+                                                errorText: errorText,
+                                                labelStyle: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                                enabledBorder: const UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                focusedBorder: const UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: ColorsB.yellow500,
+                                                  ),
+                                                ),
+                                              ),
+                                              dropdownColor: ColorsB.gray800,
+                                              value: size,
+                                              items: const [
+                                                DropdownMenuItem(
+                                                  child: Text(
+                                                      'Small',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                  value: 'Small',
+                                                ),
+                                                DropdownMenuItem(
+                                                  child: Text('Medium', style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 15,
+                                                  ),),
+                                                  value: 'Medium',
+                                                ),
+                                                DropdownMenuItem(
+                                                  child: Text('Large', style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 15,
+                                                  ),),
+                                                  value: 'Large',
+                                                ),
+                                              ],
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  size = value;
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (value == null) {
+                                                  return 'Please select a size';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            // Button to send the data
+                                            const SizedBox(height: 20),
+
+                                            clicked == false
+                                                ? TextButton.icon(
+                                                icon: const Icon(
+                                                Icons.send,
+                                                color: Colors.white,
+                                              ),
+                                                label: const Text(
+                                                'Send',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                                onPressed: () async {
+
+                                                if (formKey.currentState!.validate()) {
+                                                  if(size == null){
+                                                    setState(() {
+                                                      errorText = 'Please select a size';
+                                                    });
+                                                    return;
+
+
+
+                                                  }
+                                                  setState(() {
+                                                    clicked = true;
+                                                  });
+
+                                                  try {
+                                                    var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+                                                    final response = await http.post(url, body: {
+                                                      "action": 'INSERT', // Or IMPORT
+                                                      "title": titleController.text,
+                                                      "size": size,
+                                                    });
+                                                    if(response.statusCode == 200){
+                                                      var jsondata = json.decode(response.body);
+                                                      if (jsondata["1"]["error"]) {
+                                                        setState(() {
+                                                          errorText = jsondata["1"]["message"];
+                                                        });
+                                                      }
+                                                      else if(jsondata['1']['success']){
+                                                        setState(() {
+                                                          clicked = false;
+                                                          // Pop the screen
+                                                          Navigator.of(context).pop();
+                                                        });
+
+                                                      }
+                                                    }
+
+
+                                                  }
+                                                  catch (e) {
+                                                    //print(e);
+                                                    setState(() {
+                                                      errorText = 'Error connecting to server';
+                                                      clicked = false;
+                                                    });
+                                                  }
+
+
+                                                }
+                                              },
+                                            )
+                                                : const CircularProgressIndicator(
+                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            )
+
+
+                                          ],
+                                        ),
+
+                                      ),
+                                    ),
+                                  )
+                              );
+                            }
+                          )
+
+                    );
+
+                  },
                   child: const Icon(Icons.add),
                   backgroundColor: ColorsB.yellow500,
                   mini: true,
@@ -2696,8 +2957,53 @@ class CalPag1 extends StatelessWidget {
   }
 }
 
+bool hasLoaded = false;
+
+
 Future<int> _loadHalls() async {
-  await Future.delayed(const Duration(seconds: 1));
+  //await Future.delayed(const Duration(seconds: 1));
+  titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
+
+  if(!hasLoaded){
+    try {
+      var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+      final response = await http.post(url, body: {
+        "action": 'IMPORT', // Or INSERT
+      });
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        //print(jsondata);
+        if(jsondata['1']['success']){
+
+          print(jsondata.length);
+          for(int i = 2; i < jsondata.length; i++) {
+            if (jsondata[i.toString()]['title'] != null &&
+                jsondata[i.toString()]['size'] != null) {
+              titles.add(jsondata[i.toString()]['title']);
+              sizes.add(jsondata[i.toString()]['size']);
+
+              print(i);
+              print(jsondata[i.toString()]['size']);
+            }
+            else {
+              break;
+            }
+          }
+
+        }
+        else{
+          //return 0;
+        }
+      }
+      else{
+
+      }
+    } catch (e) {
+      //print(e);
+      //return 0;
+    }
+  }
+
   // This is where the halls are loaded.
   return 1;
 }

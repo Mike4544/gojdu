@@ -191,7 +191,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     Navigator.push(context, PageRouteBuilder(
                                       transitionDuration: const Duration(milliseconds: 500),
                                       reverseTransitionDuration: const Duration(milliseconds: 500),
-                                      pageBuilder: (context, a1, a2) => const ChangePassword(),
+                                      pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
                                       transitionsBuilder: (context, a1, a2, child) =>
                                           SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
                                     ));
