@@ -30,14 +30,18 @@ import 'package:connectivity_plus/connectivity_plus.dart' as con;
 // SVG
 import 'package:flutter_svg/flutter_svg.dart';
 
+// Firebase for messaging
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 
 
 class NewsPage extends StatefulWidget {
 
   final Map data;
+  final bool? newlyCreated;
 
-  const NewsPage({Key? key, required this.data}) : super(key: key);
+  const NewsPage({Key? key, required this.data, this.newlyCreated}) : super(key: key);
 
   @override
   _NewsPageState createState() => _NewsPageState();
@@ -48,6 +52,11 @@ SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
 late Map globalMap;
+
+List<String> titles = [];
+List<String> sizes = [];
+
+
 
 
 
@@ -65,6 +74,8 @@ class _NewsPageState extends State<NewsPage>{
   bool pressed = false; //????????????? Ii folosit undeva?????
 
   int _currentIndex = 1;
+
+
 
 
   late final accType;
@@ -144,6 +155,77 @@ class _NewsPageState extends State<NewsPage>{
     }
   }
 
+  bool opened = false;
+
+  void _forNewUsers(BuildContext context) async {
+    if(widget.newlyCreated != null && widget.newlyCreated == true){
+      opened = true;
+      await Future.delayed(const Duration(milliseconds: 100));
+      showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (_) =>
+            AlertDialog(
+              backgroundColor: ColorsB.gray900,
+              clipBehavior: Clip.hardEdge,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    _scaffoldKey.currentState!.showSnackBar(SnackBar(
+                      content: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          child: const Text("Unverified account. Some features might be unavailable to you.", style: TextStyle(fontFamily: 'Nunito', fontSize: 12, color: Colors.white),)),
+                      duration: const Duration(days: 1),
+                      backgroundColor: ColorsB.gray800,
+                      behavior: SnackBarBehavior.floating,
+                      dismissDirection: DismissDirection.none,
+                    ));
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
+                ),
+              ],
+              content: SizedBox(
+                height: screenHeight * 0.5,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      child: SvgPicture.asset(
+                        'assets/svgs/screen_new.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const Text(
+                      'Welcome! One more thing before you can start using the app.',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 17.5,
+                        color: ColorsB.yellow500,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    Text(
+                      'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+      );
+    }
+  }
+
 
   @override
   void deactivate() {
@@ -154,26 +236,9 @@ class _NewsPageState extends State<NewsPage>{
   @override
   void initState() {
 
-    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      setState(() {
-        connectionStatus = result;
-        _connectionStatus = result;
-      });
-      print(result);
-      print(lastConnectionStatus);
-      checkConnectivity();
-      lastConnectionStatus = connectionStatus;
-    });
 
-    super.initState();
 
-    // <---------- Load the acc type -------------->
-    accType = widget.data['account'];
-    globalMap = widget.data;
 
-    //  <-----------  Loaded  ------------------>
-    loaded = false;
-    //Initialising the navbar icons -
     rootBundle.load('assets/map.riv').then((data){
       final file = RiveFile.import(data);
       final artboard = file.mainArtboard;
@@ -213,7 +278,90 @@ class _NewsPageState extends State<NewsPage>{
       });
     });
 
-    //-
+
+    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        connectionStatus = result;
+        _connectionStatus = result;
+      });
+      print(result);
+      print(lastConnectionStatus);
+      checkConnectivity();
+      lastConnectionStatus = connectionStatus;
+    });
+
+    FirebaseMessaging.onMessage.listen((message) async {
+
+      if(_scaffoldKey.currentState != null){
+
+        _scaffoldKey.currentState?.hideCurrentSnackBar();
+
+        if(message.data['type'] == 'Post'){
+          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.notifications, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text('New posts available!', style: TextStyle(fontFamily: 'Nunito'),),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: ColorsB.yellow500,
+          ));
+        }
+
+        if(message.data['type'] == 'Verify'){
+          //_scaffoldKey.currentState!.hideCurrentSnackBar();
+          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.check, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text('Account verified!', style: TextStyle(fontFamily: 'Nunito'),),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ));
+        }
+      }
+
+
+
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      if(message.data['type'] == 'Post') {
+        if(_announcementsKey.currentState != null){
+          _announcementsKey.currentState!._refresh();
+        }
+      }
+    });
+
+
+    super.initState();
+
+    // Listening for the notifications
+
+
+
+
+
+
+
+
+    // <---------- Load the acc type -------------->
+    accType = widget.data['account'];
+    globalMap = widget.data;
+
+    //  <-----------  Loaded  ------------------>
+    loaded = false;
+    //Initialising the navbar icons -
+
+
+
 
 
 
@@ -226,9 +374,135 @@ class _NewsPageState extends State<NewsPage>{
     lastConnectionStatus = null;
     connectionStatus = null;
     subscription.cancel();
+
+    _names.clear();
+    _emails.clear();
+    _types.clear();
+    _tokens.clear();
     super.dispose();
 
 
+  }
+
+  // Lists for the pending users
+  List<String> _names = [];
+  List<String> _emails = [];
+  List<String> _types = [];
+  List<String> _tokens = [];
+
+
+
+
+  // <----------  Load the pending users -------------->
+  Future<int> _loadUsers() async {
+
+    try {
+
+
+
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/select_users.php');
+      final response = await http.post(url, body: {
+        'state': 'Pending',
+      });
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+
+        if (jsondata["1"]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata["1"]["success"]) {
+
+            _names.clear();
+            _emails.clear();
+            _types.clear();
+            _tokens.clear();
+
+            for(int i = 2; i <= 12; i++)
+            {
+              String name = jsondata[i.toString()]["user"].toString();
+              String email = jsondata[i.toString()]["email"].toString();
+              String acc_type = jsondata[i.toString()]["type"].toString();
+              String token = jsondata[i.toString()]["token"].toString();
+
+
+              if(name != "null" && email != "null"){
+                _names.add(name);
+                _emails.add(email);
+                _types.add(acc_type);
+                _tokens.add(token);
+              }
+
+              /* if(post != "null")
+              {
+                print(post+ " this is the post");
+                print(title+" this is the title");
+                print(owner+ " this is the owner");
+              } */
+
+            }
+          }
+          else
+          {
+            print(jsondata["1"]["message"]);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return 0;
+
+  }
+
+  // The notification
+  Future<void> _notifyUser(String? token) async {
+    try {
+      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+      final response2 = await http.post(ulr2, body: {
+        "action": "Verify",
+        "token": token,
+      });
+
+      if(response2.statusCode == 200){
+        var jsondata2 = json.decode(response2.body);
+        print(jsondata2);
+
+      }
+
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _verifyUser(String? token, String? email, String status, int index) async {
+    try {
+      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/verify_accounts.php');
+      final response2 = await http.post(ulr2, body: {
+        "email": email,
+        "status": status,
+      });
+
+      if (response2.statusCode == 200) {
+        var jsondata2 = json.decode(response2.body);
+        print(jsondata2);
+        if(jsondata2['error'] == false){
+          _notifyUser(token);
+
+          _names.removeAt(index);
+        }
+      }
+      else {
+        print(response2.statusCode);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
 
@@ -238,30 +512,209 @@ class _NewsPageState extends State<NewsPage>{
 
     var device = MediaQuery.of(context);
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: ColorsB.gray900,
-      extendBody: true,
-      bottomNavigationBar:
-      Container(
-        width: device.size.width,
+    if(!opened){
+      _forNewUsers(context);
+    }
+
+    if(_mapArtboard != null && _announcementsArtboard != null && _reserveArtboard != null) {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: ColorsB.gray900,
+        extendBody: true,
+        bottomNavigationBar: _bottomNavBar(),
+        body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          children: [
+            MapPage(navbarButton: _mapInput),
+            Announcements(navbarButton: _announcementsInput, key: _announcementsKey,),
+            Calendar(navbarButton: _reserveInput,)
+          ],
+        ),
+      );
+    }
+    else {
+      return Container(
+        color: ColorsB.gray900,
+      );
+    }
+  }
+
+
+  Widget _bottomNavBar() {
+    if(globalMap['account'] == 'Admin') {
+
+      return Container(
+        width: screenWidth,
         height: 75,
         decoration: BoxDecoration(
-          color: ColorsB.gray800,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              spreadRadius: 10,
-              blurRadius: 10,
-              offset: Offset(0, 3),
-            )
-          ]
+            color: ColorsB.gray800,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                spreadRadius: 10,
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              )
+            ]
         ),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FittedBox(
+                    child: GestureDetector(
+                      child: const Icon(Icons.verified_user_outlined, color: Colors.white),
+                      onTap: () {
+
+                        // Verification page for the admin
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            final ScrollController _scrollController = ScrollController();
+
+                            return StatefulBuilder(
+                                builder: (_, StateSetter setState1) =>
+                                    AlertDialog(
+
+                                      title: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children : [
+                                            Row(
+                                              children: const [
+                                                Icon(Icons.verified_user_outlined, color: Colors.white, size: 30,),
+                                                SizedBox(width: 10,),
+                                                Text('Verify Users', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+                                              ],
+                                            ),
+                                            const Divider(color: Colors.white, thickness: 0.5, height: 20,),
+                                          ]
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      backgroundColor: ColorsB.gray900,
+                                      content: SizedBox(
+                                        height: screenHeight * 0.75,
+                                        width: screenWidth * 0.8,
+                                        child: FutureBuilder(
+                                          future: _loadUsers(),
+                                          builder: (c, sn) {
+                                            if(sn.hasData && (_names.isNotEmpty || _emails.isNotEmpty || _types.isNotEmpty)) {
+                                              return Scrollbar(
+                                                controller: _scrollController,
+                                                child: ListView.builder(
+                                                  controller: _scrollController,
+                                                  physics: const BouncingScrollPhysics(),
+                                                  itemCount: _names.length > 0 ? _names.length : 1,
+                                                  itemBuilder: (context, index) {
+                                                    if(_names.length > 0){
+                                                      return Padding(
+                                                        padding: const EdgeInsets.all(20.0),
+                                                        child: Row(
+                                                          children: [
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                                                              children: [
+                                                                Text(
+                                                                  _names[index],
+                                                                  style: const TextStyle(fontSize: 15, color: Colors.white),
+                                                                ),
+                                                                const SizedBox(height: 5,),
+                                                                Text(
+                                                                  'Type: ${_types[index]}',
+                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
+                                                                ),
+                                                                Text(
+                                                                  'Email: ${_emails[index]}',
+                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const Spacer(),
+                                                            GestureDetector(
+                                                              child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
+                                                              onTap: () async {
+                                                                print('Checked');
+                                                                await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
+                                                                setState1(() {
+
+                                                                });
+                                                              },
+                                                            ),
+                                                            const SizedBox(width: 10,),
+                                                            GestureDetector(
+                                                              child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
+                                                              onTap: () {
+                                                                print('Canceled');
+
+
+
+
+                                                                // TODO: Cancel feature + Check feature
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+                                                    else {
+                                                      return const Center(
+                                                        child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              );
+                                            }
+                                            else if(sn.hasData && (_names.isEmpty || _emails.isEmpty || _types.isEmpty)){
+                                              return const Center(
+                                                child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
+                                              );
+                                            }
+                                            else {
+                                              return const Center(
+                                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),)
+                                              );
+                                            }
+                                          }
+                                        )
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            _names.clear();
+                                            _emails.clear();
+                                            _types.clear();
+                                            _tokens.clear();
+
+
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Close', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    )
+                            );
+                          }
+
+                        );
+
+                      },
+                    ),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
@@ -277,23 +730,23 @@ class _NewsPageState extends State<NewsPage>{
                 ),
               ),
 
-              Container(
+              SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
-                  ),
-                  onTap: () {
-                    _mapExpandAnim(_announcementsInput);
-                    setState(() {
-                      _currentIndex = 1;
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                  }
+                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_announcementsInput);
+                      setState(() {
+                        _currentIndex = 1;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    }
                 ),
               ),
 
-              Container(
+              SizedBox(
                 width: 60,
                 height: 50,
                 child: GestureDetector(
@@ -310,24 +763,87 @@ class _NewsPageState extends State<NewsPage>{
               ),
             ]
         ),
-      ),
-      body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _pageController,
-        children: [
-          MapPage(navbarButton: _mapInput),
-          Announcements(navbarButton: _announcementsInput),
-          Calendar(navbarButton: _reserveInput,)
-        ],
-      ),
-    );
+      );
+    }
+    else {
+      return Container(
+        width: screenWidth,
+        height: 75,
+        decoration: BoxDecoration(
+            color: ColorsB.gray800,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                spreadRadius: 10,
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              )
+            ]
+        ),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_mapInput);
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                  },
+                ),
+              ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
+                    ),
+                    onTap: () {
+                      _mapExpandAnim(_announcementsInput);
+                      setState(() {
+                        _currentIndex = 1;
+                      });
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    }
+                ),
+              ),
+
+              SizedBox(
+                width: 60,
+                height: 50,
+                child: GestureDetector(
+                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
+                  ),
+                  onTap: () {
+                    _mapExpandAnim(_reserveInput);
+                    setState(() {
+                      _currentIndex = 2;
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                  },
+                ),
+              ),
+            ]
+        ),
+      );
+    }
   }
+
 }
 
 
 
 
-
+// Global key
+final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_AnnouncementsState>();
 
 
 
@@ -427,10 +943,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           _currentAnnouncement = 2;
           currentChannel = 'Parents';
           return 2;
-        case 'Admin':
-          _currentAnnouncement = 1;
-          currentChannel = 'Teachers';
-          return 1;
+          case 'Admin':
+            _currentAnnouncement = 1;
+            currentChannel = 'Teachers';
+            return 1;
         default:
           return 0;
       }
@@ -474,6 +990,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     titles.clear();
     descriptions.clear();
     owners.clear();
+    isAlive = false;
     super.dispose();
 
 
@@ -524,6 +1041,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   late var currentWidth;
 
+  bool isAlive = true;
+
   // Max max max posts
 
 
@@ -534,7 +1053,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   List<String> labels = [
     'Students',
     'Teachers',
-    'Parents',
+    'Parents'
   ];
 
   Size _textSize(String text, TextStyle style) {
@@ -562,7 +1081,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 75),
               child: Column(
                 children: [
                   Row(
@@ -812,114 +1331,167 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         );
       }
       else {
-        return RefreshIndicator(
-          backgroundColor: ColorsB.gray900,
-          color: _color,
-          onRefresh: () async {
-            _refresh();
-          },
-          child: ListView.builder(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
-              itemBuilder: (_, index) {
+        if(descriptions.isNotEmpty){
+          return RefreshIndicator(
+            backgroundColor: ColorsB.gray900,
+            color: _color,
+            onRefresh: () async {
+              _refresh();
+            },
+            child: ListView.builder(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+                itemBuilder: (_, index) {
 
-                title = titles[index];
-                description = descriptions[index];
-                var owner = owners[index];
+                  title = titles[index];
+                  description = descriptions[index];
+                  var owner = owners[index];
 
-                if(index != maxScrollCount){
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                      width: screenWidth * 0.75,
-                      height: 200,
-                      child: Container(                         // Student containers. Maybe get rid of the hero
+                  if(index != maxScrollCount){
+                    return Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: SizedBox(
                         width: screenWidth * 0.75,
                         height: 200,
-                        decoration: BoxDecoration(
-                          color: _color,
-                          borderRadius: BorderRadius.circular(
-                              50),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(50),
-                            onTap: () {
-                              _hero(context, titles[index], descriptions[index], owners[index], _color);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(25.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment
-                                    .start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  Text(
-                                    'by ' + owner,     //  Hard coded!!
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 25,),
-
-                                  Flexible(
-                                    child: Text(
-                                      description,
-                                      overflow: TextOverflow
-                                          .ellipsis,
-                                      maxLines: 3,
-                                      style: TextStyle(
-                                          color: Colors.white
-                                              .withOpacity(0.25),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight
-                                              .bold
+                        child: Container(                         // Student containers. Maybe get rid of the hero
+                          width: screenWidth * 0.75,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: _color,
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(50),
+                              onTap: () {
+                                _hero(context, titles[index], descriptions[index], owners[index], _color);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(25.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment
+                                      .start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold
                                       ),
                                     ),
-                                  ),
+                                    Text(
+                                      'by ' + owner,     //  Hard coded!!
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.5),
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 25,),
 
-                                ],
+                                    Flexible(
+                                      child: Text(
+                                        description,
+                                        overflow: TextOverflow
+                                            .ellipsis,
+                                        maxLines: 3,
+                                        style: TextStyle(
+                                            color: Colors.white
+                                                .withOpacity(0.25),
+                                            fontSize: 15,
+                                            fontWeight: FontWeight
+                                                .bold
+                                        ),
+                                      ),
+                                    ),
+
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
+                    );
+                  }
+                  else{
+                    return Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Shimmer.fromColors(
+                        baseColor: ColorsB.gray800,
+                        highlightColor: ColorsB.gray700,
+                        child: Container(                         // Student containers. Maybe get rid of the hero
+                          width: screenWidth * 0.75,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: ColorsB.gray800,
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                 }
-                else{
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Shimmer.fromColors(
-                      baseColor: ColorsB.gray800,
-                      highlightColor: ColorsB.gray700,
-                      child: Container(                         // Student containers. Maybe get rid of the hero
-                        width: screenWidth * 0.75,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: _color,
+
+            ),
+          );
+        }
+        else {
+          return Center(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: screenHeight * 0.3,
+                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                  ),
+                  const Text(
+                    'Wow! Such empty. So class.',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
+                    ),
+                  ),
+                  Text(
+                    "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white.withOpacity(0.25),
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+                  TextButton.icon(
+                      icon: Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        'Refresh',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
+                      onPressed: () {
+                        _refresh();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: ColorsB.yellow500,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                               50),
                         ),
-                      ),
-                    ),
-                  );
-                }
-              }
-
-          ),
-        );
+                      )
+                  ),
+                ],
+              )
+          );
+        }
       }
     }
     else {
@@ -985,7 +1557,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   Future<int> load(String channel) async {
 
       try {
-        var url = Uri.parse('https://automemeapp.com/selectposts.php');
+        var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
         final response = await http.post(url, body: {
           "index": "0",
           "channel": channel,
@@ -1035,9 +1607,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       } catch (e) {
-        setState(() {
-          isError = true;
-        });
+        if(isAlive){
+          setState(() {
+            isError = true;
+          });
+        }
       }
 
       return 0;
@@ -1088,47 +1662,47 @@ class BigNewsContainer extends StatelessWidget {
     return Scaffold(
       bottomNavigationBar: BackNavbar(),
       backgroundColor: ColorsB.gray900,
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Hero(
-              tag: 'title-rectangle',
-              child: Container(
-                width: device.size.width,
-                height: device.size.height * 0.5,
-                color: color,
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold
-                          ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Hero(
+            tag: 'title-rectangle',
+            child: Container(
+              width: device.size.width,
+              height: device.size.height * 0.5,
+              color: color,
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold
                         ),
-                        Text(
-                            "by " + author,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            )
-                        )
-                      ],
-                    ),
+                      ),
+                      Text(
+                          "by " + author,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          )
+                      )
+                    ],
                   ),
                 ),
               ),
             ),
-            Padding(
+          ),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Text(
                 description,
@@ -1138,10 +1712,10 @@ class BigNewsContainer extends StatelessWidget {
                     fontWeight: FontWeight.normal
                 ),
               ),
-            )
+            ),
+          )
 
-          ],
-        )
+        ],
       ),
     ) ;
   }
@@ -1203,45 +1777,190 @@ class _MapPageState extends State<MapPage>{
 
     switch(floorNo) {
       case 0:
-        return Container(
-          key: Key('1'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.yellow500,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+          return GestureDetector(
+            key: Key('1'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/parter.png",
+              key: Key('1'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/parter.png",
+                          key: Key('1'),
+                        ),
+                      )
+              );
+            },
+          );
       case 1:
-        return Container(
-          key: Key('2'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray800,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+          return GestureDetector(
+            key: Key('2'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/et1.png",
+              key: Key('2'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/et1.png",
+                        ),
+                      )
+              );
+            },
+          );
+
       case 2:
-        return Container(
-          key: Key('3'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray700,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
-      case 3:
-        return Container(
-          key: Key('4'),
-          width: screenWidth * 0.75,
-          height: screenHeight / 2,
-          decoration: BoxDecoration(
-            color: ColorsB.gray200,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        );
+
+          return GestureDetector(
+            key: Key('3'),
+            child: Image.network(
+              "https://automemeapp.com/gojdu/assets/et2.png",
+              key: Key('3'),
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return SizedBox(
+                  height: screenHeight * 0.5,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
+                          : null,
+                      color: ColorsB.yellow500,
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please forgive us.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                  ],
+                );
+              },
+            ),
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) =>
+                      InteractiveViewer(
+                        child: Image.network(
+                          "https://automemeapp.com/gojdu/assets/et2.png",
+                          key: Key('3'),
+                        ),
+                      )
+              );
+            },
+          );
+
     }
 
   }
@@ -1259,7 +1978,7 @@ class _MapPageState extends State<MapPage>{
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(25, 50, 25, 25),
+              padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1845,123 +2564,446 @@ class CalPag1 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
-      child: FutureBuilder(
-        future: _loadHalls(),
-        builder: (_, snapshot) {
-          if(snapshot.hasData){
-            return ListView.builder(
-              clipBehavior: Clip.hardEdge,         //  Find a way to do it better
-              physics: const BouncingScrollPhysics(),
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 125,
-                    decoration: BoxDecoration(
-                      color: ColorsB.gray800,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(30),
-                        onTap: () {
-                          _currentHall = index;
-                          changePage(1);
-                        },
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: ShaderMask(
-                                shaderCallback: (rect) {
-                                  return const material.LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    stops: [0, 1],
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black,
-                                    ],
-                                  ).createShader(rect);
+      child: Stack(
+        children: [
+          FutureBuilder(
+              future: _loadHalls(),
+              builder: (_, snapshot) {
+                if(snapshot.hasData){
+                  return ListView.builder(
+                    clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: titles.isNotEmpty ? titles.length : 1,
+                    itemBuilder: (context, index) {
+                      if(titles.isNotEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: 125,
+                            decoration: BoxDecoration(
+                              color: ColorsB.gray800,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(30),
+                                onTap: () {
+                                  _currentHall = index;
+                                  changePage(1);
                                 },
-                                blendMode: BlendMode.dstIn,
-                                child: Icon(
-                                  Icons.account_balance_sharp,
-                                  color: ColorsB.gray700.withOpacity(0.25),
-                                  size: 75,
+                                child: Stack(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ShaderMask(
+                                        shaderCallback: (rect) {
+                                          return const material.LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            stops: [0, 1],
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black,
+                                            ],
+                                          ).createShader(rect);
+                                        },
+                                        blendMode: BlendMode.dstIn,
+                                        child: Icon(
+                                          Icons.account_balance_sharp,
+                                          color: ColorsB.gray700.withOpacity(0.25),
+                                          size: 75,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.account_balance,
+                                                color: ColorsB.yellow500,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 10,),
+                                              Text(
+                                                titles[index],
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Divider(
+                                            color: Colors.white.withOpacity(0.1),
+                                            thickness: 1,
+                                          ),
+                                          const SizedBox(height: 10,),
+                                          Text(
+                                            'Type: ${sizes[index]}',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(0.5),
+                                              fontSize: 10,
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    )
+                                  ],
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.account_balance,
-                                        color: ColorsB.yellow500,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 10,),
-                                      Text(
-                                        'Hall $index',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
+                          ),
+                        );
+                      }
+                      else {
+                        // Return a nice No halls found message followed by the no_posts svg
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Wow, such empty!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 10,),
+                              Text(
+                                'No halls found',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 20,),
+                              SvgPicture.asset(
+                                'assets/svgs/no_posts.svg',
+                                height: 200,
+                              ),
+                            ],
+                          ),
+                        );
+
+
+
+                      }
+                    },
+                  );
+                }
+                else {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+                    ),
+                  );
+                }
+              }
+          ),
+          Visibility(
+            visible: globalMap['account'] == 'Admin' ? true : false,
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+
+                    // Title controller
+                    final TextEditingController titleController = TextEditingController();
+
+                    //  Form key
+                    final formKey = GlobalKey<FormState>();
+                    var size, errorText;
+                    bool clicked = false;
+
+                    showDialog(
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (_) =>
+                          StatefulBuilder(
+                            builder: (_, setState){
+                              return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  backgroundColor: ColorsB.gray900,
+                                  actions: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextButton(
+                                        onPressed: () {
+                                          //  titleController.dispose();
+                                          errorText = size = null;
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  Divider(
-                                    color: Colors.white.withOpacity(0.1),
-                                    thickness: 1,
-                                  ),
-                                  const SizedBox(height: 10,),
-                                  Text(
-                                    'Type: Large',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 10,
                                     ),
-                                  ),
-                                  Text(
-                                    'Capacity: 30',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 10,
+
+                                  ],
+                                  content: SizedBox(
+                                    height: 250,
+                                    child: Center(
+                                      child: Form(
+                                        key: formKey,
+                                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                                        child: Column(
+                                          children: [
+                                            // Title form text field and a dropdown with 3 options: Small, Medium, Large
+                                            TextFormField(
+                                              cursorColor: ColorsB.yellow500,
+                                              controller: titleController,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Title',
+                                                labelStyle: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                                enabledBorder: UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                focusedBorder: UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: ColorsB.yellow500,
+                                                  ),
+                                                ),
+                                              ),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                              ),
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a title';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            // Drowpdown with 3 options: Small, Medium, Large
+                                            DropdownButtonFormField(
+                                              decoration: InputDecoration(
+                                                labelText: 'Size',
+                                                errorText: errorText,
+                                                labelStyle: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                                enabledBorder: const UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                focusedBorder: const UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: ColorsB.yellow500,
+                                                  ),
+                                                ),
+                                              ),
+                                              dropdownColor: ColorsB.gray800,
+                                              value: size,
+                                              items: const [
+                                                DropdownMenuItem(
+                                                  child: Text(
+                                                      'Small',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                  value: 'Small',
+                                                ),
+                                                DropdownMenuItem(
+                                                  child: Text('Medium', style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 15,
+                                                  ),),
+                                                  value: 'Medium',
+                                                ),
+                                                DropdownMenuItem(
+                                                  child: Text('Large', style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 15,
+                                                  ),),
+                                                  value: 'Large',
+                                                ),
+                                              ],
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  size = value;
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (value == null) {
+                                                  return 'Please select a size';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            // Button to send the data
+                                            const SizedBox(height: 20),
+
+                                            clicked == false
+                                                ? TextButton.icon(
+                                                icon: const Icon(
+                                                Icons.send,
+                                                color: Colors.white,
+                                              ),
+                                                label: const Text(
+                                                'Send',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                                onPressed: () async {
+
+                                                if (formKey.currentState!.validate()) {
+                                                  if(size == null){
+                                                    setState(() {
+                                                      errorText = 'Please select a size';
+                                                    });
+                                                    return;
+
+
+
+                                                  }
+                                                  setState(() {
+                                                    clicked = true;
+                                                  });
+
+                                                  try {
+                                                    var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+                                                    final response = await http.post(url, body: {
+                                                      "action": 'INSERT', // Or IMPORT
+                                                      "title": titleController.text,
+                                                      "size": size,
+                                                    });
+                                                    if(response.statusCode == 200){
+                                                      var jsondata = json.decode(response.body);
+                                                      if (jsondata["1"]["error"]) {
+                                                        setState(() {
+                                                          errorText = jsondata["1"]["message"];
+                                                        });
+                                                      }
+                                                      else if(jsondata['1']['success']){
+                                                        setState(() {
+                                                          clicked = false;
+                                                          // Pop the screen
+                                                          Navigator.of(context).pop();
+                                                        });
+
+                                                      }
+                                                    }
+
+
+                                                  }
+                                                  catch (e) {
+                                                    //print(e);
+                                                    setState(() {
+                                                      errorText = 'Error connecting to server';
+                                                      clicked = false;
+                                                    });
+                                                  }
+
+
+                                                }
+                                              },
+                                            )
+                                                : const CircularProgressIndicator(
+                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            )
+
+
+                                          ],
+                                        ),
+
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-          else {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+                                  )
+                              );
+                            }
+                          )
+
+                    );
+
+                  },
+                  child: const Icon(Icons.add),
+                  backgroundColor: ColorsB.yellow500,
+                  mini: true,
+                ),
               ),
-            );
-          }
-        }
-      ),
+            ),
+          ),
+        ],
+      )
     );
   }
 }
 
+bool hasLoaded = false;
+
+
 Future<int> _loadHalls() async {
-  await Future.delayed(const Duration(seconds: 1));
+  //await Future.delayed(const Duration(seconds: 1));
+  titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
+
+  if(!hasLoaded){
+    try {
+      var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+      final response = await http.post(url, body: {
+        "action": 'IMPORT', // Or INSERT
+      });
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        //print(jsondata);
+        if(jsondata['1']['success']){
+
+          print(jsondata.length);
+          for(int i = 2; i < jsondata.length; i++) {
+            if (jsondata[i.toString()]['title'] != null &&
+                jsondata[i.toString()]['size'] != null) {
+              titles.add(jsondata[i.toString()]['title']);
+              sizes.add(jsondata[i.toString()]['size']);
+
+              print(i);
+              print(jsondata[i.toString()]['size']);
+            }
+            else {
+              break;
+            }
+          }
+
+        }
+        else{
+          //return 0;
+        }
+      }
+      else{
+
+      }
+    } catch (e) {
+      //print(e);
+      //return 0;
+    }
+  }
+
   // This is where the halls are loaded.
   return 1;
 }
@@ -2002,7 +3044,6 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     _events = {};
     _selectedEvents = [];
     width = 175;
-    _getList(_selectedDay);
 
     super.initState();
   }
@@ -2019,13 +3060,12 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
   List<dynamic> _getEventsFromDay(DateTime date) {
 
-
     return _events[date] ?? [];
   }
 
   Future<int> _getList(DateTime date) async {
     try {
-      var url = Uri.parse('https://automemeapp.com/selectbookings.php');
+      var url = Uri.parse('https://automemeapp.com/gojdu/selectbookings.php');
       final response = await http.post(url, body: {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyy-MM-dd').format(date).toString(),
@@ -2052,7 +3092,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                   //print(end);
                   //print(owner);
 
-                  if(begin != null && end != null && owner != null){
+                  if(begin != 'null' && end != 'null' && owner != 'null'){
                     if(_events[date] != null && !(_events[date]!.contains('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}')) ){
                       _events[_selectedDay]!.add('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}');
                     }
@@ -2081,6 +3121,15 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     }
     return 0;
   }
+
+  void _getWeekEvents(DateTime date) {
+
+    for(int i = 0; i < 7; i++){
+      _getList(date);
+      date = date.add(const Duration(days: 1));
+    }
+  }
+
 
   bool overlap(String _selectedBegin, String _selectedEnd) {
     
@@ -2120,461 +3169,527 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       child: ClipRect(
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          children: [
-            AnimatedContainer(
-              curve: Curves.easeInOut,
-              duration: const Duration(milliseconds: 500),
-              height: width,
-              decoration: BoxDecoration(
-                color: ColorsB.gray800,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TableCalendar(
-                      eventLoader: _getEventsFromDay,
+          clipBehavior: Clip.hardEdge,
+          child: Column(
+            children: [
+              AnimatedContainer(
+                curve: Curves.easeInOut,
+                duration: const Duration(milliseconds: 500),
+                height: width,
+                decoration: BoxDecoration(
+                  color: ColorsB.gray800,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TableCalendar(
+                        eventLoader: _getEventsFromDay,
 
-                      daysOfWeekHeight: 30,
-                      daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        weekendStyle: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 12,
-                        ),
-                      ),
-                      headerStyle: HeaderStyle(
-                        decoration: BoxDecoration(
-                          color: ColorsB.yellow500.withOpacity(1),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
+                        daysOfWeekHeight: 30,
+                        daysOfWeekStyle: DaysOfWeekStyle(
+                          weekdayStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          weekendStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 12,
                           ),
                         ),
-                        leftChevronIcon: const Icon(
-                          Icons.chevron_left,
-                          color: Colors.white,
-                        ),
-                        rightChevronIcon: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.white,
-                        ),
-                        titleTextStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                        formatButtonShowsNext: false,
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                      ),
-                      shouldFillViewport: false,
-                      calendarStyle: CalendarStyle(
-                        markerDecoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        defaultTextStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        disabledTextStyle: TextStyle(
-                          color: Colors.white.withOpacity(0.25),
-                          fontSize: 12,
-                        ),
-                        weekendTextStyle: TextStyle(
-                          color: Colors.grey.withOpacity(0.25),
-                          fontSize: 12,
-                        ),
-
-                        selectedDecoration: BoxDecoration(
-                            color: ColorsB.yellow500,
-                            shape: BoxShape.circle
-                        ),
-                        isTodayHighlighted: false,
-                      ),
-                      firstDay: DateTime.now().toUtc(),
-                      lastDay: DateTime.utc(2040, 4, 12),
-                      focusedDay: _focusedDay,
-                      selectedDayPredicate: (day) {
-                        return isSameDay(_selectedDay, day);
-                      },
-                      onDaySelected: (selectedDay, focusedDay) {
-                        setState(() {
-
-                          widget.changePage(2);
-                          _selectedDay = selectedDay;
-                          print(_selectedDay);
-                          _focusedDay = focusedDay;
-                          width = 300;
-                        });
-                      },
-                      calendarFormat: _calendarFormat,
-                      onFormatChanged: (format) {
-                        setState(() {
-                          _calendarFormat = format;
-                        });
-                      },
-                      onPageChanged: (focusedDay) {
-                        _focusedDay = focusedDay;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Occupied Hours',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 30,
-                                  child: TextButton(
-                                      onPressed: () {
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              var timeText = TextEditingController();
-                                              var timeText2 = TextEditingController();
-
-                                              TimeOfDay? parsedTime1;
-                                              TimeOfDay? parsedTime2;
-
-                                              var _formKey = GlobalKey<FormState>();
-                                              var errorText1, errorText2;
-
-                                              bool clicked = false;
-
-
-
-                                              return StatefulBuilder(
-                                                builder: (_, StateSetter setState) =>
-                                                    AlertDialog(
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(30),
-                                                        ),
-                                                        backgroundColor: ColorsB.gray900,
-                                                        content: SizedBox(
-                                                          height: 200,
-                                                          child: Center(
-                                                            child: Form(
-                                                              key: _formKey,
-                                                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                                                              child: Column(
-                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                children: [
-                                                                  Row(
-                                                                    children: [
-                                                                      const Text(
-                                                                        'From: ',
-                                                                        style: TextStyle(
-                                                                          fontSize: 15,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.white,
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width: 10,
-                                                                      ),
-                                                                      SizedBox(
-                                                                        width: 200,
-                                                                        height: 50,
-                                                                        child: TextFormField(
-                                                                          controller: timeText,
-                                                                          style: const TextStyle(
-                                                                            fontSize: 15,
-                                                                            color: Colors.white,
-                                                                          ),
-
-                                                                          readOnly: true,
-                                                                          decoration: InputDecoration(
-                                                                            errorText: errorText1,
-                                                                            icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                            labelText: "Enter Time", //label text of field
-                                                                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                            focusedBorder: UnderlineInputBorder(
-                                                                              borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                                                            ),
-                                                                            enabledBorder: UnderlineInputBorder(
-                                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                          ),
-
-                                                                          onTap: () async {
-                                                                            TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                            if(pickedTime != null){
-                                                                              parsedTime1 = pickedTime;
-                                                                              DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                              String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                              //  print(formattedTime);
-                                                                              setState(() {
-                                                                                timeText.text = formattedTime;
-                                                                                _time1 = formattedTime;
-                                                                              });
-                                                                            }
-
-                                                                          },
-
-                                                                          validator: (value) {
-                                                                            if(value == null || value.isEmpty){
-                                                                              return "Please enter time";
-                                                                            }
-                                                                            else if(parsedTime1 != null && parsedTime2 != null){
-                                                                              if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                return "Please enter valid time";
-                                                                              }
-                                                                            }
-                                                                            return null;
-                                                                          },
-
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  Row(
-                                                                    children: [
-                                                                      const Text(
-                                                                        'To: ',
-                                                                        style: TextStyle(
-                                                                          fontSize: 15,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.white,
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width: 10,
-                                                                      ),
-                                                                      SizedBox(
-                                                                        width: 200,
-                                                                        height: 50,
-                                                                        child: TextFormField(
-                                                                          controller: timeText2,
-                                                                          style: const TextStyle(
-                                                                            fontSize: 15,
-                                                                            color: Colors.white,
-                                                                          ),
-
-                                                                          readOnly: true,
-                                                                          decoration: InputDecoration(
-                                                                            errorText: errorText2,
-                                                                            icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                            labelText: "Enter Time", //label text of field
-                                                                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                            focusedBorder: UnderlineInputBorder(
-                                                                              borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                                                            ),
-                                                                            enabledBorder: UnderlineInputBorder(
-                                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                          ),
-
-                                                                          onTap: () async {
-                                                                            TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                            parsedTime2 = pickedTime;
-                                                                            if(pickedTime != null){
-                                                                              DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                              String formattedTime = DateFormat('HH:mm').format(parsedTime);
-                                                                              //  print(formattedTime);
-                                                                              setState(() {
-                                                                                timeText2.text = formattedTime;
-                                                                                _time2 = formattedTime;
-                                                                              });
-                                                                            }
-                                                                          },
-                                                                          validator: (value) {
-                                                                            if(value == null || value.isEmpty){
-                                                                              return "Please enter time";
-                                                                            }
-                                                                            else if(parsedTime1 != null && parsedTime2 != null){
-                                                                              if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                return "Please enter valid time";
-                                                                              }
-                                                                            }
-                                                                            return null;
-                                                                          },
-
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  TextButton.icon(
-                                                                    onPressed: () async {
-                                                                      if(_events[_selectedDay] != null){
-                                                                        if(!overlap(_time1, _time2)){
-                                                                          setState(() {
-                                                                            errorText1 = errorText2 = 'Overlapping!';
-                                                                          });
-                                                                          return;
-                                                                        }
-                                                                      }
-
-                                                                      if(_formKey.currentState!.validate()){
-                                                                        try {
-                                                                          setState(() {
-                                                                            clicked = true;
-                                                                          });
-                                                                          var url = Uri.parse('https://automemeapp.com/insertbookings.php');
-                                                                          final response = await http.post(url, body: {
-                                                                            "day": _selectedDay.toString(),
-                                                                            "start": _time1+":00",
-                                                                            "end": _time2+":00",
-                                                                            "hall": _currentHall.toString(),
-                                                                            "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                          });
-                                                                          if (response.statusCode == 200) {
-                                                                            var jsondata = json.decode(response.body);
-                                                                            print(jsondata);
-                                                                            if (jsondata["error"]) {
-                                                                            } else {
-                                                                              if (jsondata["success"]){
-                                                                                Navigator.pop(context);
-                                                                              }
-                                                                              else
-                                                                              {
-                                                                                print(jsondata["message"]);
-                                                                              }
-                                                                            }
-                                                                          }
-                                                                          print(_events);
-
-                                                                          widget.changePage(3);
-                                                                          setState(() {
-
-                                                                          });
-                                                                        } catch (e){
-                                                                          _events[_selectedDay] = ['Error! Please try again!'];
-                                                                        }
-                                                                      }
-                                                                    },
-                                                                    icon: !clicked ? const Icon(
-                                                                      Icons.add_circle,
-                                                                      color: Colors.white,
-                                                                    ) : const SizedBox(),
-                                                                    label: !clicked ? const Text(
-                                                                      'Reserve',
-                                                                      style: TextStyle(
-                                                                        color: Colors.white,
-                                                                      ),
-                                                                    ) : const CircularProgressIndicator(
-                                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                                    ),
-                                                                    )
-
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        )
-                                                    )
-                                              );
-                                            }
-
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Reserve',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      style: ButtonStyle(
-                                        elevation: MaterialStateProperty.all(0),
-                                        backgroundColor: MaterialStateProperty.all<Color>(ColorsB.yellow500),
-                                        shape: MaterialStateProperty.all<OutlinedBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(50),
-                                          ),
-                                        ),
-                                      )
-                                  ),
-                                )
-                              ],
+                        headerStyle: HeaderStyle(
+                          decoration: BoxDecoration(
+                            color: ColorsB.yellow500.withOpacity(1),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
                             ),
-                            FutureBuilder(
-                              future: _getList(_selectedDay),
-                              builder: (context, snpshot) {
-                                if(snpshot.hasData) {
-                                  return SizedBox(
-                                      height: 100,
-                                      child: _events[_selectedDay] != null
-                                          ? ListView.builder(
-                                        physics: const BouncingScrollPhysics(),
-                                        padding: EdgeInsets.zero,
-                                        itemCount: _events[_selectedDay]!.length,
-                                        itemBuilder: (BuildContext context, int index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(2.5),
-                                            child: Container(
+                          ),
+                          leftChevronIcon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.white,
+                          ),
+                          rightChevronIcon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.white,
+                          ),
+                          titleTextStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                          formatButtonShowsNext: false,
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                        ),
+                        shouldFillViewport: false,
+                        calendarStyle: CalendarStyle(
+                          markerDecoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          defaultTextStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                          disabledTextStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.25),
+                            fontSize: 12,
+                          ),
+                          weekendTextStyle: TextStyle(
+                            color: Colors.grey.withOpacity(0.25),
+                            fontSize: 12,
+                          ),
+
+                          selectedDecoration: BoxDecoration(
+                              color: ColorsB.yellow500,
+                              shape: BoxShape.circle
+                          ),
+                          isTodayHighlighted: false,
+                        ),
+                        firstDay: DateTime.now().toUtc(),
+                        lastDay: DateTime.utc(2040, 4, 12),
+                        focusedDay: _focusedDay,
+                        selectedDayPredicate: (day) {
+                          return isSameDay(_selectedDay, day);
+                        },
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+
+                            widget.changePage(2);
+                            _selectedDay = selectedDay;
+                            print(_selectedDay);
+                            _focusedDay = focusedDay;
+                            width = 300;
+                          });
+                        },
+                        calendarFormat: _calendarFormat,
+                        onFormatChanged: (format) {
+                          setState(() {
+                            _calendarFormat = format;
+                          });
+                        },
+                        onPageChanged: (focusedDay) {
+                          _focusedDay = focusedDay;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Occupied Hours',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 30,
+                                    child: TextButton(
+                                        onPressed: () {
+                                          if(globalMap['verification'] != "Pending"){
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  var timeText = TextEditingController();
+                                                  var timeText2 = TextEditingController();
+
+                                                  TimeOfDay? parsedTime1;
+                                                  TimeOfDay? parsedTime2;
+
+                                                  var _formKey = GlobalKey<FormState>();
+                                                  var errorText1, errorText2;
+
+                                                  bool clicked = false;
+
+
+
+                                                  return StatefulBuilder(
+                                                      builder: (_, StateSetter setState) =>
+                                                          AlertDialog(
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(30),
+                                                              ),
+                                                              backgroundColor: ColorsB.gray900,
+                                                              content: SizedBox(
+                                                                height: 200,
+                                                                child: Center(
+                                                                  child: Form(
+                                                                    key: _formKey,
+                                                                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                                    child: Column(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Row(
+                                                                          children: [
+                                                                            const Text(
+                                                                              'From: ',
+                                                                              style: TextStyle(
+                                                                                fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
+                                                                                ),
+
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText1,
+                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                ),
+
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  if(pickedTime != null){
+                                                                                    parsedTime1 = pickedTime;
+                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //  print(formattedTime);
+                                                                                    setState(() {
+                                                                                      timeText.text = formattedTime;
+                                                                                      _time1 = formattedTime;
+                                                                                    });
+                                                                                  }
+
+                                                                                },
+
+                                                                                validator: (value) {
+                                                                                  if(value == null || value.isEmpty){
+                                                                                    return "Please enter time";
+                                                                                  }
+                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                      return "Please enter valid time";
+                                                                                    }
+                                                                                  }
+                                                                                  return null;
+                                                                                },
+
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        Row(
+                                                                          children: [
+                                                                            const Text(
+                                                                              'To: ',
+                                                                              style: TextStyle(
+                                                                                fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText2,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
+                                                                                ),
+
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText2,
+                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                ),
+
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  parsedTime2 = pickedTime;
+                                                                                  if(pickedTime != null){
+                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //  print(formattedTime);
+                                                                                    setState(() {
+                                                                                      timeText2.text = formattedTime;
+                                                                                      _time2 = formattedTime;
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                                validator: (value) {
+                                                                                  if(value == null || value.isEmpty){
+                                                                                    return "Please enter time";
+                                                                                  }
+                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                      return "Please enter valid time";
+                                                                                    }
+                                                                                  }
+                                                                                  return null;
+                                                                                },
+
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        TextButton.icon(
+                                                                          onPressed: () async {
+                                                                            if(_events[_selectedDay] != null){
+                                                                              if(!overlap(_time1, _time2)){
+                                                                                setState(() {
+                                                                                  errorText1 = errorText2 = 'Overlapping!';
+                                                                                });
+                                                                                return;
+                                                                              }
+                                                                            }
+
+                                                                            if(_formKey.currentState!.validate()){
+                                                                              try {
+                                                                                setState(() {
+                                                                                  clicked = true;
+                                                                                });
+                                                                                var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
+                                                                                final response = await http.post(url, body: {
+                                                                                  "day": _selectedDay.toString(),
+                                                                                  "start": _time1+":00",
+                                                                                  "end": _time2+":00",
+                                                                                  "hall": _currentHall.toString(),
+                                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                                });
+                                                                                if (response.statusCode == 200) {
+                                                                                  var jsondata = json.decode(response.body);
+                                                                                  print(jsondata);
+                                                                                  if (jsondata["error"]) {
+                                                                                  } else {
+                                                                                    if (jsondata["success"]){
+                                                                                      Navigator.pop(context);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                      print(jsondata["message"]);
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                                print(_events);
+
+                                                                                widget.changePage(3);
+                                                                                setState(() {
+
+                                                                                });
+                                                                              } catch (e){
+                                                                                _events[_selectedDay] = ['Error! Please try again!'];
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          icon: !clicked ? const Icon(
+                                                                            Icons.add_circle,
+                                                                            color: Colors.white,
+                                                                          ) : const SizedBox(),
+                                                                          label: !clicked ? const Text(
+                                                                            'Reserve',
+                                                                            style: TextStyle(
+                                                                              color: Colors.white,
+                                                                            ),
+                                                                          ) : const CircularProgressIndicator(
+                                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                          ),
+                                                                        )
+
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              )
+                                                          )
+                                                  );
+                                                }
+
+                                            );
+                                          }
+                                          else {
+                                            showDialog(
+                                                barrierDismissible: false,
+                                                context: context,
+                                                builder: (_) =>
+                                                AlertDialog(
+                                                  backgroundColor: ColorsB.gray900,
+                                                  clipBehavior: Clip.hardEdge,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
+                                                    ),
+                                                  ],
+                                                  content: SizedBox(
+                                                    height: screenHeight * 0.5,
+                                                    child: Column(
+                                                      children: [
+                                                        SizedBox(
+                                                          height: 200,
+                                                          child: SvgPicture.asset(
+                                                            'assets/svgs/locked.svg',
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                        const Text(
+                                                          'Oops! You can\'t do that!',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Nunito',
+                                                            fontSize: 17.5,
+                                                            color: ColorsB.yellow500,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 25),
+                                                        Text(
+                                                          'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Nunito',
+                                                            fontSize: 13,
+                                                            color: Colors.white.withOpacity(0.5),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
+                                            );
+                                          }
+                                        },
+                                        child: globalMap['verification'] != "Pending"
+                                        ? const Text(
+                                          'Reserve',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.lock_outline,
+                                          color: Colors.white,
+                                          size: 15,
+                                        ),
+                                        style: ButtonStyle(
+                                          elevation: MaterialStateProperty.all(0),
+                                          backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
+                                          shape: MaterialStateProperty.all<OutlinedBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                            ),
+                                          ),
+                                        )
+                                    ),
+                                  )
+                                ],
+                              ),
+                              FutureBuilder(
+                                  future: _getList(_selectedDay),
+                                  builder: (context, snpshot) {
+                                    if(snpshot.hasData) {
+                                      return SizedBox(
+                                          height: 100,
+                                          child: _events[_selectedDay] != null
+                                              ? ListView.builder(
+                                            physics: const BouncingScrollPhysics(),
+                                            padding: EdgeInsets.zero,
+                                            itemCount: _events[_selectedDay]!.length,
+                                            itemBuilder: (BuildContext context, int index) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(2.5),
+                                                child: Container(
+                                                  child: Text(
+                                                    _events[_selectedDay]![index],
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                              : Center(
+                                            child: FadeTransition(
+                                              opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
+                                                vsync: this,
+                                                duration: const Duration(milliseconds: 500),
+                                              )..forward()),
                                               child: Text(
-                                                _events[_selectedDay]![index],
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
+                                                'No events for this day. Yay!',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors.white.withOpacity(0.25),
                                                 ),
                                               ),
                                             ),
-                                          );
-                                        },
-                                      )
-                                          : Center(
-                                        child: FadeTransition(
-                                          opacity: Tween<double>(begin: 0, end: 1).animate(AnimationController(
-                                            vsync: this,
-                                            duration: Duration(milliseconds: 500),
-                                          )..forward()),
-                                          child: Text(
-                                            'No events for this day. Yay!',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.white.withOpacity(0.25),
-                                            ),
-                                          ),
+                                          )
+                                      );
+                                    }
+                                    else {
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
                                         ),
-                                      )
-                                  );
-                                }
-                                else {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
-                                    ),
-                                  );
-                                }
-                              }
-                            )
+                                      );
+                                    }
+                                  }
+                              ),
 
 
-                          ],
-                        )
-                    )
+                            ],
+                          )
+                      )
 
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        )
+            ],
+          )
       ),
     );
   }
+
+
 }
+
+
 
 DateTime join(DateTime date, TimeOfDay time) {
   return DateTime(date.year, date.month, date.day, time.hour, time.minute);
@@ -2610,6 +3725,10 @@ class _PostItPageState extends State<PostItPage> {
       _className = className;
     });
   }
+
+  // Firebase stuff
+
+
 
 
   @override
@@ -2728,27 +3847,64 @@ class _PostItPageState extends State<PostItPage> {
                     children: [
                       TextButton(
                         onPressed: () async {
+
+                          showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
+
+
+
                           if(_formKey.currentState!.validate()){
-                            var url = Uri.parse('https://automemeapp.com/insertposts.php');
-                                final response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "channel": _className,
-                                  "body": _postController.value.text,
-                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                });
-                            if (response.statusCode == 200) {
-                              var jsondata = json.decode(response.body);
-                              print(jsondata);
-                              if (jsondata["error"]) {
-                              } else {
-                                if (jsondata["success"]){
-                                  Navigator.pop(context);
-                                }
-                                else
-                                {
-                                  print(jsondata["message"]);
+                            try {
+                              var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
+                              final response = await http.post(url, body: {
+                                "title": _postTitleController.value.text,
+                                "channel": _className,
+                                "body": _postController.value.text,
+                                "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                              });
+                              if (response.statusCode == 200) {
+                                var jsondata = json.decode(response.body);
+                                print(jsondata);
+                                if (jsondata["error"]) {
+                                  Navigator.of(context).pop();
+                                } else {
+                                  if (jsondata["success"]){
+
+                                    // Notifications
+
+                                          // --------------------------------------------------
+
+
+                                          try {
+                                            var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                            final response2 = await http.post(ulr2, body: {
+                                              "channel": _className,
+                                              "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                              "action": "Post"
+                                            });
+
+                                            if(response2.statusCode == 200){
+                                              var jsondata2 = json.decode(response2.body);
+                                              print(jsondata2);
+                                              Navigator.of(context).pop();
+                                              Navigator.pop(context);
+                                            }
+
+                                          } catch (e) {
+                                            print(e);
+                                          }
+
+                                          // -------------------------------------------------
+                                  }
+                                  else
+                                  {
+                                    print(jsondata["message"]);
+                                    Navigator.of(context).pop();
+                                  }
                                 }
                               }
+                            } catch (e) {
+                              print(e);
+                              Navigator.of(context).pop();
                             }
                           }
                         },

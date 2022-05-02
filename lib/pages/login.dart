@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:gojdu/pages/verified.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,11 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gojdu/pages/forgot_password.dart';
+
+// Messaging token
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -13,6 +19,8 @@ class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
 }
+
+FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _LoginState extends State<Login> {
 
@@ -49,6 +57,17 @@ class _LoginState extends State<Login> {
   void initState() {
     nameError = '';
     isLoggingIn = false;
+
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+
+      if(message.data['type'] == 'Verify'){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const Verified()));
+      }
+
+    });
+
+
     super.initState();
 
   }
@@ -118,7 +137,12 @@ class _LoginState extends State<Login> {
                               //TODO: Make the error text pop only on sign-in
 
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPassword()));
+                                },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 0),
@@ -228,13 +252,13 @@ class _LoginState extends State<Login> {
                 valueListenable: _tWidth,
                 builder: (_, width, __) =>
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 500),
                       curve: Curves.easeInOut,
                       width: _tWidth.value,
                       height: _tHeight.value,
                       onEnd: () {
                         Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(data: loginInfo,))
+                            builder: (context) => NewsPage(data: loginInfo))
 
                           //TODO: Remove the hardcoded value
 
@@ -260,6 +284,9 @@ class _LoginState extends State<Login> {
 
     final SharedPreferences prefs2 = await prefs;
 
+    String? token = await _firebaseMessaging.getToken();
+    //print(token);
+
     if (_formKey.currentState!.validate()) {
 
         try {
@@ -267,10 +294,11 @@ class _LoginState extends State<Login> {
               isLoggingIn = true;
             });
 
-            var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+            var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
             final response = await http.post(url, body: {
               "email": _nameController.value.text,
               "password": _passController.value.text,
+              "token": token,
             });
             if (response.statusCode == 200) {
               var jsondata = json.decode(response.body);
@@ -289,14 +317,16 @@ class _LoginState extends State<Login> {
                   String acc_type = jsondata["account"].toString();
                   //String acc_type = 'Teacher';
 
-                  print(ln);
-                  print(fn);
-                  print(email);
+                  // print(ln);
+                  // print(fn);
+                  // print(email);
+                  print(jsondata["token"]);
 
                   await prefs2.setString('email', email);
                   await prefs2.setString('password', _passController.value.text);
                   await prefs2.setString('first_name', fn);
                   await prefs2.setString('last_name', ln);
+                  await prefs2.setString('type', acc_type);
 
                   print("The name is ${_nameController.value
                       .text} and the password is ${_passController.value.text}");
@@ -314,6 +344,7 @@ class _LoginState extends State<Login> {
                     'last_name': ln,
                     'email': email,
                     'account': acc_type,
+                    'verification': jsondata['verification']
                   };
 
                   loginInfo = loginMap;

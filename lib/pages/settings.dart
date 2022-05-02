@@ -5,6 +5,14 @@ import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/pages/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gojdu/pages/change_password.dart';
+import 'package:animations/animations.dart';
+
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 
 class SettingsPage extends StatefulWidget {
@@ -17,6 +25,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
+
   late String? fn, ln, email;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
@@ -24,6 +33,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
 
@@ -146,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 constraints: BoxConstraints(
                                     minWidth: 100,
-                                    maxWidth: device.width * 0.5,
+                                    maxWidth: device.width * 0.45,
                                 ),
                               )
                             ],
@@ -174,7 +188,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                 offset: const Offset(0, 5),
                                 child: TextButton(
                                   onPressed: () {
-                                    //  Change pass
+                                    Navigator.push(context, PageRouteBuilder(
+                                      transitionDuration: const Duration(milliseconds: 500),
+                                      reverseTransitionDuration: const Duration(milliseconds: 500),
+                                      pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
+                                      transitionsBuilder: (context, a1, a2, child) =>
+                                          SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
+                                    ));
                                   },
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -339,6 +359,10 @@ class _SettingsPageState extends State<SettingsPage> {
 Future<void> logoff(BuildContext context) async {
   
   final prefs = await SharedPreferences.getInstance();
+
+  String type = prefs.getString('type')!;
+
+  await messaging.unsubscribeFromTopic(type + 's');
 
   await prefs.remove('name');
   await prefs.remove('password');
