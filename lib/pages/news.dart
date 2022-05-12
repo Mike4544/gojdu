@@ -33,6 +33,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 // Firebase for messaging
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 
 
@@ -313,6 +316,9 @@ class _NewsPageState extends State<NewsPage>{
 
         if(message.data['type'] == 'Verify'){
           //_scaffoldKey.currentState!.hideCurrentSnackBar();
+          setState(() {
+            globalMap['verification'] = 'Verified';
+          });
           _scaffoldKey.currentState!.showSnackBar(SnackBar(
             content: Row(
               children: const [
@@ -973,7 +979,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
     _scrollController = ScrollController();
     _scrollController.addListener(() {
-      if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent){
+      if(_scrollController.position.pixels > _scrollController.position.maxScrollExtent * 0.95){
         _getMoreData();
       }
     });
@@ -1398,7 +1404,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                         description,
                                         overflow: TextOverflow
                                             .ellipsis,
-                                        maxLines: 3,
+                                        maxLines: 2,
                                         style: TextStyle(
                                             color: Colors.white
                                                 .withOpacity(0.25),
@@ -1408,6 +1414,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                         ),
                                       ),
                                     ),
+
+
 
                                   ],
                                 ),
@@ -1704,14 +1712,21 @@ class BigNewsContainer extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             child: Padding(
               padding: const EdgeInsets.all(15.0),
-              child: Text(
-                description,
+              child: Linkify(
+                text: description,
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.normal
                 ),
-              ),
+                onOpen: (link) async {
+                  if (await canLaunch(link.url)) {
+                    await launch(link.url);
+                  } else {
+                    throw 'Could not launch $link';
+                  }
+                },
+              )
             ),
           )
 
@@ -3719,12 +3734,7 @@ class _PostItPageState extends State<PostItPage> {
   // <---------------  Form key -------------->
   late final GlobalKey<FormState> _formKey;
 
-  void _updatePreview(Color color, String className) {
-    setState(() {
-      _postColor = color;
-      _className = className;
-    });
-  }
+
 
   // Firebase stuff
 
@@ -3739,7 +3749,6 @@ class _PostItPageState extends State<PostItPage> {
     _postTitleController = TextEditingController();
     _formKey = GlobalKey<FormState>();
     _postColor = null;
-    _className = null;
   }
 
   @override
@@ -3747,6 +3756,9 @@ class _PostItPageState extends State<PostItPage> {
     _postController.dispose();
     super.dispose();
   }
+
+  List<bool?> classes = [false, false, false];
+  String errorText = '';
 
 
   @override
@@ -3840,7 +3852,84 @@ class _PostItPageState extends State<PostItPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  ClassSelect(update: _updatePreview,),
+                  //ClassSelect(update: _updatePreview,),
+                  // Make 3 checkboxes for the 3 channels
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            activeColor: ColorsB.yellow500,
+                            shape: const CircleBorder(),
+                            value: classes[0],
+                            onChanged: (value) {
+                              setState(() {
+                                classes[0] = value;
+                              });
+                            },
+                          ),
+                          const Text(
+                            'Students',
+                            style: TextStyle(
+                              color: Colors.white
+                            )
+                          )
+                        ]
+                      ),
+                      Row(
+                          children: [
+                            Checkbox(
+                              activeColor: ColorsB.yellow500,
+                              shape: const CircleBorder(),
+                              value: classes[1],
+                              onChanged: (value) {
+                                setState(() {
+                                  classes[1] = value;
+                                  _postColor = classes[1] == true ? Colors.amber : null;
+                                });
+                              },
+                            ),
+                            const Text(
+                                'Teachers',
+                                style: TextStyle(
+                                    color: Colors.white
+                                )
+                            )
+                          ]
+                      ),
+                      Row(
+                          children: [
+                            Checkbox(
+                              activeColor: ColorsB.yellow500,
+                              shape: const CircleBorder(),
+                              value: classes[2],
+                              onChanged: (value) {
+                                setState(() {
+                                  classes[2] = value;
+                                });
+                              },
+                            ),
+                            const Text(
+                                'Parents',
+                                style: TextStyle(
+                                    color: Colors.white
+                                )
+                            )
+                          ]
+                      ),
+                    ]
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    errorText,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+
+                  ),
+
                   const SizedBox(height: 100,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3848,64 +3937,88 @@ class _PostItPageState extends State<PostItPage> {
                       TextButton(
                         onPressed: () async {
 
-                          showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
-
-
-
                           if(_formKey.currentState!.validate()){
-                            try {
-                              var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
-                              final response = await http.post(url, body: {
-                                "title": _postTitleController.value.text,
-                                "channel": _className,
-                                "body": _postController.value.text,
-                                "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                            if(classes[0] == false && classes[1] == false && classes[2] == false){
+                              setState(() {
+                                errorText = 'Please select at least one class';
                               });
-                              if (response.statusCode == 200) {
-                                var jsondata = json.decode(response.body);
-                                print(jsondata);
-                                if (jsondata["error"]) {
-                                  Navigator.of(context).pop();
-                                } else {
-                                  if (jsondata["success"]){
+                              return;
+                            }
+                            showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
+                            setState(() {
+                              errorText = '';
+                            });
+                            for(int i = 0; i < classes.length; i++){
+                              if(classes[i] == true){
 
-                                    // Notifications
+                                switch(i){
+                                  case 0:
+                                    _className = 'Students';
+                                    break;
+                                  case 1:
+                                    _className = 'Teachers';
+                                    break;
+                                  case 2:
+                                    _className = 'Parents';
+                                    break;
+                                }
 
-                                          // --------------------------------------------------
+
+                                try {
+                                  var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
+                                  final response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": _className,
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                  });
+                                  if (response.statusCode == 200) {
+                                    var jsondata = json.decode(response.body);
+                                    print(jsondata);
+                                    if (jsondata["error"]) {
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      if (jsondata["success"]){
+
+                                        // Notifications
+
+                                        // --------------------------------------------------
 
 
-                                          try {
-                                            var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
-                                            final response2 = await http.post(ulr2, body: {
-                                              "channel": _className,
-                                              "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                              "action": "Post"
-                                            });
+                                        try {
+                                          var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                          final response2 = await http.post(ulr2, body: {
+                                            "channel": _className,
+                                            "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                            "action": "Post"
+                                          });
 
-                                            if(response2.statusCode == 200){
-                                              var jsondata2 = json.decode(response2.body);
-                                              print(jsondata2);
-                                              Navigator.of(context).pop();
-                                              Navigator.pop(context);
-                                            }
-
-                                          } catch (e) {
-                                            print(e);
+                                          if(response2.statusCode == 200){
+                                            var jsondata2 = json.decode(response2.body);
+                                            print(jsondata2);
+                                            Navigator.of(context).pop();
+                                            Navigator.pop(context);
                                           }
 
-                                          // -------------------------------------------------
+                                        } catch (e) {
+                                          print(e);
+                                        }
+
+                                        // -------------------------------------------------
+                                      }
+                                      else
+                                      {
+                                        print(jsondata["message"]);
+                                      }
+                                    }
                                   }
-                                  else
-                                  {
-                                    print(jsondata["message"]);
-                                    Navigator.of(context).pop();
-                                  }
+                                } catch (e) {
+                                  print(e);
+                                  Navigator.of(context).pop();
                                 }
                               }
-                            } catch (e) {
-                              print(e);
-                              Navigator.of(context).pop();
                             }
+                            Navigator.of(context).pop();
                           }
                         },
                         child: const Text(
@@ -3920,18 +4033,26 @@ class _PostItPageState extends State<PostItPage> {
                         ),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || _postColor == null ? ColorsB.gray800 : ColorsB.yellow500,
+                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || (classes[0] == false && classes[1] == false && classes[2] == false) ? ColorsB.gray800 : ColorsB.yellow500,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
                         ),
                       ),
                       Opacity(
-                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || _postColor == null ? 0.5 : 1,
+                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || (classes[0] == false && classes[1] == false && classes[2] == false) ? 0.5 : 1,
                         child: TextButton(
                           onPressed: () {
 
-                            if(_formKey.currentState!.validate()) {
+                            if(_formKey.currentState!.validate() && !(classes[0] == false && classes[1] == false && classes[2] == false)) {
+
+                              if(classes[0] == true){
+                                _postColor = ColorsB.gray800;
+                              } else if(classes[1] == true){
+                                _postColor = Colors.amber;
+                              } else if(classes[2] == true){
+                                _postColor = Colors.indigoAccent;
+                              }
 
 
                               Navigator.of(context).push(
