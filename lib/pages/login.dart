@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:gojdu/pages/verified.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,11 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gojdu/pages/forgot_password.dart';
+
+// Messaging token
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -13,6 +19,8 @@ class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
 }
+
+FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _LoginState extends State<Login> {
 
@@ -45,13 +53,23 @@ class _LoginState extends State<Login> {
   //  <-------------  Login Indicator ------------>
   bool isLoggingIn = false;
 
-
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
     nameError = '';
     isLoggingIn = false;
+
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+
+      if(message.data['type'] == 'Verify'){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const Verified()));
+      }
+
+    });
+
+
+    super.initState();
+
   }
 
 
@@ -119,7 +137,12 @@ class _LoginState extends State<Login> {
                               //TODO: Make the error text pop only on sign-in
 
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPassword()));
+                                },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 0),
@@ -148,7 +171,7 @@ class _LoginState extends State<Login> {
                               TextButton(
                                 onPressed: (_nameController.value.text
                                     .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty) || !isLoggingIn
+                                    _passController.value.text.isNotEmpty) || isLoggingIn
                                     ? login
                                     : null,
                                 child: Padding(
@@ -229,13 +252,13 @@ class _LoginState extends State<Login> {
                 valueListenable: _tWidth,
                 builder: (_, width, __) =>
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 500),
+                      duration: const Duration(milliseconds: 500),
                       curve: Curves.easeInOut,
                       width: _tWidth.value,
                       height: _tHeight.value,
                       onEnd: () {
                         Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(data: loginInfo,))
+                            builder: (context) => NewsPage(data: loginInfo))
 
                           //TODO: Remove the hardcoded value
 
@@ -261,82 +284,95 @@ class _LoginState extends State<Login> {
 
     final SharedPreferences prefs2 = await prefs;
 
+    String? token = await _firebaseMessaging.getToken();
+    //print(token);
+
     if (_formKey.currentState!.validate()) {
 
-      setState(() {
-        isLoggingIn = true;
-      });
-
-      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
-      final response = await http.post(url, body: {
-        "email": _nameController.value.text,
-        "password": _passController.value.text,
-      });
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
-        if (jsondata["error"]) {
-          setState(() {
-            isLoggingIn = false;
-            nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata["success"]) {
-            //save the data returned from server
-            //and navigate to home page
-            String fn = jsondata["first_name"].toString();
-            String ln = jsondata["last_name"].toString();
-            String email = jsondata["email"].toString();
-            String acc_type = jsondata["account"].toString();
-            //String acc_type = 'Teacher';
-
-            print(ln);
-            print(fn);
-            print(email);
-
-            await prefs2.setString('email', email);
-            await prefs2.setString('password', _passController.value.text);
-            await prefs2.setString('first_name', fn);
-            await prefs2.setString('last_name', ln);
-
-            print("The name is ${_nameController.value
-                .text} and the password is ${_passController.value.text}");
-            //TODO: D: Send info to the server - Darius fa-ti magia
-            //TODO: M: Make page transition animation
-            /*TODO: M/D: Make a 'remember me' check.
-                                        We wouldn't want to make the users uncomfy UwU
-                                 */
+        try {
             setState(() {
-              isLoggingIn = false;
+              isLoggingIn = true;
             });
 
-            final loginMap = {
-              'first_name': fn,
-              'last_name': ln,
-              'email': email,
-              'account': acc_type,
-            };
+            var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
+            final response = await http.post(url, body: {
+              "email": _nameController.value.text,
+              "password": _passController.value.text,
+              "token": token,
+            });
+            if (response.statusCode == 200) {
+              var jsondata = json.decode(response.body);
+              if (jsondata["error"]) {
+                setState(() {
+                  isLoggingIn = false;
+                  nameError = jsondata["message"];
+                });
+              } else {
+                if (jsondata["success"]) {
+                  //save the data returned from server
+                  //and navigate to home page
+                  String fn = jsondata["first_name"].toString();
+                  String ln = jsondata["last_name"].toString();
+                  String email = jsondata["email"].toString();
+                  String acc_type = jsondata["account"].toString();
+                  //String acc_type = 'Teacher';
 
-            loginInfo = loginMap;
+                  // print(ln);
+                  // print(fn);
+                  // print(email);
+                  print(jsondata["token"]);
 
-            _tWidth.value = globalSize.width;
-            _tHeight.value = globalSize.height;
-            _radius.value = 0;
-            //user shared preference to save data
-          } else {
-            isLoggingIn = false;
-            nameError = "Something went wrong.";
+                  await prefs2.setString('email', email);
+                  await prefs2.setString('password', _passController.value.text);
+                  await prefs2.setString('first_name', fn);
+                  await prefs2.setString('last_name', ln);
+                  await prefs2.setString('type', acc_type);
+
+                  print("The name is ${_nameController.value
+                      .text} and the password is ${_passController.value.text}");
+                  //TODO: D: Send info to the server - Darius fa-ti magia
+                  //TODO: M: Make page transition animation
+                  /*TODO: M/D: Make a 'remember me' check.
+                                          We wouldn't want to make the users uncomfy UwU
+                                   */
+                  setState(() {
+                    isLoggingIn = false;
+                  });
+
+                  final loginMap = {
+                    'first_name': fn,
+                    'last_name': ln,
+                    'email': email,
+                    'account': acc_type,
+                    'verification': jsondata['verification']
+                  };
+
+                  loginInfo = loginMap;
+
+                  _tWidth.value = globalSize.width;
+                  _tHeight.value = globalSize.height;
+                  _radius.value = 0;
+                  //user shared preference to save data
+                } else {
+                  isLoggingIn = false;
+                  nameError = "Something went wrong.";
+                  setState(() {
+
+                  });
+                }
+              }
+            } else {
+              setState(() {
+                isLoggingIn = false;
+                nameError = "Error during connecting to server.";
+              });
+            }
+          } catch (e) {
             setState(() {
-
+              isLoggingIn = false;
+              nameError = "Error during connecting to server.";
             });
           }
         }
-      } else {
-        setState(() {
-          isLoggingIn = false;
-          nameError = "Error during connecting to server.";
-        });
       }
-    }
   }
-
-}

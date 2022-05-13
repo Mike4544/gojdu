@@ -10,6 +10,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
 
@@ -18,6 +22,9 @@ class StudentSignUp extends StatefulWidget {
 }
 
 class _StudentSignUpState extends State<StudentSignUp> {
+
+  // Firebase Messaging
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   //Text controllers
 
@@ -166,14 +173,16 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         //await Future.delayed(Duration(seconds: 3));
 
                         final _prefs = await SharedPreferences.getInstance();
+                        String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://automemeapp.com/register_student.php');
+                        var url = Uri.parse('https://automemeapp.com/gojdu/register_student.php');
                         final response = await http.post(url, body: {
                           "first_name": _username.value.text,
                           "last_name": _lastname.value.text,
                           "password_1": _password.value.text,
                           "password_2": _repPassword.value.text,
                           "email": _mail.value.text,
+                          "token": token,
                         });
                         if(response.statusCode == 200){
                           var jsondata = json.decode(response.body);
@@ -195,6 +204,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               _prefs.setString('email', email!);
                               _prefs.setString('first_name', first_name);
                               _prefs.setString('last_name', last_name);
+                              _prefs.setString('type', acc_type!);
 
                               Navigator.of(context).pop('dialog');
 
@@ -202,10 +212,11 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                 "username": user,
                                 "email": email,
                                 "account": acc_type,
+                                'verification': 'Pending',
                               };
 
                               Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (context) => NewsPage(data: loginMap,)
+                                builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
                               ));
                               //user shared preference to save data
                             }else{

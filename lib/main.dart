@@ -1,4 +1,5 @@
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -25,18 +26,43 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// Import Connectivity
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+// Firebase thingys
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
+
+// Import the verified page
+import 'package:gojdu/pages/verified.dart';
+
+
+String type = '';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Widget homeWidget = await getPage();
+
+  await Firebase.initializeApp();
+
+  final Widget homeWidget = await getPage();
 
   Paint.enableDithering = true;
+
   
-  FlutterNativeSplash.removeAfter(initialization);
+  //FlutterNativeSplash.removeAfter(initialization);
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // SUBSCRIBING TO THE NOTIFICATIONS
+  await messaging.subscribeToTopic(type + 's');
+
+
+
 
   runApp(MaterialApp(
 
@@ -49,11 +75,14 @@ Future<void> main() async {
 
     home: homeWidget,
     routes: {
+      '/login': (context) => const Login(),
       '/signup': (context) => const SignupSelect(),
       '/signup/student': (context) => const StudentSignUp(),
       '/signup/teachers': (context) => const TeacherSignUp(),
       'signup/parents/1': (context) => const ParentsSignupPage1(),
     },
+
+    //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
   ));
 }
 
@@ -66,17 +95,20 @@ Future<Widget> getPage() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   print(prefs.getString('email').toString());
 
+  String? token = await FirebaseMessaging.instance.getToken();
+
   if(!(prefs.getString('email') != null && prefs.getString("password") != null)){
     print(false);
     return const Login();
   }
   else {
-    //print(true);
     try {
-      var url = Uri.parse('https://automemeapp.com/login_gojdu.php');
+      //print(true);
+      var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),
         "password": prefs.getString('password').toString(),
+        "token" : token,
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
@@ -97,8 +129,12 @@ Future<Widget> getPage() async {
               'last_name': ln,
               'email': email,
               'account': acc_type,
+              'verification': jsondata['verification']
             };
 
+
+            type = acc_type;
+            await prefs.setString('type', type);
 
             return NewsPage(data: loginMap,);
           } else {
@@ -115,5 +151,6 @@ Future<Widget> getPage() async {
   }
 
 }
+
 
 

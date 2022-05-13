@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "441637616905",
+    "project_id": "gojdu-65243",
+    "storage_bucket": "gojdu-65243.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:441637616905:android:47255a5be531d169d3a7d8",
+        "android_client_info": {
+          "package_name": "com.gojdu.app.gojdu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "441637616905-anm6hsm6coa6slmj3479ir873k19k4c9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbZbnRhTtqItyGjGWsMTBxPtHufTXD16E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "441637616905-anm6hsm6coa6slmj3479ir873k19k4c9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "441637616905-5u775s1bhb0k34jro8rd9iiecufn74su.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gojdu.app.gojdu"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
