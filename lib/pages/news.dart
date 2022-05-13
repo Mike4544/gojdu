@@ -35,6 +35,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:async';
 
 
 
@@ -3760,6 +3763,14 @@ class _PostItPageState extends State<PostItPage> {
   List<bool?> classes = [false, false, false];
   String errorText = '';
 
+  //  Image text
+  String _imageText = 'Add Image';
+  final ImagePicker _picker = ImagePicker();
+  late XFile? image;
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -3861,7 +3872,8 @@ class _PostItPageState extends State<PostItPage> {
                         children: [
                           Checkbox(
                             activeColor: ColorsB.yellow500,
-                            shape: const CircleBorder(),
+                            shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 1)),
+                            side: const BorderSide(color: Colors.white, width: 1),
                             value: classes[0],
                             onChanged: (value) {
                               setState(() {
@@ -3882,6 +3894,7 @@ class _PostItPageState extends State<PostItPage> {
                             Checkbox(
                               activeColor: ColorsB.yellow500,
                               shape: const CircleBorder(),
+                              side: const BorderSide(color: Colors.white, width: 1),
                               value: classes[1],
                               onChanged: (value) {
                                 setState(() {
@@ -3903,6 +3916,7 @@ class _PostItPageState extends State<PostItPage> {
                             Checkbox(
                               activeColor: ColorsB.yellow500,
                               shape: const CircleBorder(),
+                              side: const BorderSide(color: Colors.white, width: 1),
                               value: classes[2],
                               onChanged: (value) {
                                 setState(() {
@@ -3929,6 +3943,58 @@ class _PostItPageState extends State<PostItPage> {
                     ),
 
                   ),
+
+                  const SizedBox(height: 25),
+                  ExpansionTile(
+
+                    collapsedIconColor: ColorsB.gray800,
+                    iconColor: ColorsB.yellow500,
+                    title: const Text(
+                      'Header Image - Optional',
+                      style: TextStyle(
+                        color: ColorsB.yellow500,
+                      ),
+                    ),
+                    children: [
+                      TextButton.icon(
+                        onPressed: () async {
+                          //  Image picker things
+
+                          try{
+                            final _image = await _picker.pickImage(source: ImageSource.gallery);
+                            if(_image == null) return;
+
+                            final imagTemp = XFile(_image.path);
+                            image = imagTemp;
+
+                            setState(() {
+                              _imageText = image!.name;
+                            });
+                          } catch(e) {
+                            setState(() {
+                              _imageText = 'Error! ${e.toString()}';
+                            });
+                          }
+
+                        },
+                        icon: const Icon(
+                          Icons.add_a_photo,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          _imageText,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: const TextStyle(
+                            color: Colors.white,
+
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+
 
                   const SizedBox(height: 100,),
                   Row(
@@ -3962,6 +4028,7 @@ class _PostItPageState extends State<PostItPage> {
                                     _className = 'Parents';
                                     break;
                                 }
+
 
 
                                 try {
@@ -4042,7 +4109,24 @@ class _PostItPageState extends State<PostItPage> {
                       Opacity(
                         opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || (classes[0] == false && classes[1] == false && classes[2] == false) ? 0.5 : 1,
                         child: TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+
+                            // try{
+                            //   if(image != null){
+                            //     var request = http.MultipartRequest("POST", Uri.parse("https://automemeapp.com/gojdu/imgs"));
+                            //     var multipartFile = await http.MultipartFile.fromPath('file', image!.path);
+                            //
+                            //     request.files.add(multipartFile);
+                            //
+                            //     http.StreamedResponse response = await request.send();
+                            //     print(response.statusCode);
+                            //   }
+                            // } catch(e){
+                            //   print(e);
+                            // }
+
+                            //TODO: Make the upload work
+
 
                             if(_formKey.currentState!.validate() && !(classes[0] == false && classes[1] == false && classes[2] == false)) {
 

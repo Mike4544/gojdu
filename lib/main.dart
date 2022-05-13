@@ -37,6 +37,8 @@ import 'firebase_options.dart';
 // Import the verified page
 import 'package:gojdu/pages/verified.dart';
 
+import 'package:gojdu/others/colors.dart';
+
 
 String type = '';
 

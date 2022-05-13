@@ -2,6 +2,9 @@
     package="com.gojdu.app.gojdu">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -43,6 +46,7 @@
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+
 
         </activity>
         <!-- Don't delete the meta-data below.

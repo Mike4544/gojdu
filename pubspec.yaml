@@ -50,6 +50,7 @@ dependencies:
   overlay_support: ^1.2.1
   flutter_linkify: ^5.0.2
   url_launcher: ^6.1.2
+  image_picker: ^0.8.5+3
 
 flutter_native_splash:
   color: '#1A202C'
