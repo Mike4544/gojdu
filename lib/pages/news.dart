@@ -22,6 +22,12 @@ import 'package:gojdu/others/event.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
+//  Connectivity
+import 'package:connectivity/connectivity.dart';
+
+//  SVG
+import 'package:flutter_svg/flutter_svg.dart';
+
 class NewsPage extends StatefulWidget {
 
   final Map data;
@@ -87,11 +93,37 @@ class _NewsPageState extends State<NewsPage>{
     initialPage: 1,
   );
 
+  var subscription;
+  var lastConnection;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    //  <----------  Connectivity -------------->
+   subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result){
+     print(result);
+     if (result == ConnectivityResult.none) {
+        setState(() {
+          _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+            duration: Duration(days: 1),
+            content: Text('No internet connection'),
+            backgroundColor: Colors.red,
+          ));
+        });
+     }
+     else if(result != ConnectivityResult.none){
+       setState(() {
+         _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+           duration: Duration(seconds: 3),
+           content: Text('Internet connection restored'),
+           backgroundColor: Colors.green,
+         ));
+       });
+     }
+     lastConnection = result;
+   });
 
     // <---------- Load the acc type -------------->
     accType = widget.data['account'];
@@ -147,11 +179,13 @@ class _NewsPageState extends State<NewsPage>{
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _pageController.dispose();
     globalMap.clear();
+    subscription.cancel();
+    super.dispose();
   }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
 
@@ -161,6 +195,7 @@ class _NewsPageState extends State<NewsPage>{
     var device = MediaQuery.of(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorsB.gray900,
       extendBody: true,
       bottomNavigationBar:
@@ -318,6 +353,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
     maximumCount = 0;
 
+    connError = false;
+
 
 
 
@@ -422,6 +459,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   // ---------- Placeholder title ------------
   String title = '';
   String description = '';
+  late bool connError;
 
   var device = window.physicalSize;
 
@@ -686,10 +724,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     }
   }
 
-
+// TODO: Solve the 404 thingy
 
   Widget _buildLists(Color _color) {
-    if(isLoading) {
+    if(isLoading && !connError) {
       return ListView.builder(
         physics: const BouncingScrollPhysics(),
         shrinkWrap: true,
@@ -713,7 +751,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
               ),
       );
     }
-    else {
+    else if(!isLoading && !connError) {
       return RefreshIndicator(
         backgroundColor: ColorsB.gray900,
         color: _color,
@@ -823,6 +861,33 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         ),
       );
     }
+    else{
+      return SizedBox(
+        height: 150,
+        child: Column(
+          children: [
+           SizedBox(
+             height: 75,
+             child:  SvgPicture.asset('assets/svgs/404.svg'),
+           ),
+            const Text(
+              'Snap! Something went wrong!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton.icon(
+              icon: Icon(Icons.refresh),
+              label: Text('Try again'),
+              onPressed: () {
+                _refresh();
+              },
+            ),
+          ]
+        ),
+      );
+    }
 
   }
 
@@ -833,62 +898,58 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Future<int> load(String channel) async {
-    /*
-      await Future.delayed(const Duration(seconds: 3));
-      setState(() {
-        isLoading = false;
-        loaded = true;
-      });
+      try {
+        var url = Uri.parse('https://automemeapp.com/selectposts.php');
+        final response = await http.post(url, body: {
+          "index": "0",
+          "channel": channel,
+        });
+        print(response.statusCode);
+        if (response.statusCode == 200) {
+          var jsondata = json.decode(response.body);
 
-     */
-      var url = Uri.parse('https://automemeapp.com/selectposts.php');
-          final response = await http.post(url, body: {
-            "index": "0",
-            "channel": channel,
-          });
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
+          if (jsondata["1"]["error"]) {
+            setState(() {
+              //nameError = jsondata["message"];
+            });
+          } else {
+            if (jsondata["1"]["success"]) {
 
-        if (jsondata["1"]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata["1"]["success"]) {
-
-            for(int i = 2; i <= 52; i++)
-            {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
+              for(int i = 2; i <= 52; i++)
+              {
+                String post = jsondata[i.toString()]["post"].toString();
+                String title = jsondata[i.toString()]["title"].toString();
+                String owner = jsondata[i.toString()]["owner"].toString();
 
 
-              if(post != "null" && post != null){
-                titles.add(title);
-                descriptions.add(post);
-                owners.add(owner);
-                ++maximumCount;
-              }
+                if(post != "null" && post != null){
+                  titles.add(title);
+                  descriptions.add(post);
+                  owners.add(owner);
+                  ++maximumCount;
+                }
 
-              /* if(post != "null")
+                /* if(post != "null")
               {
                 print(post+ " this is the post");
                 print(title+" this is the title");
                 print(owner+ " this is the owner");
               } */
 
+              }
+              setState(() {
+                isLoading = false;
+                loaded = true;
+              });
             }
-            setState(() {
-              isLoading = false;
-              loaded = true;
-            });
-          }
-          else
-          {
-            print(jsondata["1"]["message"]);
+            else
+            {
+              print(jsondata["1"]["message"]);
+            }
           }
         }
+      } catch (e) {
+        connError = true;
       }
 
       return 0;
@@ -1143,9 +1204,9 @@ class _MapPageState extends State<MapPage>{
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(height: 100),
+                          const SizedBox(height: 100),
                           AnimatedSwitcher(
-                            duration: Duration(milliseconds: 250),
+                            duration: const Duration(milliseconds: 250),
                             child: _mapChildren(),
                             transitionBuilder: (child, animation) =>
                                 SlideTransition(
@@ -1154,7 +1215,7 @@ class _MapPageState extends State<MapPage>{
                                     child: child,
                                   ),
                                   position: Tween<Offset>(
-                                      begin: Offset(1, 0),
+                                      begin: const Offset(1, 0),
                                       end: Offset.zero
                                   ).animate(animation),
                                 ),
@@ -1166,9 +1227,6 @@ class _MapPageState extends State<MapPage>{
 
                     ],
                   ),
-
-                  // DropdownSelector(update: _mapUpdate,),
-                  // //TODO: Add the images (at least a placeholder one and do the thingy)
 
 
 
