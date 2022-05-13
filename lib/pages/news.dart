@@ -920,6 +920,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   late List<String> descriptions;
   late List<String> owners;
 
+  //  Image links
+  List<String> links = [];
+
 
 
   @override
@@ -1021,6 +1024,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     titles.clear();
     owners.clear();
     descriptions.clear();
+    links.clear();
     maximumCount = 0;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
@@ -1377,7 +1381,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                             child: InkWell(
                               borderRadius: BorderRadius.circular(50),
                               onTap: () {
-                                _hero(context, titles[index], descriptions[index], owners[index], _color);
+                                _hero(context, titles[index], descriptions[index], owners[index], _color, links[index]);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(25.0),
@@ -1589,12 +1593,20 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 String post = jsondata[i.toString()]["post"].toString();
                 String title = jsondata[i.toString()]["title"].toString();
                 String owner = jsondata[i.toString()]["owner"].toString();
+                String link = jsondata[i.toString()]["link"].toString();
 
 
                 if(post != "null" && post != null){
                   titles.add(title);
                   descriptions.add(post);
                   owners.add(owner);
+                  links.add(link);
+                  print(link);
+
+                  // Prechaching the asset
+
+
+
                   ++maximumCount;
                 }
 
@@ -1630,7 +1642,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, String author, Color color) {
+  void _hero(BuildContext context, String title, String description, String author, Color color, String link) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -1641,7 +1653,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: author,),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link,),
               )
         )
     );
@@ -1662,8 +1674,10 @@ class BigNewsContainer extends StatelessWidget {
   final String description;
   final Color color;
   final String author;
+  final String? imageLink;
+  final File? file;
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author}) : super(key: key);
+  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1676,41 +1690,7 @@ class BigNewsContainer extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Hero(
-            tag: 'title-rectangle',
-            child: Container(
-              width: device.size.width,
-              height: device.size.height * 0.5,
-              color: color,
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      Text(
-                          "by " + author,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          )
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          topPage(),
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -1737,6 +1717,184 @@ class BigNewsContainer extends StatelessWidget {
       ),
     ) ;
   }
+
+  Widget topPage() {
+    if(file == null){
+      if(imageLink == 'null' || imageLink == ''){
+        return Hero(
+          tag: 'title-rectangle',
+          child: Container(
+            width: screenWidth,
+            height: screenHeight * 0.5,
+            color: color,
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    Text(
+                        "by " + author,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        )
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      else {
+        return Hero(
+            tag: 'title-rectangle',
+            child: Stack(
+                children: [
+                  Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.5,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: NetworkImage(imageLink!),
+                          fit: BoxFit.cover
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    child: Container(
+                      width: screenWidth,
+                      height: screenHeight * 0.25,
+                      decoration: BoxDecoration(
+                          gradient: material.LinearGradient(
+                              colors: [
+                                Colors.black,
+                                Colors.transparent
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              stops: [
+                                0,
+                                0.9
+                              ]
+                          )
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Text(
+                              "by " + author,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              )
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ]
+            )
+        );
+      }
+    }
+    else {
+      return Hero(
+          tag: 'title-rectangle',
+          child: Stack(
+              children: [
+                Container(
+                  width: screenWidth,
+                  height: screenHeight * 0.5,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: FileImage(file!),
+                        fit: BoxFit.cover
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.25,
+                    decoration: BoxDecoration(
+                        gradient: material.LinearGradient(
+                            colors: [
+                              Colors.black,
+                              Colors.transparent
+                            ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            stops: [
+                              0,
+                              0.9
+                            ]
+                        )
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        Text(
+                            "by " + author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ]
+          )
+      );
+    }
+  }
+
+
 }
 
 
@@ -3761,12 +3919,73 @@ class _PostItPageState extends State<PostItPage> {
   }
 
   List<bool?> classes = [false, false, false];
+  List<String> channels = [];
   String errorText = '';
 
   //  Image text
   String _imageText = 'Add Image';
   final ImagePicker _picker = ImagePicker();
   late XFile? image;
+  File? _file;
+
+  String? format;
+
+
+
+  String generateString(){
+    String generated = '';
+
+    DateTime now = DateTime.now();
+    String formatedDate = DateFormat('yyyyMMddkkmm').format(now);
+
+    String selectedChannels = '';
+    for(int i = 0; i < channels.length; i++){
+      selectedChannels += channels[i][0];
+    }
+
+    generated = selectedChannels + formatedDate;
+
+    return generated;
+
+
+  }
+
+  Future<void> uploadImage(File? file, String name) async {
+    try{
+      if(image == null){
+        return;
+      }
+      var imageBytes = file!.readAsBytesSync();
+      String baseimage = base64Encode(imageBytes);
+
+
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/image_upload.php');
+      final response = await http.post(url, body: {
+        "image": baseimage,
+        "name": name,
+        "format": format
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata["error"]){
+          print(jsondata["msg"]);
+        }else{
+          print("Upload successful");
+        }
+      } else {
+        print("Upload failed");
+      }
+
+
+
+
+    }
+    catch(e){
+      print("Error during converting to Base64");
+    }
+  }
 
 
 
@@ -3878,6 +4097,13 @@ class _PostItPageState extends State<PostItPage> {
                             onChanged: (value) {
                               setState(() {
                                 classes[0] = value;
+                                if(value!){
+                                  channels.add("Students");
+                                }
+                                else {
+                                  channels.remove("Students");
+                                }
+                                print(channels);
                               });
                             },
                           ),
@@ -3899,7 +4125,14 @@ class _PostItPageState extends State<PostItPage> {
                               onChanged: (value) {
                                 setState(() {
                                   classes[1] = value;
-                                  _postColor = classes[1] == true ? Colors.amber : null;
+
+                                  if(value!){
+                                    channels.add("Teachers");
+                                  }
+                                  else {
+                                    channels.remove("Teachers");
+                                  }
+                                  print(channels);
                                 });
                               },
                             ),
@@ -3921,6 +4154,14 @@ class _PostItPageState extends State<PostItPage> {
                               onChanged: (value) {
                                 setState(() {
                                   classes[2] = value;
+
+                                  if(value!){
+                                    channels.add("Parents");
+                                  }
+                                  else {
+                                    channels.remove("Parents");
+                                  }
+                                  print(channels);
                                 });
                               },
                             ),
@@ -3961,11 +4202,13 @@ class _PostItPageState extends State<PostItPage> {
                           //  Image picker things
 
                           try{
-                            final _image = await _picker.pickImage(source: ImageSource.gallery);
+                            final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
                             if(_image == null) return;
 
-                            final imagTemp = XFile(_image.path);
-                            image = imagTemp;
+                            image = _image;
+                            _file = File(image!.path);
+
+                            format = image!.name.split('.').last;
 
                             setState(() {
                               _imageText = image!.name;
@@ -4004,7 +4247,7 @@ class _PostItPageState extends State<PostItPage> {
                         onPressed: () async {
 
                           if(_formKey.currentState!.validate()){
-                            if(classes[0] == false && classes[1] == false && classes[2] == false){
+                            if(channels.isEmpty){
                               setState(() {
                                 errorText = 'Please select at least one class';
                               });
@@ -4014,79 +4257,75 @@ class _PostItPageState extends State<PostItPage> {
                             setState(() {
                               errorText = '';
                             });
-                            for(int i = 0; i < classes.length; i++){
-                              if(classes[i] == true){
 
-                                switch(i){
-                                  case 0:
-                                    _className = 'Students';
-                                    break;
-                                  case 1:
-                                    _className = 'Teachers';
-                                    break;
-                                  case 2:
-                                    _className = 'Parents';
-                                    break;
+                            String name = generateString();
+
+                            for(int i = 0; i < channels.length; i++){
+                              try {
+
+
+                                if(_file != null){
+                                  await uploadImage(_file, name);
                                 }
+                                print(channels[i]);
+
+                                var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
+                                final response = await http.post(url, body: {
+                                  "title": _postTitleController.value.text,
+                                  "channel": channels[i],
+                                  "body": _postController.value.text,
+                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                  "link": "https://automemeapp.com/gojdu/imgs/$name.$format"
+                                });
+                                if (response.statusCode == 200) {
+                                  var jsondata = json.decode(response.body);
+                                  print(jsondata);
+                                  if (jsondata["error"]) {
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    if (jsondata["success"]){
+
+                                      // Notifications
+
+                                      // --------------------------------------------------
 
 
+                                      try {
+                                        var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                        final response2 = await http.post(ulr2, body: {
+                                          "channel": channels[i],
+                                          "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                          "action": "Post"
+                                        });
 
-                                try {
-                                  var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
-                                  final response = await http.post(url, body: {
-                                    "title": _postTitleController.value.text,
-                                    "channel": _className,
-                                    "body": _postController.value.text,
-                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                  });
-                                  if (response.statusCode == 200) {
-                                    var jsondata = json.decode(response.body);
-                                    print(jsondata);
-                                    if (jsondata["error"]) {
-                                      Navigator.of(context).pop();
-                                    } else {
-                                      if (jsondata["success"]){
-
-                                        // Notifications
-
-                                        // --------------------------------------------------
-
-
-                                        try {
-                                          var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
-                                          final response2 = await http.post(ulr2, body: {
-                                            "channel": _className,
-                                            "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                            "action": "Post"
-                                          });
-
-                                          if(response2.statusCode == 200){
-                                            var jsondata2 = json.decode(response2.body);
-                                            print(jsondata2);
-                                            Navigator.of(context).pop();
-                                            Navigator.pop(context);
-                                          }
-
-                                        } catch (e) {
-                                          print(e);
+                                        if(response2.statusCode == 200){
+                                          var jsondata2 = json.decode(response2.body);
+                                          print(jsondata2);
+                                          Navigator.of(context).pop();
                                         }
 
-                                        // -------------------------------------------------
+                                      } catch (e) {
+                                        print(e);
                                       }
-                                      else
-                                      {
-                                        print(jsondata["message"]);
-                                      }
+
+                                      // -------------------------------------------------
+                                    }
+                                    else
+                                    {
+                                      print(jsondata["message"]);
                                     }
                                   }
-                                } catch (e) {
-                                  print(e);
-                                  Navigator.of(context).pop();
                                 }
+                              } catch (e) {
+                                print(e);
+                                Navigator.of(context).pop();
                               }
                             }
                             Navigator.of(context).pop();
+
+                            //TODO: There is some unhandled exception and I have no fucking idea where. - Mihai
                           }
+
                         },
                         child: const Text(
                           'Post',
@@ -4100,30 +4339,18 @@ class _PostItPageState extends State<PostItPage> {
                         ),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || (classes[0] == false && classes[1] == false && classes[2] == false) ? ColorsB.gray800 : ColorsB.yellow500,
+                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || channels.isEmpty ? ColorsB.gray800 : ColorsB.yellow500,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
                         ),
                       ),
                       Opacity(
-                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || (classes[0] == false && classes[1] == false && classes[2] == false) ? 0.5 : 1,
+                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || channels.isEmpty ? 0.5 : 1,
                         child: TextButton(
                           onPressed: () async {
 
-                            // try{
-                            //   if(image != null){
-                            //     var request = http.MultipartRequest("POST", Uri.parse("https://automemeapp.com/gojdu/imgs"));
-                            //     var multipartFile = await http.MultipartFile.fromPath('file', image!.path);
-                            //
-                            //     request.files.add(multipartFile);
-                            //
-                            //     http.StreamedResponse response = await request.send();
-                            //     print(response.statusCode);
-                            //   }
-                            // } catch(e){
-                            //   print(e);
-                            // }
+
 
                             //TODO: Make the upload work
 
@@ -4150,7 +4377,7 @@ class _PostItPageState extends State<PostItPage> {
                                           ).animate(
                                               CurvedAnimation(parent: animation, curve: Curves.ease)
                                           ),
-                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me'),
+                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me', file: _file,),
                                         );
                                       }
 
