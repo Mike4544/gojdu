@@ -39,6 +39,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:async';
 
+import 'package:gojdu/widgets/post.dart';
+
 
 
 
@@ -820,7 +822,7 @@ class _NewsPageState extends State<NewsPage>{
                       setState(() {
                         _currentIndex = 1;
                       });
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                      _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
                     }
                 ),
               ),
@@ -916,12 +918,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   late var currentChannel = "";
 
-  late List<String> titles;
-  late List<String> descriptions;
-  late List<String> owners;
 
-  //  Image links
-  List<String> links = [];
+
+  List<Post> posts = [];
+
 
 
 
@@ -931,9 +931,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     super.initState();
 
     //  <-------------- Lists ------------->
-    titles = [];
-    descriptions = [];
-    owners = [];
+    posts = [];
 
     maximumCount = 0;
     isError = false;
@@ -975,7 +973,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
 
-    if(descriptions.isEmpty) {
+    if(posts.isEmpty) {
       isLoading = true;
       load(currentChannel);
     }
@@ -999,9 +997,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _announcementsController.dispose();
     _shimmerController.dispose();
     _scrollController.dispose();
-    titles.clear();
-    descriptions.clear();
-    owners.clear();
+
+    posts.clear();
+
     isAlive = false;
     super.dispose();
 
@@ -1019,12 +1017,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
+    //print(likesBool);
     isError = false;
     loaded = false;
-    titles.clear();
-    owners.clear();
-    descriptions.clear();
-    links.clear();
+
+    //print(posts.length);
+
+    posts.clear();
+
     maximumCount = 0;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
@@ -1318,6 +1318,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Widget _buildLists(Color _color) {
+
+
     if(!isError) {
       if(isLoading) {
         return ListView.builder(
@@ -1344,7 +1346,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         );
       }
       else {
-        if(descriptions.isNotEmpty){
+        if(posts.isNotEmpty){
           return RefreshIndicator(
             backgroundColor: ColorsB.gray900,
             color: _color,
@@ -1355,83 +1357,15 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+                itemCount: maxScrollCount < posts.length ? maxScrollCount + 1 : posts.length,
                 itemBuilder: (_, index) {
 
-                  title = titles[index];
-                  description = descriptions[index];
-                  var owner = owners[index];
+                  // title = titles[index];
+                  // description = descriptions[index];
+                  // var owner = owners[index];
 
                   if(index != maxScrollCount){
-                    return Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: SizedBox(
-                        width: screenWidth * 0.75,
-                        height: 200,
-                        child: Container(                         // Student containers. Maybe get rid of the hero
-                          width: screenWidth * 0.75,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: _color,
-                            borderRadius: BorderRadius.circular(
-                                50),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(50),
-                              onTap: () {
-                                _hero(context, titles[index], descriptions[index], owners[index], _color, links[index]);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(25.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment
-                                      .start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold
-                                      ),
-                                    ),
-                                    Text(
-                                      'by ' + owner,     //  Hard coded!!
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.5),
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 25,),
-
-                                    Flexible(
-                                      child: Text(
-                                        description,
-                                        overflow: TextOverflow
-                                            .ellipsis,
-                                        maxLines: 2,
-                                        style: TextStyle(
-                                            color: Colors.white
-                                                .withOpacity(0.25),
-                                            fontSize: 15,
-                                            fontWeight: FontWeight
-                                                .bold
-                                        ),
-                                      ),
-                                    ),
-
-
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    return posts[index];
                   }
                   else{
                     return Padding(
@@ -1569,6 +1503,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 
+
+
+
+
+
   Future<int> load(String channel) async {
 
       try {
@@ -1596,12 +1535,75 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 String link = jsondata[i.toString()]["link"].toString();
 
 
+                int? likesCount = jsondata[i.toString()]["likes"];
+                String? likedPpl = jsondata[i.toString()]["lppl"].toString();
+                String? dislikedPpl = jsondata[i.toString()]["dppl"].toString();
+                int? id = jsondata[i.toString()]["id"];
+
+                List<String> liked = likedPpl.split(';');
+                List<String> disliked = dislikedPpl.split(';');
+
+                bool likedbool;
+                bool dislikedbool;
+                Color? color;
+
+                switch(channel){
+                  case 'Students':
+                    color = ColorsB.gray800;
+                    break;
+                  case 'Teachers':
+                    color = Colors.amber;
+                    break;
+                  case 'Parents':
+                    color = Colors.indigoAccent;
+                    break;
+                }
+
+
+
+                //print(globalMap['id']);
+
+
+
                 if(post != "null" && post != null){
-                  titles.add(title);
-                  descriptions.add(post);
-                  owners.add(owner);
-                  links.add(link);
-                  print(link);
+                  // titles.add(title);
+                  // descriptions.add(post);
+                  // owners.add(owner);
+                  // links.add(link);
+                  // likes.add(likesCount);
+                  // ids.add(id);
+                  //print(liked);
+
+                  if(liked.contains(globalMap['id'].toString())){
+                    likedbool = true;
+                    print('a');
+                  } else {
+                    likedbool = false;
+                  }
+
+                  if(disliked.contains(globalMap['id'].toString())){
+                    dislikedbool = true;
+                  } else {
+                    dislikedbool = false;
+                  }
+
+                  posts.add(Post(title: title,
+                      color: color,
+                      likes: likesCount,
+                      likesBool: likedbool,
+                      dislikes: dislikedbool,
+                      ids: id,
+                      descriptions: post,
+                      owners: owner,
+                      link: link,
+                      hero: _hero,
+                      globalMap: globalMap,
+                      context: context,)
+                  );
+
+
+
+                  //(link);
 
                   // Prechaching the asset
 
@@ -1630,6 +1632,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       } catch (e) {
+        print(e);
         if(isAlive){
           setState(() {
             isError = true;
@@ -1640,6 +1643,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       return 0;
 
   }
+
+  void update() {
+    setState(() {
+
+    });
+  }
+
 
   // <-------------- Placing the hero container ---------------> //
   void _hero(BuildContext context, String title, String description, String author, Color color, String link) {
@@ -3952,10 +3962,10 @@ class _PostItPageState extends State<PostItPage> {
 
   Future<void> uploadImage(File? file, String name) async {
     try{
-      if(image == null){
+      if(image == null || file == null){
         return;
       }
-      var imageBytes = file!.readAsBytesSync();
+      var imageBytes = file.readAsBytesSync();
       String baseimage = base64Encode(imageBytes);
 
 
@@ -4202,7 +4212,7 @@ class _PostItPageState extends State<PostItPage> {
                           //  Image picker things
 
                           try{
-                            final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                            final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
                             if(_image == null) return;
 
                             image = _image;
@@ -4260,12 +4270,15 @@ class _PostItPageState extends State<PostItPage> {
 
                             String name = generateString();
 
+                            bool imgSub = false;
+
                             for(int i = 0; i < channels.length; i++){
                               try {
 
 
-                                if(_file != null){
+                                if(!imgSub && _file != null){
                                   await uploadImage(_file, name);
+                                  imgSub = true;
                                 }
                                 print(channels[i]);
 
@@ -4318,7 +4331,7 @@ class _PostItPageState extends State<PostItPage> {
                                 }
                               } catch (e) {
                                 print(e);
-                                Navigator.of(context).pop();
+                                //Navigator.of(context).pop();
                               }
                             }
                             Navigator.of(context).pop();

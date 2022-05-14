@@ -131,7 +131,8 @@ Future<Widget> getPage() async {
               'last_name': ln,
               'email': email,
               'account': acc_type,
-              'verification': jsondata['verification']
+              'verification': jsondata['verification'],
+              'id': jsondata['id'],
             };
 
 
