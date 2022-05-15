@@ -1,16 +1,21 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+
+
+
+//ignore: must_be_immutable
 class Post extends StatefulWidget {
 
   var title, descriptions, owners, link;
   var color;
   var likesBool, dislikes;
   var likes, ids;
-  Function(BuildContext context, String title, String description, String author, Color color, String link) hero;
+  Function(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) hero;
   var globalMap;
   var context;
   var update;
@@ -223,7 +228,7 @@ class _PostState extends State<Post> {
 
     } catch(e){
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(widget.context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
           style: TextStyle(
@@ -241,9 +246,28 @@ class _PostState extends State<Post> {
 
   @override
   void initState() {
+    _controllerLikes.stream.listen((event) {
+      setState(() {
+        widget.likes = event;
+      });
+    });
+    _controllerLBool.stream.listen((event) {
+      setState(() {
+        widget.likesBool = event;
+      });
+    });
+    _controllerDBool.stream.listen((event) {
+      setState(() {
+        widget.dislikes = event;
+      });
+    });
 
     super.initState();
   }
+
+  final StreamController<int?> _controllerLikes = StreamController<int?>();
+  final StreamController<bool> _controllerLBool = StreamController<bool>();
+  final StreamController<bool> _controllerDBool = StreamController<bool>();
 
 
   @override
@@ -267,7 +291,7 @@ class _PostState extends State<Post> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(50),
-                      onTap: () => widget.hero(widget.context, widget.title, widget.descriptions, widget.owners, widget.color!, widget.link),
+                      onTap: () => widget.hero(widget.context, widget.title, widget.descriptions, widget.owners, widget.color!, widget.link, widget.likes, widget.ids, widget.dislikes, widget.likesBool, _controllerLikes, _controllerLBool, _controllerDBool),
                       child: Padding(
                         padding: const EdgeInsets.all(25.0),
                         child: Column(
@@ -320,7 +344,7 @@ class _PostState extends State<Post> {
                   right: 50,
                   child: widget.globalMap['verification'] != 'Pending'
                       ? Row(
-                      children: [
+                        children: [
                         //   Like and dislike
                         IconButton(
                           splashRadius: 20,

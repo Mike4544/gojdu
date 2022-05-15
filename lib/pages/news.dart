@@ -1510,6 +1510,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   Future<int> load(String channel) async {
 
+    //  Maybe rework this a bit.
+
       try {
         var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
         final response = await http.post(url, body: {
@@ -1566,13 +1568,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
                 if(post != "null" && post != null){
-                  // titles.add(title);
-                  // descriptions.add(post);
-                  // owners.add(owner);
-                  // links.add(link);
-                  // likes.add(likesCount);
-                  // ids.add(id);
-                  //print(liked);
+
 
                   if(liked.contains(globalMap['id'].toString())){
                     likedbool = true;
@@ -1652,7 +1648,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, String author, Color color, String link) {
+  void _hero(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -1663,7 +1659,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link,),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
               )
         )
     );
@@ -1678,7 +1674,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 // <----------------- Making the 'News' container big ------------------>
-class BigNewsContainer extends StatelessWidget {
+//ignore: must_be_immutable
+class BigNewsContainer extends StatefulWidget {
 
   final String title;
   final String description;
@@ -1686,8 +1683,236 @@ class BigNewsContainer extends StatelessWidget {
   final String author;
   final String? imageLink;
   final File? file;
+  int? likes, ids;
+  bool? likesBool, dislikes;
+  StreamController<int?>? contrL;
+  StreamController<bool?>? contrLB;
+  StreamController<bool?>? contrDB;
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file}) : super(key: key);
+
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
+
+  @override
+  State<BigNewsContainer> createState() => _BigNewsContainerState();
+}
+
+class _BigNewsContainerState extends State<BigNewsContainer> {
+
+  // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
+  Future<void> like(int id, int uid) async{
+    //print(ids);
+
+    if(widget.dislikes == true){
+      undislike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes! + 1;
+      widget.likesBool = true;
+
+      widget.dislikes = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+      widget.contrDB!.add(widget.dislikes);
+      //widget.update();
+    });
+
+    try{
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'LIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> unlike(int id, int uid) async{
+    //print(ids);
+
+    setState(() {
+      widget.likes = widget.likes! - 1;
+      widget.likesBool = false;
+
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+
+      //widget.update();
+
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> dislike(int id, int uid) async{
+    //print(ids);
+
+    if(widget.likesBool == true){
+      unlike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes! - 1;
+      widget.likesBool = false;
+
+      widget.dislikes = true;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+      widget.contrDB!.add(widget.dislikes);
+
+      //widget.update();
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'DISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> undislike(int id, int uid) async{
+    //print(ids);
+
+    setState(() {
+      widget.likes = widget.likes! + 1;
+
+      widget.dislikes = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrDB!.add(widget.dislikes);
+
+      //widget.update();
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNDISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -1695,7 +1920,7 @@ class BigNewsContainer extends StatelessWidget {
     var device = MediaQuery.of(context);
 
     return Scaffold(
-      bottomNavigationBar: BackNavbar(),
+      bottomNavigationBar: const BackNavbar(),
       backgroundColor: ColorsB.gray900,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1706,8 +1931,9 @@ class BigNewsContainer extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Linkify(
-                text: description,
-                style: TextStyle(
+                linkStyle: const TextStyle(color: ColorsB.yellow500),
+                text: widget.description,
+                style: const TextStyle(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.normal
@@ -1729,39 +1955,88 @@ class BigNewsContainer extends StatelessWidget {
   }
 
   Widget topPage() {
-    if(file == null){
-      if(imageLink == 'null' || imageLink == ''){
+    print(widget.imageLink);
+    if(widget.file == null){
+      if(widget.imageLink == null || widget.imageLink == ''){
         return Hero(
           tag: 'title-rectangle',
           child: Container(
             width: screenWidth,
             height: screenHeight * 0.5,
-            color: color,
+            color: widget.color,
             child: Align(
               alignment: Alignment.bottomLeft,
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    Text(
-                        "by " + author,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        Text(
+                            "by " + widget.author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
                         )
+                      ],
+                    ),
+                    globalMap['verification'] != 'Pending' && widget.likes != null
+                        ? Row(
+                          children: [
+                          //   Like and dislike
+                          IconButton(
+                            splashRadius: 20,
+                            icon: Icon(
+                              Icons.thumb_up,
+                              color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                              size: 25,
+                            ),
+                            onPressed: () {
+                              widget.likesBool == true ?
+                              unlike(widget.ids!, globalMap['id'])
+                                  : like(widget.ids!, globalMap['id']);
+                            },
+                          ),
+                          Text(
+                            widget.likes.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          IconButton(
+                            splashRadius: 20,
+                            icon: Icon(
+                              Icons.thumb_down,
+                              color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                              size: 25,
+                            ),
+                            onPressed: () {
+
+                              widget.dislikes == true ?
+                              undislike(widget.ids!, globalMap['id'])
+                                  : dislike(widget.ids!, globalMap['id']);
+                              //
+                            },
+                          ),
+                        ]
                     )
+                        : const SizedBox(),
                   ],
-                ),
+                )
               ),
             ),
           ),
@@ -1777,7 +2052,7 @@ class BigNewsContainer extends StatelessWidget {
                     height: screenHeight * 0.5,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                          image: NetworkImage(imageLink!),
+                          image: NetworkImage(widget.imageLink!),
                           fit: BoxFit.cover
                       ),
                     ),
@@ -1805,28 +2080,79 @@ class BigNewsContainer extends StatelessWidget {
                   ),
                   Positioned(
                     bottom: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold
+                    child: SizedBox(
+                      width: screenWidth,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                                Text(
+                                    "by " + widget.author,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    )
+                                )
+                              ],
                             ),
-                          ),
-                          Text(
-                              "by " + author,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                              )
-                          )
-                        ],
+
+                            globalMap['verification'] != 'Pending' && widget.likes != null
+                                ? Row(
+                                  children: [
+                                  //   Like and dislike
+                                  IconButton(
+                                    splashRadius: 20,
+                                    icon: Icon(
+                                      Icons.thumb_up,
+                                      color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                      size: 25,
+                                    ),
+                                    onPressed: () {
+                                      widget.likesBool == true ?
+                                      unlike(widget.ids!, globalMap['id'])
+                                          : like(widget.ids!, globalMap['id']);
+                                    },
+                                  ),
+                                  Text(
+                                    widget.likes.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    splashRadius: 20,
+                                    icon: Icon(
+                                      Icons.thumb_down,
+                                      color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                      size: 25,
+                                    ),
+                                    onPressed: () {
+
+                                      widget.dislikes == true ?
+                                      undislike(widget.ids!, globalMap['id'])
+                                          : dislike(widget.ids!, globalMap['id']);
+                                      //
+                                    },
+                                  ),
+                                ]
+                            )
+                                : const SizedBox(),
+                          ]
+                        )
                       ),
                     ),
                   ),
@@ -1845,7 +2171,7 @@ class BigNewsContainer extends StatelessWidget {
                   height: screenHeight * 0.5,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: FileImage(file!),
+                        image: FileImage(widget.file!),
                         fit: BoxFit.cover
                     ),
                   ),
@@ -1880,7 +2206,7 @@ class BigNewsContainer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
+                          widget.title,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 30,
@@ -1888,7 +2214,7 @@ class BigNewsContainer extends StatelessWidget {
                           ),
                         ),
                         Text(
-                            "by " + author,
+                            "by " + widget.author,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -1903,8 +2229,6 @@ class BigNewsContainer extends StatelessWidget {
       );
     }
   }
-
-
 }
 
 
