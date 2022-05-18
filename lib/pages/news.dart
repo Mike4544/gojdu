@@ -3064,158 +3064,111 @@ class CustomClipBar extends CustomClipper<Rect> {
 
 
 //  <-----------------  Calendar page 1 ------------------>
-class CalPag1 extends StatelessWidget {
+class CalPag1 extends StatefulWidget {
 
   final Function(int) changePage;
 
   const CalPag1({Key? key, required this.changePage}) : super(key: key);
 
   @override
+  State<CalPag1> createState() => _CalPag1State();
+}
+
+class _CalPag1State extends State<CalPag1> {
+
+  late Function(int) changePage;
+  bool ok = false;
+
+  @override
+  void initState() {
+    changePage = widget.changePage;
+    ok = false;
+    _loadHalls();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    halls.clear();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Stack(
         children: [
-          FutureBuilder(
-              future: _loadHalls(),
-              builder: (_, snapshot) {
-                if(snapshot.hasData){
-                  return ListView.builder(
-                    clipBehavior: Clip.hardEdge,         //  Find a way to do it better
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: titles.isNotEmpty ? titles.length : 1,
-                    itemBuilder: (context, index) {
-                      if(titles.isNotEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 125,
-                            decoration: BoxDecoration(
-                              color: ColorsB.gray800,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(30),
-                                onTap: () {
-                                  _currentHall = index;
-                                  changePage(1);
-                                },
-                                child: Stack(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: ShaderMask(
-                                        shaderCallback: (rect) {
-                                          return const material.LinearGradient(
-                                            begin: Alignment.centerLeft,
-                                            end: Alignment.centerRight,
-                                            stops: [0, 1],
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black,
-                                            ],
-                                          ).createShader(rect);
-                                        },
-                                        blendMode: BlendMode.dstIn,
-                                        child: Icon(
-                                          Icons.account_balance_sharp,
-                                          color: ColorsB.gray700.withOpacity(0.25),
-                                          size: 75,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(15.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.account_balance,
-                                                color: ColorsB.yellow500,
-                                                size: 20,
-                                              ),
-                                              const SizedBox(width: 10,),
-                                              Text(
-                                                titles[index],
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Divider(
-                                            color: Colors.white.withOpacity(0.1),
-                                            thickness: 1,
-                                          ),
-                                          const SizedBox(height: 10,),
-                                          Text(
-                                            'Type: ${sizes[index]}',
-                                            style: TextStyle(
-                                              color: Colors.white.withOpacity(0.5),
-                                              fontSize: 10,
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                      else {
-                        // Return a nice No halls found message followed by the no_posts svg
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Wow, such empty!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 10,),
-                              Text(
-                                'No halls found',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 20,),
-                              SvgPicture.asset(
-                                'assets/svgs/no_posts.svg',
-                                height: 200,
-                              ),
-                            ],
-                          ),
-                        );
-
-
-
-                      }
-                    },
-                  );
-                }
-                else {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
-                    ),
-                  );
-                }
+          ok == false
+          ? ListView.builder(
+            itemCount: 5,
+            itemBuilder: (context, index) =>
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 125,
+                    child: Shimmer.fromColors(
+                      highlightColor: ColorsB.gray700,
+                      baseColor: ColorsB.gray800,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ),
+                    )
+                  ),
+                )
+          )
+          : ListView.builder(
+            clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+            physics: const BouncingScrollPhysics(),
+            itemCount: halls.isNotEmpty ? halls.length : 1,
+            itemBuilder: (context, index) {
+              if(halls.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: halls[index],
+                );
               }
+              else {
+                // Return a nice No halls found message followed by the no_posts svg
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Wow, such empty!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 10,),
+                      Text(
+                        'No halls found',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 20,),
+                      SvgPicture.asset(
+                        'assets/svgs/no_posts.svg',
+                        height: 200,
+                      ),
+                    ],
+                  ),
+                );
+
+
+
+              }
+            },
           ),
+
           Visibility(
             visible: globalMap['account'] == 'Admin' ? true : false,
             child: Align(
@@ -3433,6 +3386,7 @@ class CalPag1 extends StatelessWidget {
                                                   }
 
 
+
                                                 }
                                               },
                                             )
@@ -3465,16 +3419,11 @@ class CalPag1 extends StatelessWidget {
       )
     );
   }
-}
 
-bool hasLoaded = false;
+  Future<int> _loadHalls() async {
+    //await Future.delayed(const Duration(seconds: 1));
+    //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
 
-
-Future<int> _loadHalls() async {
-  //await Future.delayed(const Duration(seconds: 1));
-  titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
-
-  if(!hasLoaded){
     try {
       var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
       final response = await http.post(url, body: {
@@ -3485,15 +3434,19 @@ Future<int> _loadHalls() async {
         //print(jsondata);
         if(jsondata['1']['success']){
 
-          print(jsondata.length);
-          for(int i = 2; i < jsondata.length; i++) {
-            if (jsondata[i.toString()]['title'] != null &&
-                jsondata[i.toString()]['size'] != null) {
-              titles.add(jsondata[i.toString()]['title']);
-              sizes.add(jsondata[i.toString()]['size']);
 
-              print(i);
-              print(jsondata[i.toString()]['size']);
+          for(int i = 2; i < jsondata.length; i++) {
+
+            var title = jsondata[i.toString()]['title'];
+            var size = jsondata[i.toString()]['size'];
+
+            if (title != null && size != null) {
+
+              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage,);
+
+              halls.add(hall);
+              print(halls);
+
             }
             else {
               break;
@@ -3512,15 +3465,122 @@ Future<int> _loadHalls() async {
       //print(e);
       //return 0;
     }
+    setState(() {
+      ok = true;
+    });
+
+    // This is where the halls are loaded.
+    return 1;
   }
 
-  // This is where the halls are loaded.
-  return 1;
 }
+
+
+List<Hall> halls = [];
+
+
+
 
 // <------------------ Current Hall ------------------------>
 
 int? _currentHall;
+
+
+
+// Class for the container
+class Hall extends StatelessWidget {
+  final int index;
+  final String title;
+  final String size;
+  final Function(int) changePage;
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 125,
+      decoration: BoxDecoration(
+        color: ColorsB.gray800,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: () {
+            _currentHall = index;
+            changePage(1);
+          },
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ShaderMask(
+                  shaderCallback: (rect) {
+                    return const material.LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: [0, 1],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black,
+                      ],
+                    ).createShader(rect);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: Icon(
+                    Icons.account_balance_sharp,
+                    color: ColorsB.gray700.withOpacity(0.25),
+                    size: 75,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.account_balance,
+                          color: ColorsB.yellow500,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10,),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      color: Colors.white.withOpacity(0.1),
+                      thickness: 1,
+                    ),
+                    const SizedBox(height: 10,),
+                    Text(
+                      'Type: ${size}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                      ),
+                    ),
+
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 
 //  <-----------------  Statefull cal page 2 ----------------->
@@ -3876,10 +3936,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                                                 onTap: () async {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  print(pickedTime.toString());
                                                                                   if(pickedTime != null){
                                                                                     parsedTime1 = pickedTime;
-                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = pickedTime.format(context);
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText.text = formattedTime;
@@ -3945,8 +4006,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
                                                                                   parsedTime2 = pickedTime;
                                                                                   if(pickedTime != null){
-                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+
+                                                                                    String formattedTime = pickedTime.format(context);
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText2.text = formattedTime;
