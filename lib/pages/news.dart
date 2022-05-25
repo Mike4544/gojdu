@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -35,8 +34,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:async';
+
+import 'package:gojdu/widgets/post.dart';
 
 
 
@@ -819,7 +821,7 @@ class _NewsPageState extends State<NewsPage>{
                       setState(() {
                         _currentIndex = 1;
                       });
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                      _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
                     }
                 ),
               ),
@@ -915,9 +917,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   late var currentChannel = "";
 
-  late List<String> titles;
-  late List<String> descriptions;
-  late List<String> owners;
+
+
+  List<Post> posts = [];
+
 
 
 
@@ -927,9 +930,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     super.initState();
 
     //  <-------------- Lists ------------->
-    titles = [];
-    descriptions = [];
-    owners = [];
+    posts = [];
 
     maximumCount = 0;
     isError = false;
@@ -971,7 +972,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
 
-    if(descriptions.isEmpty) {
+    if(posts.isEmpty) {
       isLoading = true;
       load(currentChannel);
     }
@@ -995,9 +996,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     _announcementsController.dispose();
     _shimmerController.dispose();
     _scrollController.dispose();
-    titles.clear();
-    descriptions.clear();
-    owners.clear();
+
+    posts.clear();
+
     isAlive = false;
     super.dispose();
 
@@ -1015,11 +1016,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
+    //print(likesBool);
     isError = false;
     loaded = false;
-    titles.clear();
-    owners.clear();
-    descriptions.clear();
+
+    //print(posts.length);
+
+    posts.clear();
+
     maximumCount = 0;
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
@@ -1313,6 +1317,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Widget _buildLists(Color _color) {
+
+
     if(!isError) {
       if(isLoading) {
         return ListView.builder(
@@ -1339,7 +1345,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
         );
       }
       else {
-        if(descriptions.isNotEmpty){
+        if(posts.isNotEmpty){
           return RefreshIndicator(
             backgroundColor: ColorsB.gray900,
             color: _color,
@@ -1350,83 +1356,15 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: maxScrollCount < descriptions.length ? maxScrollCount + 1 : descriptions.length,
+                itemCount: maxScrollCount < posts.length ? maxScrollCount + 1 : posts.length,
                 itemBuilder: (_, index) {
 
-                  title = titles[index];
-                  description = descriptions[index];
-                  var owner = owners[index];
+                  // title = titles[index];
+                  // description = descriptions[index];
+                  // var owner = owners[index];
 
                   if(index != maxScrollCount){
-                    return Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: SizedBox(
-                        width: screenWidth * 0.75,
-                        height: 200,
-                        child: Container(                         // Student containers. Maybe get rid of the hero
-                          width: screenWidth * 0.75,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: _color,
-                            borderRadius: BorderRadius.circular(
-                                50),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(50),
-                              onTap: () {
-                                _hero(context, titles[index], descriptions[index], owners[index], _color);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(25.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment
-                                      .start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold
-                                      ),
-                                    ),
-                                    Text(
-                                      'by ' + owner,     //  Hard coded!!
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.5),
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 25,),
-
-                                    Flexible(
-                                      child: Text(
-                                        description,
-                                        overflow: TextOverflow
-                                            .ellipsis,
-                                        maxLines: 2,
-                                        style: TextStyle(
-                                            color: Colors.white
-                                                .withOpacity(0.25),
-                                            fontSize: 15,
-                                            fontWeight: FontWeight
-                                                .bold
-                                        ),
-                                      ),
-                                    ),
-
-
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    return posts[index];
                   }
                   else{
                     return Padding(
@@ -1564,7 +1502,14 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 
+
+
+
+
+
   Future<int> load(String channel) async {
+
+    //  Maybe rework this a bit.
 
       try {
         var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
@@ -1588,12 +1533,77 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 String post = jsondata[i.toString()]["post"].toString();
                 String title = jsondata[i.toString()]["title"].toString();
                 String owner = jsondata[i.toString()]["owner"].toString();
+                String link = jsondata[i.toString()]["link"].toString();
+
+
+                int? likesCount = jsondata[i.toString()]["likes"];
+                String? likedPpl = jsondata[i.toString()]["lppl"].toString();
+                String? dislikedPpl = jsondata[i.toString()]["dppl"].toString();
+                int? id = jsondata[i.toString()]["id"];
+
+                List<String> liked = likedPpl.split(';');
+                List<String> disliked = dislikedPpl.split(';');
+
+                bool likedbool;
+                bool dislikedbool;
+                Color? color;
+
+                switch(channel){
+                  case 'Students':
+                    color = ColorsB.gray800;
+                    break;
+                  case 'Teachers':
+                    color = Colors.amber;
+                    break;
+                  case 'Parents':
+                    color = Colors.indigoAccent;
+                    break;
+                }
+
+
+
+                //print(globalMap['id']);
+
 
 
                 if(post != "null" && post != null){
-                  titles.add(title);
-                  descriptions.add(post);
-                  owners.add(owner);
+
+
+                  if(liked.contains(globalMap['id'].toString())){
+                    likedbool = true;
+                    print('a');
+                  } else {
+                    likedbool = false;
+                  }
+
+                  if(disliked.contains(globalMap['id'].toString())){
+                    dislikedbool = true;
+                  } else {
+                    dislikedbool = false;
+                  }
+
+                  posts.add(Post(title: title,
+                      color: color,
+                      likes: likesCount,
+                      likesBool: likedbool,
+                      dislikes: dislikedbool,
+                      ids: id,
+                      descriptions: post,
+                      owners: owner,
+                      link: link,
+                      hero: _hero,
+                      globalMap: globalMap,
+                      context: context,)
+                  );
+
+
+
+                  //(link);
+
+                  // Prechaching the asset
+
+
+
                   ++maximumCount;
                 }
 
@@ -1617,6 +1627,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           }
         }
       } catch (e) {
+        print(e);
         if(isAlive){
           setState(() {
             isError = true;
@@ -1628,8 +1639,15 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   }
 
+  void update() {
+    setState(() {
+
+    });
+  }
+
+
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, String author, Color color) {
+  void _hero(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -1640,7 +1658,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: author,),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
               )
         )
     );
@@ -1655,14 +1673,245 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 // <----------------- Making the 'News' container big ------------------>
-class BigNewsContainer extends StatelessWidget {
+//ignore: must_be_immutable
+class BigNewsContainer extends StatefulWidget {
 
   final String title;
   final String description;
   final Color color;
   final String author;
+  final String? imageLink;
+  final File? file;
+  int? likes, ids;
+  bool? likesBool, dislikes;
+  StreamController<int?>? contrL;
+  StreamController<bool?>? contrLB;
+  StreamController<bool?>? contrDB;
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author}) : super(key: key);
+
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
+
+  @override
+  State<BigNewsContainer> createState() => _BigNewsContainerState();
+}
+
+class _BigNewsContainerState extends State<BigNewsContainer> {
+
+  // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
+  Future<void> like(int id, int uid) async{
+    //print(ids);
+
+    if(widget.dislikes == true){
+      undislike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes! + 1;
+      widget.likesBool = true;
+
+      widget.dislikes = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+      widget.contrDB!.add(widget.dislikes);
+      //widget.update();
+    });
+
+    try{
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'LIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> unlike(int id, int uid) async{
+    //print(ids);
+
+    setState(() {
+      widget.likes = widget.likes! - 1;
+      widget.likesBool = false;
+
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+
+      //widget.update();
+
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> dislike(int id, int uid) async{
+    //print(ids);
+
+    if(widget.likesBool == true){
+      unlike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes! - 1;
+      widget.likesBool = false;
+
+      widget.dislikes = true;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.likesBool);
+      widget.contrDB!.add(widget.dislikes);
+
+      //widget.update();
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'DISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> undislike(int id, int uid) async{
+    //print(ids);
+
+    setState(() {
+      widget.likes = widget.likes! + 1;
+
+      widget.dislikes = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrDB!.add(widget.dislikes);
+
+      //widget.update();
+    });
+
+    try{
+      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNDISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata['error']){
+          print(jsondata['message']);
+        }
+
+        if(jsondata['success']){
+          print(jsondata);
+        }
+      }
+
+    } catch(e){
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontFamily: 'Nunito'
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -1670,53 +1919,20 @@ class BigNewsContainer extends StatelessWidget {
     var device = MediaQuery.of(context);
 
     return Scaffold(
-      bottomNavigationBar: BackNavbar(),
+      bottomNavigationBar: const BackNavbar(),
       backgroundColor: ColorsB.gray900,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Hero(
-            tag: 'title-rectangle',
-            child: Container(
-              width: device.size.width,
-              height: device.size.height * 0.5,
-              color: color,
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      Text(
-                          "by " + author,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          )
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          topPage(),
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Linkify(
-                text: description,
-                style: TextStyle(
+                linkStyle: const TextStyle(color: ColorsB.yellow500),
+                text: widget.description,
+                style: const TextStyle(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.normal
@@ -1735,6 +1951,282 @@ class BigNewsContainer extends StatelessWidget {
         ],
       ),
     ) ;
+  }
+
+  Widget topPage() {
+    print(widget.imageLink);
+    if(widget.file == null){
+      if(widget.imageLink == null || widget.imageLink == ''){
+        return Hero(
+          tag: 'title-rectangle',
+          child: Container(
+            width: screenWidth,
+            height: screenHeight * 0.5,
+            color: widget.color,
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        Text(
+                            "by " + widget.author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
+                        )
+                      ],
+                    ),
+                    globalMap['verification'] != 'Pending' && widget.likes != null
+                        ? Row(
+                          children: [
+                          //   Like and dislike
+                          IconButton(
+                            splashRadius: 20,
+                            icon: Icon(
+                              Icons.thumb_up,
+                              color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                              size: 25,
+                            ),
+                            onPressed: () {
+                              widget.likesBool == true ?
+                              unlike(widget.ids!, globalMap['id'])
+                                  : like(widget.ids!, globalMap['id']);
+                            },
+                          ),
+                          Text(
+                            widget.likes.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          IconButton(
+                            splashRadius: 20,
+                            icon: Icon(
+                              Icons.thumb_down,
+                              color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                              size: 25,
+                            ),
+                            onPressed: () {
+
+                              widget.dislikes == true ?
+                              undislike(widget.ids!, globalMap['id'])
+                                  : dislike(widget.ids!, globalMap['id']);
+                              //
+                            },
+                          ),
+                        ]
+                    )
+                        : const SizedBox(),
+                  ],
+                )
+              ),
+            ),
+          ),
+        );
+      }
+      else {
+        return Hero(
+            tag: 'title-rectangle',
+            child: Stack(
+                children: [
+                  Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.5,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: NetworkImage(widget.imageLink!),
+                          fit: BoxFit.cover
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    child: Container(
+                      width: screenWidth,
+                      height: screenHeight * 0.25,
+                      decoration: BoxDecoration(
+                          gradient: material.LinearGradient(
+                              colors: [
+                                Colors.black,
+                                Colors.transparent
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              stops: [
+                                0,
+                                0.9
+                              ]
+                          )
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    child: SizedBox(
+                      width: screenWidth,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                                Text(
+                                    "by " + widget.author,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    )
+                                )
+                              ],
+                            ),
+
+                            globalMap['verification'] != 'Pending' && widget.likes != null
+                                ? Row(
+                                  children: [
+                                  //   Like and dislike
+                                  IconButton(
+                                    splashRadius: 20,
+                                    icon: Icon(
+                                      Icons.thumb_up,
+                                      color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                      size: 25,
+                                    ),
+                                    onPressed: () {
+                                      widget.likesBool == true ?
+                                      unlike(widget.ids!, globalMap['id'])
+                                          : like(widget.ids!, globalMap['id']);
+                                    },
+                                  ),
+                                  Text(
+                                    widget.likes.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    splashRadius: 20,
+                                    icon: Icon(
+                                      Icons.thumb_down,
+                                      color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                      size: 25,
+                                    ),
+                                    onPressed: () {
+
+                                      widget.dislikes == true ?
+                                      undislike(widget.ids!, globalMap['id'])
+                                          : dislike(widget.ids!, globalMap['id']);
+                                      //
+                                    },
+                                  ),
+                                ]
+                            )
+                                : const SizedBox(),
+                          ]
+                        )
+                      ),
+                    ),
+                  ),
+                ]
+            )
+        );
+      }
+    }
+    else {
+      return Hero(
+          tag: 'title-rectangle',
+          child: Stack(
+              children: [
+                Container(
+                  width: screenWidth,
+                  height: screenHeight * 0.5,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: FileImage(widget.file!),
+                        fit: BoxFit.cover
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.25,
+                    decoration: BoxDecoration(
+                        gradient: material.LinearGradient(
+                            colors: [
+                              Colors.black,
+                              Colors.transparent
+                            ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            stops: [
+                              0,
+                              0.9
+                            ]
+                        )
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        Text(
+                            "by " + widget.author,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            )
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ]
+          )
+      );
+    }
   }
 }
 
@@ -1805,12 +2297,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -1845,11 +2337,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/parter.png",
-                          key: Key('1'),
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://automemeapp.com/gojdu/assets/et2.png",
+                                        key: Key('3'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -1865,13 +2379,13 @@ class _MapPageState extends State<MapPage>{
                 if (loadingProgress == null) return child;
                 return SizedBox(
                   height: screenHeight * 0.5,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                  child:Center(
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -1906,10 +2420,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et1.png",
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://automemeapp.com/gojdu/assets/et2.png",
+                                        key: Key('3'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -1928,12 +2465,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -1968,11 +2505,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et2.png",
-                          key: Key('3'),
-                        ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: InteractiveViewer(
+                                clipBehavior: Clip.none,
+                                  child: Image.network(
+                                    "https://automemeapp.com/gojdu/assets/et2.png",
+                                    key: Key('3'),
+                                  )
+                              ),
+                            ),
+                            Positioned(
+                                top: 10,
+                                right: 10,
+                                child: IconButton(
+                                  tooltip: 'Close',
+                                    splashRadius: 25,
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    }
+                                )
+                            )
+                          ]
+                        )
                       )
               );
             },
@@ -2571,158 +3130,111 @@ class CustomClipBar extends CustomClipper<Rect> {
 
 
 //  <-----------------  Calendar page 1 ------------------>
-class CalPag1 extends StatelessWidget {
+class CalPag1 extends StatefulWidget {
 
   final Function(int) changePage;
 
   const CalPag1({Key? key, required this.changePage}) : super(key: key);
 
   @override
+  State<CalPag1> createState() => _CalPag1State();
+}
+
+class _CalPag1State extends State<CalPag1> {
+
+  late Function(int) changePage;
+  bool ok = false;
+
+  @override
+  void initState() {
+    changePage = widget.changePage;
+    ok = false;
+    _loadHalls();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    halls.clear();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Stack(
         children: [
-          FutureBuilder(
-              future: _loadHalls(),
-              builder: (_, snapshot) {
-                if(snapshot.hasData){
-                  return ListView.builder(
-                    clipBehavior: Clip.hardEdge,         //  Find a way to do it better
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: titles.isNotEmpty ? titles.length : 1,
-                    itemBuilder: (context, index) {
-                      if(titles.isNotEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            height: 125,
-                            decoration: BoxDecoration(
-                              color: ColorsB.gray800,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(30),
-                                onTap: () {
-                                  _currentHall = index;
-                                  changePage(1);
-                                },
-                                child: Stack(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: ShaderMask(
-                                        shaderCallback: (rect) {
-                                          return const material.LinearGradient(
-                                            begin: Alignment.centerLeft,
-                                            end: Alignment.centerRight,
-                                            stops: [0, 1],
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black,
-                                            ],
-                                          ).createShader(rect);
-                                        },
-                                        blendMode: BlendMode.dstIn,
-                                        child: Icon(
-                                          Icons.account_balance_sharp,
-                                          color: ColorsB.gray700.withOpacity(0.25),
-                                          size: 75,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(15.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.account_balance,
-                                                color: ColorsB.yellow500,
-                                                size: 20,
-                                              ),
-                                              const SizedBox(width: 10,),
-                                              Text(
-                                                titles[index],
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Divider(
-                                            color: Colors.white.withOpacity(0.1),
-                                            thickness: 1,
-                                          ),
-                                          const SizedBox(height: 10,),
-                                          Text(
-                                            'Type: ${sizes[index]}',
-                                            style: TextStyle(
-                                              color: Colors.white.withOpacity(0.5),
-                                              fontSize: 10,
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                      else {
-                        // Return a nice No halls found message followed by the no_posts svg
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Wow, such empty!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 10,),
-                              Text(
-                                'No halls found',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 20,),
-                              SvgPicture.asset(
-                                'assets/svgs/no_posts.svg',
-                                height: 200,
-                              ),
-                            ],
-                          ),
-                        );
-
-
-
-                      }
-                    },
-                  );
-                }
-                else {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
-                    ),
-                  );
-                }
+          ok == false
+          ? ListView.builder(
+            itemCount: 5,
+            itemBuilder: (context, index) =>
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 125,
+                    child: Shimmer.fromColors(
+                      highlightColor: ColorsB.gray700,
+                      baseColor: ColorsB.gray800,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ),
+                    )
+                  ),
+                )
+          )
+          : ListView.builder(
+            clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+            physics: const BouncingScrollPhysics(),
+            itemCount: halls.isNotEmpty ? halls.length : 1,
+            itemBuilder: (context, index) {
+              if(halls.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: halls[index],
+                );
               }
+              else {
+                // Return a nice No halls found message followed by the no_posts svg
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Wow, such empty!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 10,),
+                      Text(
+                        'No halls found',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 20,),
+                      SvgPicture.asset(
+                        'assets/svgs/no_posts.svg',
+                        height: 200,
+                      ),
+                    ],
+                  ),
+                );
+
+
+
+              }
+            },
           ),
+
           Visibility(
             visible: globalMap['account'] == 'Admin' ? true : false,
             child: Align(
@@ -2940,6 +3452,7 @@ class CalPag1 extends StatelessWidget {
                                                   }
 
 
+
                                                 }
                                               },
                                             )
@@ -2972,16 +3485,11 @@ class CalPag1 extends StatelessWidget {
       )
     );
   }
-}
 
-bool hasLoaded = false;
+  Future<int> _loadHalls() async {
+    //await Future.delayed(const Duration(seconds: 1));
+    //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
 
-
-Future<int> _loadHalls() async {
-  //await Future.delayed(const Duration(seconds: 1));
-  titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
-
-  if(!hasLoaded){
     try {
       var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
       final response = await http.post(url, body: {
@@ -2992,15 +3500,19 @@ Future<int> _loadHalls() async {
         //print(jsondata);
         if(jsondata['1']['success']){
 
-          print(jsondata.length);
-          for(int i = 2; i < jsondata.length; i++) {
-            if (jsondata[i.toString()]['title'] != null &&
-                jsondata[i.toString()]['size'] != null) {
-              titles.add(jsondata[i.toString()]['title']);
-              sizes.add(jsondata[i.toString()]['size']);
 
-              print(i);
-              print(jsondata[i.toString()]['size']);
+          for(int i = 2; i < jsondata.length; i++) {
+
+            var title = jsondata[i.toString()]['title'];
+            var size = jsondata[i.toString()]['size'];
+
+            if (title != null && size != null) {
+
+              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage,);
+
+              halls.add(hall);
+              print(halls);
+
             }
             else {
               break;
@@ -3019,15 +3531,122 @@ Future<int> _loadHalls() async {
       //print(e);
       //return 0;
     }
+    setState(() {
+      ok = true;
+    });
+
+    // This is where the halls are loaded.
+    return 1;
   }
 
-  // This is where the halls are loaded.
-  return 1;
 }
+
+
+List<Hall> halls = [];
+
+
+
 
 // <------------------ Current Hall ------------------------>
 
 int? _currentHall;
+
+
+
+// Class for the container
+class Hall extends StatelessWidget {
+  final int index;
+  final String title;
+  final String size;
+  final Function(int) changePage;
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 125,
+      decoration: BoxDecoration(
+        color: ColorsB.gray800,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: () {
+            _currentHall = index;
+            changePage(1);
+          },
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ShaderMask(
+                  shaderCallback: (rect) {
+                    return const material.LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: [0, 1],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black,
+                      ],
+                    ).createShader(rect);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: Icon(
+                    Icons.account_balance_sharp,
+                    color: ColorsB.gray700.withOpacity(0.25),
+                    size: 75,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.account_balance,
+                          color: ColorsB.yellow500,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10,),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      color: Colors.white.withOpacity(0.1),
+                      thickness: 1,
+                    ),
+                    const SizedBox(height: 10,),
+                    Text(
+                      'Type: ${size}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                      ),
+                    ),
+
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 
 //  <-----------------  Statefull cal page 2 ----------------->
@@ -3383,10 +4002,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                                                 onTap: () async {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  print(pickedTime.toString());
                                                                                   if(pickedTime != null){
                                                                                     parsedTime1 = pickedTime;
-                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+                                                                                    //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = pickedTime.format(context);
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText.text = formattedTime;
@@ -3452,8 +4072,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
                                                                                   parsedTime2 = pickedTime;
                                                                                   if(pickedTime != null){
-                                                                                    DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = DateFormat('HH:mm').format(parsedTime);
+
+                                                                                    String formattedTime = pickedTime.format(context);
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText2.text = formattedTime;
@@ -3751,7 +4371,6 @@ class _PostItPageState extends State<PostItPage> {
     _postTitleController = TextEditingController();
     _formKey = GlobalKey<FormState>();
     _postColor = null;
-    isExpanded = false;
   }
 
   @override
@@ -3761,9 +4380,76 @@ class _PostItPageState extends State<PostItPage> {
   }
 
   List<bool?> classes = [false, false, false];
+  List<String> channels = [];
   String errorText = '';
 
-  bool isExpanded = false;
+  //  Image text
+  String _imageText = 'Add Image';
+  final ImagePicker _picker = ImagePicker();
+  late XFile? image;
+  File? _file;
+
+  String? format;
+
+
+
+  String generateString(){
+    String generated = '';
+
+    DateTime now = DateTime.now();
+    String formatedDate = DateFormat('yyyyMMddkkmm').format(now);
+
+    String selectedChannels = '';
+    for(int i = 0; i < channels.length; i++){
+      selectedChannels += channels[i][0];
+    }
+
+    generated = selectedChannels + formatedDate;
+
+    return generated;
+
+
+  }
+
+  Future<void> uploadImage(File? file, String name) async {
+    try{
+      if(image == null || file == null){
+        return;
+      }
+      var imageBytes = file.readAsBytesSync();
+      String baseimage = base64Encode(imageBytes);
+
+
+
+      var url = Uri.parse('https://automemeapp.com/gojdu/image_upload.php');
+      final response = await http.post(url, body: {
+        "image": baseimage,
+        "name": name,
+        "format": format
+      });
+
+      if(response.statusCode == 200){
+        var jsondata = json.decode(response.body);
+        if(jsondata["error"]){
+          print(jsondata["msg"]);
+        }else{
+          print("Upload successful");
+        }
+      } else {
+        print("Upload failed");
+      }
+
+
+
+
+    }
+    catch(e){
+      print("Error during converting to Base64");
+    }
+  }
+
+
+
 
 
   @override
@@ -3866,11 +4552,19 @@ class _PostItPageState extends State<PostItPage> {
                         children: [
                           Checkbox(
                             activeColor: ColorsB.yellow500,
-                            shape: const CircleBorder(),
+                            shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 1)),
+                            side: const BorderSide(color: Colors.white, width: 1),
                             value: classes[0],
                             onChanged: (value) {
                               setState(() {
                                 classes[0] = value;
+                                if(value!){
+                                  channels.add("Students");
+                                }
+                                else {
+                                  channels.remove("Students");
+                                }
+                                print(channels);
                               });
                             },
                           ),
@@ -3887,11 +4581,19 @@ class _PostItPageState extends State<PostItPage> {
                             Checkbox(
                               activeColor: ColorsB.yellow500,
                               shape: const CircleBorder(),
+                              side: const BorderSide(color: Colors.white, width: 1),
                               value: classes[1],
                               onChanged: (value) {
                                 setState(() {
                                   classes[1] = value;
-                                  _postColor = classes[1] == true ? Colors.amber : null;
+
+                                  if(value!){
+                                    channels.add("Teachers");
+                                  }
+                                  else {
+                                    channels.remove("Teachers");
+                                  }
+                                  print(channels);
                                 });
                               },
                             ),
@@ -3908,10 +4610,19 @@ class _PostItPageState extends State<PostItPage> {
                             Checkbox(
                               activeColor: ColorsB.yellow500,
                               shape: const CircleBorder(),
+                              side: const BorderSide(color: Colors.white, width: 1),
                               value: classes[2],
                               onChanged: (value) {
                                 setState(() {
                                   classes[2] = value;
+
+                                  if(value!){
+                                    channels.add("Parents");
+                                  }
+                                  else {
+                                    channels.remove("Parents");
+                                  }
+                                  print(channels);
                                 });
                               },
                             ),
@@ -3935,44 +4646,59 @@ class _PostItPageState extends State<PostItPage> {
 
                   ),
 
-                  const SizedBox(height: 20),
-                  ExpansionPanelList(
-                    expansionCallback: (expanded, index) {
-                      setState(() {
-                        isExpanded = !isExpanded;
-                      });
-                    },
-                      children: [
-                        ExpansionPanel(
-                          headerBuilder: (context, isExpanded) {
-                            return ListTile(
-                              title: Text(
-                                'Header Image - Optional',
-                                style: TextStyle(
-                                  fontFamily: 'Nunito',
-                                  color: ColorsB.yellow500,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            );
-                          },
-                          body: ListTile(
-                            title: Text(
-                              'Select a file',
-                              style: TextStyle(
-                                fontFamily: 'Nunito',
-                                color: ColorsB.yellow500,
-                                fontSize: 20,
-                              ),
-                            ),
-                            onTap: () {
-                            //TODO: Inca nu-i facut bre
-                            },
-                          ),
-                          isExpanded: isExpanded,
+                  const SizedBox(height: 25),
+                  ExpansionTile(
+
+                    collapsedIconColor: ColorsB.gray800,
+                    iconColor: ColorsB.yellow500,
+                    title: const Text(
+                      'Header Image - Optional',
+                      style: TextStyle(
+                        color: ColorsB.yellow500,
+                      ),
+                    ),
+                    children: [
+                      TextButton.icon(
+                        onPressed: () async {
+                          //  Image picker things
+
+                          try{
+                            final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
+                            if(_image == null) return;
+
+                            image = _image;
+                            _file = File(image!.path);
+
+                            format = image!.name.split('.').last;
+
+                            setState(() {
+                              _imageText = image!.name;
+                            });
+                          } catch(e) {
+                            setState(() {
+                              _imageText = 'Error! ${e.toString()}';
+                            });
+                          }
+
+                        },
+                        icon: const Icon(
+                          Icons.add_a_photo,
+                          color: Colors.white,
                         ),
-                      ]
+                        label: Text(
+                          _imageText,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: const TextStyle(
+                            color: Colors.white,
+
+                          ),
+                        ),
+                      )
+                    ],
                   ),
+
 
                   const SizedBox(height: 100,),
                   Row(
@@ -3982,7 +4708,7 @@ class _PostItPageState extends State<PostItPage> {
                         onPressed: () async {
 
                           if(_formKey.currentState!.validate()){
-                            if(classes[0] == false && classes[1] == false && classes[2] == false){
+                            if(channels.isEmpty){
                               setState(() {
                                 errorText = 'Please select at least one class';
                               });
@@ -3992,78 +4718,92 @@ class _PostItPageState extends State<PostItPage> {
                             setState(() {
                               errorText = '';
                             });
-                            for(int i = 0; i < classes.length; i++){ // @multiple_posts
-                              if(classes[i] == true){
 
-                                switch(i){
-                                  case 0:
-                                    _className = 'Students';
-                                    break;
-                                  case 1:
-                                    _className = 'Teachers';
-                                    break;
-                                  case 2:
-                                    _className = 'Parents';
-                                    break;
+                            String name = generateString();
+
+                            bool imgSub = false;
+
+                            for(int i = 0; i < channels.length; i++){
+                              try {
+
+
+                                if(!imgSub && _file != null){
+                                  await uploadImage(_file, name);
+                                  imgSub = true;
                                 }
+                                print(channels[i]);
 
+                                print(_file);
 
-                                try {
-                                  var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
-                                  final response = await http.post(url, body: {
+                                var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
+                                final response;
+                                if(_file != null){
+                                  response = await http.post(url, body: {
                                     "title": _postTitleController.value.text,
-                                    "channel": _className,
+                                    "channel": channels[i],
                                     "body": _postController.value.text,
                                     "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": "https://automemeapp.com/gojdu/imgs/$name.$format"
                                   });
-                                  if (response.statusCode == 200) {
-                                    var jsondata = json.decode(response.body);
-                                    print(jsondata);
-                                    if (jsondata["error"]) {
-                                      Navigator.of(context).pop();
-                                    } else {
-                                      if (jsondata["success"]){
+                                }
+                                else {
+                                  response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": channels[i],
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": ""
+                                  });
+                                }
+                                if (response.statusCode == 200) {
+                                  var jsondata = json.decode(response.body);
+                                  print(jsondata);
+                                  if (jsondata["error"]) {
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    if (jsondata["success"]){
 
-                                        // Notifications
+                                      // Notifications
 
-                                        // --------------------------------------------------
+                                      // --------------------------------------------------
 
 
-                                        try {
-                                          var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
-                                          final response2 = await http.post(ulr2, body: {
-                                            "channel": _className,
-                                            "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                            "action": "Post"
-                                          });
+                                      try {
+                                        var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                        final response2 = await http.post(ulr2, body: {
+                                          "channel": channels[i],
+                                          "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                          "action": "Post"
+                                        });
 
-                                          if(response2.statusCode == 200){
-                                            var jsondata2 = json.decode(response2.body);
-                                            print(jsondata2);
-                                            Navigator.of(context).pop();
-                                            Navigator.pop(context);
-                                          }
-
-                                        } catch (e) {
-                                          print(e);
+                                        if(response2.statusCode == 200){
+                                          var jsondata2 = json.decode(response2.body);
+                                          print(jsondata2);
+                                          Navigator.of(context).pop();
                                         }
 
-                                        // -------------------------------------------------
+                                      } catch (e) {
+                                        print(e);
                                       }
-                                      else
-                                      {
-                                        print(jsondata["message"]);
-                                      }
+
+                                      // -------------------------------------------------
+                                    }
+                                    else
+                                    {
+                                      print(jsondata["message"]);
                                     }
                                   }
-                                } catch (e) {
-                                  print(e);
-                                  Navigator.of(context).pop();
                                 }
+                              } catch (e) {
+                                print(e);
+                                //Navigator.of(context).pop();
                               }
                             }
                             Navigator.of(context).pop();
+
+                            //TODO: There is some unhandled exception and I have no fucking idea where. - Mihai
                           }
+
                         },
                         child: const Text(
                           'Post',
@@ -4077,16 +4817,21 @@ class _PostItPageState extends State<PostItPage> {
                         ),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || (classes[0] == false && classes[1] == false && classes[2] == false) ? ColorsB.gray800 : ColorsB.yellow500,
+                          backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty || channels.isEmpty ? ColorsB.gray800 : ColorsB.yellow500,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
                         ),
                       ),
                       Opacity(
-                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || (classes[0] == false && classes[1] == false && classes[2] == false) ? 0.5 : 1,
+                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || channels.isEmpty ? 0.5 : 1,
                         child: TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+
+
+
+                            //TODO: Make the upload work
+
 
                             if(_formKey.currentState!.validate() && !(classes[0] == false && classes[1] == false && classes[2] == false)) {
 
@@ -4110,7 +4855,7 @@ class _PostItPageState extends State<PostItPage> {
                                           ).animate(
                                               CurvedAnimation(parent: animation, curve: Curves.ease)
                                           ),
-                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me'),
+                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me', file: _file,),
                                         );
                                       }
 

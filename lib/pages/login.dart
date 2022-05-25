@@ -13,6 +13,8 @@ import 'package:gojdu/pages/forgot_password.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'package:flutter_svg/flutter_svg.dart';
+
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
 
@@ -344,7 +346,8 @@ class _LoginState extends State<Login> {
                     'last_name': ln,
                     'email': email,
                     'account': acc_type,
-                    'verification': jsondata['verification']
+                    'verification': jsondata['verification'],
+                    'id': jsondata['id'],
                   };
 
                   loginInfo = loginMap;

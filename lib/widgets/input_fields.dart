@@ -83,8 +83,8 @@ class _InputFieldState extends State<InputField> {
               return "Field cannot be empty.";
             }
             else if(widget.isEmail!) {
-                if(!(value.contains('@gmail.') || value.contains('@yahoo.'))&& widget.isStudent!) {
-                  return 'Please enter a vaild email adress (example@gojdu.com).';
+                if(!(value.contains('@cnego.me')) && widget.isStudent!) {
+                  return 'Please enter a vaild email adress (example@cnego.me).';
                 } else if(!widget.isStudent! && !value.contains('@')) {
                   return 'Please enter a valid email adress.';
                 }
