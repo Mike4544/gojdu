@@ -1032,6 +1032,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     });
   }
 
+
   void _showWritable() {
 
      Navigator.push(context, PageRouteBuilder(
