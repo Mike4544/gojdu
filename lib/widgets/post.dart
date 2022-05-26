@@ -62,7 +62,7 @@ class _PostState extends State<Post> {
 
     try{
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'LIKE',
         'id': id.toString(),
@@ -109,7 +109,7 @@ class _PostState extends State<Post> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNLIKE',
         'id': id.toString(),
@@ -161,7 +161,7 @@ class _PostState extends State<Post> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'DISLIKE',
         'id': id.toString(),
@@ -208,7 +208,7 @@ class _PostState extends State<Post> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNDISLIKE',
         'id': id.toString(),

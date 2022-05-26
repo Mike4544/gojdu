@@ -105,11 +105,12 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           clicked = true;
                         });
                         var url = Uri.parse(
-                            'https://automemeapp.com/gojdu/changePassword.php');
+                            'https://cnegojdu.ro/GojduApp/changePassword.php');
                         final response = await http.post(url, body: {
                           'action': "FORGOT",
                           "email": emailController.text,
                         });
+                        print(response.statusCode);
                         if(response.statusCode == 200){
                           var jsondata = json.decode(response.body);
 
@@ -138,14 +139,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                         }
                         else {
                           setState(() {
-                            errorMessage = 'Something went wrong';
+                            errorMessage = 'Something went wrong 1';
                             clicked = false;
                           });
                         }
 
                       } catch (e) {
                         setState(() {
-                          errorMessage = 'Something went wrong';
+                          errorMessage = 'Something went wrong 2';
                           clicked = false;
                         });
                       }

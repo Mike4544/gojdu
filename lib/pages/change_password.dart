@@ -121,7 +121,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                               return;
                             }
                             var url = Uri.parse(
-                                'https://automemeapp.com/gojdu/changePassword.php');
+                                'https://cnegojdu.ro/GojduApp/changePassword.php');
                             final response = await http.post(url, body: {
                               'action': "RESET",
                               "npass": _newPasswordController.text,

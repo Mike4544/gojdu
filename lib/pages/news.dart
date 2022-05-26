@@ -411,7 +411,7 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/select_users.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/select_users.php');
       final response = await http.post(url, body: {
         'state': 'Pending',
       });
@@ -472,7 +472,7 @@ class _NewsPageState extends State<NewsPage>{
   // The notification
   Future<void> _notifyUser(String? token) async {
     try {
-      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
       final response2 = await http.post(ulr2, body: {
         "action": "Verify",
         "token": token,
@@ -492,7 +492,7 @@ class _NewsPageState extends State<NewsPage>{
 
   Future<void> _verifyUser(String? token, String? email, String status, int index) async {
     try {
-      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/verify_accounts.php');
+      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/verify_accounts.php');
       final response2 = await http.post(ulr2, body: {
         "email": email,
         "status": status,
@@ -1032,6 +1032,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     });
   }
 
+
   void _showWritable() {
 
      Navigator.push(context, PageRouteBuilder(
@@ -1512,7 +1513,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     //  Maybe rework this a bit.
 
       try {
-        var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
+        var url = Uri.parse('https://cnegojdu.ro/GojduApp/selectposts.php');
         final response = await http.post(url, body: {
           "index": "0",
           "channel": channel,
@@ -1719,7 +1720,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
     try{
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'LIKE',
         'id': id.toString(),
@@ -1770,7 +1771,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNLIKE',
         'id': id.toString(),
@@ -1826,7 +1827,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'DISLIKE',
         'id': id.toString(),
@@ -1876,7 +1877,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNDISLIKE',
         'id': id.toString(),
@@ -2289,7 +2290,7 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('1'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/parter.png",
+              "https://cnegojdu.ro/GojduApp/assets/parter.png",
               key: Key('1'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
@@ -2297,12 +2298,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2337,11 +2338,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/parter.png",
-                          key: Key('1'),
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://cnegojdu.ro/GojduApp/assets/et2.png",
+                                        key: Key('3'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -2350,20 +2373,20 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('2'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/et1.png",
+              "https://cnegojdu.ro/GojduApp/assets/et1.png",
               key: Key('2'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
                 if (loadingProgress == null) return child;
                 return SizedBox(
                   height: screenHeight * 0.5,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                  child:Center(
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2398,10 +2421,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et1.png",
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://cnegojdu.ro/GojduApp/assets/et2.png",
+                                        key: Key('3'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -2412,7 +2458,7 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('3'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/et2.png",
+              "https://cnegojdu.ro/GojduApp/assets/et2.png",
               key: Key('3'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
@@ -2420,12 +2466,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2460,11 +2506,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et2.png",
-                          key: Key('3'),
-                        ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: InteractiveViewer(
+                                clipBehavior: Clip.none,
+                                  child: Image.network(
+                                    "https://cnegojdu.ro/GojduApp/assets/et2.png",
+                                    key: Key('3'),
+                                  )
+                              ),
+                            ),
+                            Positioned(
+                                top: 10,
+                                right: 10,
+                                child: IconButton(
+                                  tooltip: 'Close',
+                                    splashRadius: 25,
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    }
+                                )
+                            )
+                          ]
+                        )
                       )
               );
             },
@@ -3351,7 +3419,7 @@ class _CalPag1State extends State<CalPag1> {
                                                   });
 
                                                   try {
-                                                    var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+                                                    var url = Uri.parse('https://cnegojdu.ro/GojduApp/halls.php');
                                                     final response = await http.post(url, body: {
                                                       "action": 'INSERT', // Or IMPORT
                                                       "title": titleController.text,
@@ -3424,7 +3492,7 @@ class _CalPag1State extends State<CalPag1> {
     //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
 
     try {
-      var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/halls.php');
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
@@ -3634,11 +3702,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
   Future<int> _getList(DateTime date) async {
     try {
-      var url = Uri.parse('https://automemeapp.com/gojdu/selectbookings.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/selectbookings.php');
       final response = await http.post(url, body: {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyy-MM-dd').format(date).toString(),
       });
+      print(response.statusCode);
+      print("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
 
@@ -4046,7 +4116,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                 setState(() {
                                                                                   clicked = true;
                                                                                 });
-                                                                                var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
+                                                                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
                                                                                 final response = await http.post(url, body: {
                                                                                   "day": _selectedDay.toString(),
                                                                                   "start": _time1+":00",
@@ -4054,6 +4124,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   "hall": _currentHall.toString(),
                                                                                   "owner": globalMap["first_name"] + " " + globalMap["last_name"],
                                                                                 });
+                                                                                print(response.statusCode);
+                                                                                print("does work");
                                                                                 if (response.statusCode == 200) {
                                                                                   var jsondata = json.decode(response.body);
                                                                                   print(jsondata);
@@ -4354,7 +4426,7 @@ class _PostItPageState extends State<PostItPage> {
 
 
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/image_upload.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/image_upload.php');
       final response = await http.post(url, body: {
         "image": baseimage,
         "name": name,
@@ -4666,14 +4738,28 @@ class _PostItPageState extends State<PostItPage> {
                                 }
                                 print(channels[i]);
 
-                                var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
-                                final response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "channel": channels[i],
-                                  "body": _postController.value.text,
-                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                  "link": "https://automemeapp.com/gojdu/imgs/$name.$format"
-                                });
+                                print(_file);
+
+                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
+                                final response;
+                                if(_file != null){
+                                  response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": channels[i],
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format"
+                                  });
+                                }
+                                else {
+                                  response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": channels[i],
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": ""
+                                  });
+                                }
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
                                   print(jsondata);
@@ -4688,7 +4774,7 @@ class _PostItPageState extends State<PostItPage> {
 
 
                                       try {
-                                        var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                        var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
                                         final response2 = await http.post(ulr2, body: {
                                           "channel": channels[i],
                                           "owner": globalMap["first_name"] + " " + globalMap["last_name"],

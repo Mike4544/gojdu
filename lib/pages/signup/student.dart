@@ -175,7 +175,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         final _prefs = await SharedPreferences.getInstance();
                         String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://automemeapp.com/gojdu/register_student.php');
+                        var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_student.php');
                         final response = await http.post(url, body: {
                           "first_name": _username.value.text,
                           "last_name": _lastname.value.text,

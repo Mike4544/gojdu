@@ -296,7 +296,7 @@ class _LoginState extends State<Login> {
               isLoggingIn = true;
             });
 
-            var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
+            var url = Uri.parse('https://cnegojdu.ro/GojduApp/login_gojdu.php');
             final response = await http.post(url, body: {
               "email": _nameController.value.text,
               "password": _passController.value.text,
