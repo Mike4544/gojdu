@@ -1,4 +1,4 @@
-package com.gojdu.app.gojdu
+package com.gojdu.app
 
 import io.flutter.embedding.android.FlutterActivity
 

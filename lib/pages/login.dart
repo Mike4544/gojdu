@@ -114,8 +114,8 @@ class _LoginState extends State<Login> {
                   children: [
                     Column(
                       children: [
-                        Image.asset('assets/images/Logo.png'),
-                        SizedBox(height: size.size.height * 0.20,),
+                        Image.asset('assets/images/Logo.png', height: 300,),
+                        SizedBox(height: size.size.height * 0.10,),
                         Form(
                           key: _formKey,
                           child: Column(

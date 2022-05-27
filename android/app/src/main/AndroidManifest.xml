@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.gojdu.app.gojdu">
+    package="com.gojdu.app">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA" />
@@ -21,9 +21,14 @@
     </queries>
 
    <application
-        android:label="gojdu"
+        android:label="GojduApp"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+
+       <meta-data
+           android:name="com.google.firebase.messaging.default_notification_icon"
+           android:resource="@mipmap/gj_notif" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

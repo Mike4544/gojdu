@@ -365,6 +365,7 @@ Future<void> logoff(BuildContext context) async {
   await messaging.unsubscribeFromTopic(type + 's');
 
   await prefs.remove('name');
+  await prefs.remove('email');
   await prefs.remove('password');
 
   Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);

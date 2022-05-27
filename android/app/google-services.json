@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:441637616905:android:47255a5be531d169d3a7d8",
+        "mobilesdk_app_id": "1:441637616905:android:e199d6245c1185f5d3a7d8",
         "android_client_info": {
-          "package_name": "com.gojdu.app.gojdu"
+          "package_name": "com.gojdu.app"
         }
       },
       "oauth_client": [
@@ -31,10 +31,10 @@
               "client_type": 3
             },
             {
-              "client_id": "441637616905-5u775s1bhb0k34jro8rd9iiecufn74su.apps.googleusercontent.com",
+              "client_id": "441637616905-4p1v0otfjv5cnkdqa7h9vc9jvtmtopge.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.gojdu.app.gojdu"
+                "bundle_id": "com.gojdu.app"
               }
             }
           ]

@@ -8,17 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
-import 'package:gojdu/widgets/class_selector.dart';
+//import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:rive/rive.dart';
-import 'package:gojdu/others/rounded_triangle.dart';
+//import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/floor_selector.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
-import 'package:gojdu/others/event.dart';
+//import 'package:gojdu/others/event.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
@@ -237,7 +237,7 @@ class _NewsPageState extends State<NewsPage>{
   @override
   void deactivate() {
     super.deactivate();
-    print(1);
+    //print(1);
   }
 
   @override
@@ -291,8 +291,8 @@ class _NewsPageState extends State<NewsPage>{
         connectionStatus = result;
         _connectionStatus = result;
       });
-      print(result);
-      print(lastConnectionStatus);
+      //print(result);
+      //print(lastConnectionStatus);
       checkConnectivity();
       lastConnectionStatus = connectionStatus;
     });
@@ -415,7 +415,7 @@ class _NewsPageState extends State<NewsPage>{
       final response = await http.post(url, body: {
         'state': 'Pending',
       });
-      print(response.statusCode);
+      //print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
 
@@ -448,21 +448,21 @@ class _NewsPageState extends State<NewsPage>{
 
               /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
             }
           }
           else
           {
-            print(jsondata["1"]["message"]);
+            //print(jsondata["1"]["message"]);
           }
         }
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
 
     return 0;
@@ -480,13 +480,13 @@ class _NewsPageState extends State<NewsPage>{
 
       if(response2.statusCode == 200){
         var jsondata2 = json.decode(response2.body);
-        print(jsondata2);
+        //print(jsondata2);
 
       }
 
 
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -500,7 +500,7 @@ class _NewsPageState extends State<NewsPage>{
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
-        print(jsondata2);
+        //print(jsondata2);
         if(jsondata2['error'] == false){
           _notifyUser(token);
 
@@ -508,10 +508,10 @@ class _NewsPageState extends State<NewsPage>{
         }
       }
       else {
-        print(response2.statusCode);
+        //print(response2.statusCode);
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -652,7 +652,7 @@ class _NewsPageState extends State<NewsPage>{
                                                             GestureDetector(
                                                               child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
                                                               onTap: () async {
-                                                                print('Checked');
+                                                                //print('Checked');
                                                                 await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
                                                                 setState1(() {
 
@@ -663,7 +663,7 @@ class _NewsPageState extends State<NewsPage>{
                                                             GestureDetector(
                                                               child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
                                                               onTap: () {
-                                                                print('Canceled');
+                                                                //print('Canceled');
 
 
 
@@ -987,7 +987,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       }
     });
 
-    print(globalMap['account']);
+    //print(globalMap['account']);
 
   }
 
@@ -1016,11 +1016,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
-    //print(likesBool);
+    ////print(likesBool);
     isError = false;
     loaded = false;
 
-    //print(posts.length);
+    ////print(posts.length);
 
     posts.clear();
 
@@ -1216,7 +1216,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                               currentChannel = 'Students';
                               _refresh();
-                              print(currentWidth);
+                              //print(currentWidth);
                             });
                             _announcementsController.animateToPage(
                                 _currentAnnouncement,
@@ -1245,7 +1245,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Teachers';
                                 _refresh();
-                                print(currentWidth);
+                                //print(currentWidth);
                               });
                               _announcementsController.animateToPage(
                                   _currentAnnouncement,
@@ -1274,7 +1274,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Parents';
                                 _refresh();
-                                print(currentWidth);
+                                //print(currentWidth);
                               });
 
                               _announcementsController.animateToPage(
@@ -1518,7 +1518,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           "index": "0",
           "channel": channel,
         });
-        print(response.statusCode);
+        //print(response.statusCode);
         if (response.statusCode == 200) {
           var jsondata = json.decode(response.body);
 
@@ -1563,7 +1563,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 
-                //print(globalMap['id']);
+                ////print(globalMap['id']);
 
 
 
@@ -1572,7 +1572,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
                   if(liked.contains(globalMap['id'].toString())){
                     likedbool = true;
-                    print('a');
+                    //print('a');
                   } else {
                     likedbool = false;
                   }
@@ -1610,9 +1610,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
                 /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
               }
@@ -1623,12 +1623,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             }
             else
             {
-              print(jsondata["1"]["message"]);
+              //print(jsondata["1"]["message"]);
             }
           }
         }
       } catch (e) {
-        print(e);
+        //print(e);
         if(isAlive){
           setState(() {
             isError = true;
@@ -1700,7 +1700,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
   Future<void> like(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     if(widget.dislikes == true){
       undislike(id, uid);
@@ -1730,16 +1730,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1756,7 +1756,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> unlike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     setState(() {
       widget.likes = widget.likes! - 1;
@@ -1781,16 +1781,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1807,7 +1807,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> dislike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     if(widget.likesBool == true){
       unlike(id, uid);
@@ -1837,16 +1837,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1863,7 +1863,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> undislike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     setState(() {
       widget.likes = widget.likes! + 1;
@@ -1887,16 +1887,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1955,7 +1955,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    print(widget.imageLink);
+    //print(widget.imageLink);
     if(widget.file == null){
       if(widget.imageLink == null || widget.imageLink == ''){
         return Hero(
@@ -3445,7 +3445,7 @@ class _CalPag1State extends State<CalPag1> {
 
                                                   }
                                                   catch (e) {
-                                                    //print(e);
+                                                    ////print(e);
                                                     setState(() {
                                                       errorText = 'Error connecting to server';
                                                       clicked = false;
@@ -3496,10 +3496,10 @@ class _CalPag1State extends State<CalPag1> {
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
-      print('Gojdu: ${response.statusCode}');
+      //print('Gojdu: ${response.statusCode}');
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        //print(jsondata);
         if(jsondata['1']['success']){
 
 
@@ -3513,7 +3513,7 @@ class _CalPag1State extends State<CalPag1> {
               Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage, Id: jsondata[i.toString()]['id']);
 
               halls.add(hall);
-              print(halls);
+              //print(halls);
 
             }
             else {
@@ -3530,7 +3530,7 @@ class _CalPag1State extends State<CalPag1> {
 
       }
     } catch (e) {
-      //print(e);
+      ////print(e);
       //return 0;
     }
     setState(() {
@@ -3709,11 +3709,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyyy-MM-dd').format(date).toString(),
       });
-      print(response.statusCode);
-      print("im heree");
+      //print(response.statusCode);
+      //print("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        //print(jsondata);
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -3730,9 +3730,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                   String begin = jsondata[i.toString()]["begin"].toString();
                   String? end = jsondata[i.toString()]["end"].toString();
                   String? owner = jsondata[i.toString()]["owner"].toString();
-                  //print(begin);
-                  //print(end);
-                  //print(owner);
+                  ////print(begin);
+                  ////print(end);
+                  ////print(owner);
 
                   if(begin != 'null' && end != 'null' && owner != 'null'){
                     if(_events[date] != null && !(_events[date]!.contains('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}')) ){
@@ -3749,9 +3749,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
             /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
           }
@@ -3913,7 +3913,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                             widget.changePage(2);
                             _selectedDay = selectedDay;
-                            print(_selectedDay);
+                            //print(_selectedDay);
                             _focusedDay = focusedDay;
                             width = 300;
                           });
@@ -4020,16 +4020,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                                                 onTap: () async {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  print(pickedTime.toString());
+                                                                                  //print(pickedTime.toString());
                                                                                   if(pickedTime != null){
                                                                                     parsedTime1 = pickedTime;
                                                                                     //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
                                                                                     String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  print(formattedTime);
+                                                                                    //  //print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText.text = formattedTime;
                                                                                       _time1 = formattedTime;
-                                                                                      print(formattedTime);
+                                                                                      //print(formattedTime);
 
                                                                                     });
                                                                                   }
@@ -4094,7 +4094,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   if(pickedTime != null){
 
                                                                                     String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  print(formattedTime);
+                                                                                    //  //print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText2.text = formattedTime;
                                                                                       _time2 = formattedTime;
@@ -4141,11 +4141,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   "hall": _currentHall.toString(),
                                                                                   "owner": globalMap["first_name"] + " " + globalMap["last_name"],
                                                                                 });
-                                                                                print(response.statusCode);
-                                                                                print("does work");
+                                                                                //print(response.statusCode);
+                                                                                //print("does work");
                                                                                 if (response.statusCode == 200) {
                                                                                   var jsondata = json.decode(response.body);
-                                                                                  print(jsondata);
+                                                                                  //print(jsondata);
                                                                                   if (jsondata["error"]) {
                                                                                   } else {
                                                                                     if (jsondata["success"]){
@@ -4153,11 +4153,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                      print(jsondata["message"]);
+                                                                                      //print(jsondata["message"]);
                                                                                     }
                                                                                   }
                                                                                 }
-                                                                                print(_events);
+                                                                                //print(_events);
 
                                                                                 widget.changePage(3);
                                                                                 setState(() {
@@ -4453,12 +4453,12 @@ class _PostItPageState extends State<PostItPage> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata["error"]){
-          print(jsondata["msg"]);
+          //print(jsondata["msg"]);
         }else{
-          print("Upload successful");
+          //print("Upload successful");
         }
       } else {
-        print("Upload failed");
+        //print("Upload failed");
       }
 
 
@@ -4466,7 +4466,7 @@ class _PostItPageState extends State<PostItPage> {
 
     }
     catch(e){
-      print("Error during converting to Base64");
+      //print("Error during converting to Base64");
     }
   }
 
@@ -4586,7 +4586,7 @@ class _PostItPageState extends State<PostItPage> {
                                 else {
                                   channels.remove("Students");
                                 }
-                                print(channels);
+                                //print(channels);
                               });
                             },
                           ),
@@ -4615,7 +4615,7 @@ class _PostItPageState extends State<PostItPage> {
                                   else {
                                     channels.remove("Teachers");
                                   }
-                                  print(channels);
+                                  //print(channels);
                                 });
                               },
                             ),
@@ -4644,7 +4644,7 @@ class _PostItPageState extends State<PostItPage> {
                                   else {
                                     channels.remove("Parents");
                                   }
-                                  print(channels);
+                                  //print(channels);
                                 });
                               },
                             ),
@@ -4753,9 +4753,9 @@ class _PostItPageState extends State<PostItPage> {
                                   await uploadImage(_file, name);
                                   imgSub = true;
                                 }
-                                print(channels[i]);
+                                //print(channels[i]);
 
-                                print(_file);
+                                //print(_file);
 
                                 var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
                                 final response;
@@ -4779,7 +4779,7 @@ class _PostItPageState extends State<PostItPage> {
                                 }
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  print(jsondata);
+                                  //print(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {
@@ -4800,24 +4800,24 @@ class _PostItPageState extends State<PostItPage> {
 
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
-                                          print(jsondata2);
+                                          //print(jsondata2);
                                           Navigator.of(context).pop();
                                         }
 
                                       } catch (e) {
-                                        print(e);
+                                        //print(e);
                                       }
 
                                       // -------------------------------------------------
                                     }
                                     else
                                     {
-                                      print(jsondata["message"]);
+                                      //print(jsondata["message"]);
                                     }
                                   }
                                 }
                               } catch (e) {
-                                print(e);
+                                //print(e);
                                 //Navigator.of(context).pop();
                               }
                             }
