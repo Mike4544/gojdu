@@ -3496,9 +3496,10 @@ class _CalPag1State extends State<CalPag1> {
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
+      print('Gojdu: ${response.statusCode}');
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
-        //print(jsondata);
+        print(jsondata);
         if(jsondata['1']['success']){
 
 
@@ -3509,7 +3510,7 @@ class _CalPag1State extends State<CalPag1> {
 
             if (title != null && size != null) {
 
-              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage,);
+              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage, Id: jsondata[i.toString()]['id']);
 
               halls.add(hall);
               print(halls);
@@ -3559,8 +3560,9 @@ class Hall extends StatelessWidget {
   final int index;
   final String title;
   final String size;
+  final int Id;
   final Function(int) changePage;
-  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage}) : super(key: key);
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -3575,7 +3577,7 @@ class Hall extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(30),
           onTap: () {
-            _currentHall = index;
+            _currentHall = Id;
             changePage(1);
           },
           child: Stack(
@@ -3705,12 +3707,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
       var url = Uri.parse('https://cnegojdu.ro/GojduApp/selectbookings.php');
       final response = await http.post(url, body: {
         "hall": _currentHall.toString(),
-        "day": DateFormat('yyy-MM-dd').format(date).toString(),
+        "day": DateFormat('yyyy-MM-dd').format(date).toString(),
       });
       print(response.statusCode);
       print("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
+        print(jsondata);
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -3800,6 +3803,18 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
 
   // TODO: Get the data from the server and shit.
+
+  String convertTo24(String time){
+    var splitTime = time.split(' ');
+    var period = splitTime.last;
+    var hour = splitTime.first.split(':').first;
+    var minutes = splitTime.first.split(':').last;
+    if(period == 'PM'){
+      hour = (int.parse(hour) + 12).toString();
+    }
+    return '$hour:$minutes';
+
+  }
 
 
 
@@ -4009,11 +4024,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   if(pickedTime != null){
                                                                                     parsedTime1 = pickedTime;
                                                                                     //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = pickedTime.format(context);
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText.text = formattedTime;
                                                                                       _time1 = formattedTime;
+                                                                                      print(formattedTime);
+
                                                                                     });
                                                                                   }
 
@@ -4076,7 +4093,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   parsedTime2 = pickedTime;
                                                                                   if(pickedTime != null){
 
-                                                                                    String formattedTime = pickedTime.format(context);
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
                                                                                     //  print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText2.text = formattedTime;
@@ -4118,7 +4135,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                 });
                                                                                 var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
                                                                                 final response = await http.post(url, body: {
-                                                                                  "day": _selectedDay.toString(),
+                                                                                  "day": _selectedDay.toString().split(' ').first,
                                                                                   "start": _time1+":00",
                                                                                   "end": _time2+":00",
                                                                                   "hall": _currentHall.toString(),
