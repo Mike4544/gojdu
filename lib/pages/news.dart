@@ -2743,31 +2743,36 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                             children: [
                               SizedBox(width: _clipAnimationValue.value),
                               const SizedBox(width: 2),
-                              GestureDetector(
-                                onTap: () {
-                                  if(_clipAnimation.status == AnimationStatus.dismissed){
-                                    _clipAnimation.forward();
-                                    _containerAnim.forward();
-                                  }
-                                  else {
-                                    _clipAnimation.reverse();
-                                    _containerAnim.reverse();
-                                  }
-                                },
-                                child: Container(
-                                  width: 15,
-                                  height: screenHeight * 0.5,
-                                  color: Colors.transparent,
-                                  child: Center(
+                              Container(
+                                width: 30,
+                                height: screenHeight * 0.5,
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if(_clipAnimation.status == AnimationStatus.dismissed){
+                                        _clipAnimation.forward();
+                                        _containerAnim.forward();
+                                      }
+                                      else {
+                                        _clipAnimation.reverse();
+                                        _containerAnim.reverse();
+                                      }
+                                    },
                                     child: RotationTransition(
+
                                       turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
-                                      child: const Icon(
-                                        Icons.keyboard_arrow_right_rounded,
-                                        color: Colors.white,
-                                        size: 20
+                                      child: SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: const Icon(
+                                          Icons.keyboard_arrow_right_rounded,
+                                          color: Colors.white,
+                                          size: 35
+                                        ),
                                       ),
                                     ),
-                                  )
+                                  ),
                                 ),
                               )
                             ],

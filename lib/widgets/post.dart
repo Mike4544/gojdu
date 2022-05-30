@@ -175,6 +175,7 @@ class _PostState extends State<Post> {
         }
 
         if(jsondata['success']){
+          print(id);
           print(jsondata);
         }
       }
