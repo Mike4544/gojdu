@@ -2346,8 +2346,8 @@ class _MapPageState extends State<MapPage>{
                                   child: InteractiveViewer(
                                       clipBehavior: Clip.none,
                                       child: Image.network(
-                                        "https://cnegojdu.ro/GojduApp/assets/et2.png",
-                                        key: Key('3'),
+                                        "https://cnegojdu.ro/GojduApp/assets/parter.png",
+                                        key: Key('1'),
                                       )
                                   ),
                                 ),
@@ -2429,8 +2429,8 @@ class _MapPageState extends State<MapPage>{
                                   child: InteractiveViewer(
                                       clipBehavior: Clip.none,
                                       child: Image.network(
-                                        "https://cnegojdu.ro/GojduApp/assets/et2.png",
-                                        key: Key('3'),
+                                        "https://cnegojdu.ro/GojduApp/assets/et1.png",
+                                        key: Key('2'),
                                       )
                                   ),
                                 ),
