@@ -249,7 +249,7 @@ class _FirstPageState extends State<FirstPage> {
                     final _prefs = await SharedPreferences.getInstance();
                     String? token = await _firebaseMessaging.getToken();
 
-                    var url = Uri.parse('https://automemeapp.com/gojdu/register_teacher.php');
+                    var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_teacher.php');
                     final response = await http.post(url, body: {
                       "first_name": _username.value.text,
                       "last_name": _lastname.value.text,

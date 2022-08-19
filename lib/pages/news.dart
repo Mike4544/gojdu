@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -9,17 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:gojdu/others/colors.dart';
-import 'package:gojdu/widgets/class_selector.dart';
+//import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:rive/rive.dart';
-import 'package:gojdu/others/rounded_triangle.dart';
+//import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/floor_selector.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'dart:ui';
 import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
-import 'package:gojdu/others/event.dart';
+//import 'package:gojdu/others/event.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
@@ -238,7 +237,7 @@ class _NewsPageState extends State<NewsPage>{
   @override
   void deactivate() {
     super.deactivate();
-    print(1);
+    //print(1);
   }
 
   @override
@@ -292,8 +291,8 @@ class _NewsPageState extends State<NewsPage>{
         connectionStatus = result;
         _connectionStatus = result;
       });
-      print(result);
-      print(lastConnectionStatus);
+      //print(result);
+      //print(lastConnectionStatus);
       checkConnectivity();
       lastConnectionStatus = connectionStatus;
     });
@@ -412,11 +411,11 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/select_users.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/select_users.php');
       final response = await http.post(url, body: {
         'state': 'Pending',
       });
-      print(response.statusCode);
+      //print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
 
@@ -449,21 +448,21 @@ class _NewsPageState extends State<NewsPage>{
 
               /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
             }
           }
           else
           {
-            print(jsondata["1"]["message"]);
+            //print(jsondata["1"]["message"]);
           }
         }
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
 
     return 0;
@@ -473,7 +472,7 @@ class _NewsPageState extends State<NewsPage>{
   // The notification
   Future<void> _notifyUser(String? token) async {
     try {
-      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
       final response2 = await http.post(ulr2, body: {
         "action": "Verify",
         "token": token,
@@ -481,19 +480,19 @@ class _NewsPageState extends State<NewsPage>{
 
       if(response2.statusCode == 200){
         var jsondata2 = json.decode(response2.body);
-        print(jsondata2);
+        //print(jsondata2);
 
       }
 
 
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
   Future<void> _verifyUser(String? token, String? email, String status, int index) async {
     try {
-      var ulr2 = Uri.parse('https://automemeapp.com/gojdu/verify_accounts.php');
+      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/verify_accounts.php');
       final response2 = await http.post(ulr2, body: {
         "email": email,
         "status": status,
@@ -501,7 +500,7 @@ class _NewsPageState extends State<NewsPage>{
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
-        print(jsondata2);
+        //print(jsondata2);
         if(jsondata2['error'] == false){
           _notifyUser(token);
 
@@ -509,10 +508,10 @@ class _NewsPageState extends State<NewsPage>{
         }
       }
       else {
-        print(response2.statusCode);
+        //print(response2.statusCode);
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -653,7 +652,7 @@ class _NewsPageState extends State<NewsPage>{
                                                             GestureDetector(
                                                               child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
                                                               onTap: () async {
-                                                                print('Checked');
+                                                                //print('Checked');
                                                                 await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
                                                                 setState1(() {
 
@@ -664,7 +663,7 @@ class _NewsPageState extends State<NewsPage>{
                                                             GestureDetector(
                                                               child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
                                                               onTap: () {
-                                                                print('Canceled');
+                                                                //print('Canceled');
 
 
 
@@ -988,7 +987,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       }
     });
 
-    print(globalMap['account']);
+    //print(globalMap['account']);
 
   }
 
@@ -1017,11 +1016,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   }
 
   void _refresh() async {
-    //print(likesBool);
+    ////print(likesBool);
     isError = false;
     loaded = false;
 
-    //print(posts.length);
+    ////print(posts.length);
 
     posts.clear();
 
@@ -1032,6 +1031,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       load(currentChannel);
     });
   }
+
 
   void _showWritable() {
 
@@ -1216,7 +1216,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                               currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                               currentChannel = 'Students';
                               _refresh();
-                              print(currentWidth);
+                              //print(currentWidth);
                             });
                             _announcementsController.animateToPage(
                                 _currentAnnouncement,
@@ -1245,7 +1245,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Teachers';
                                 _refresh();
-                                print(currentWidth);
+                                //print(currentWidth);
                               });
                               _announcementsController.animateToPage(
                                   _currentAnnouncement,
@@ -1274,7 +1274,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                                 currentWidth = _textSize(labels[_currentAnnouncement], style).width;
                                 currentChannel = 'Parents';
                                 _refresh();
-                                print(currentWidth);
+                                //print(currentWidth);
                               });
 
                               _announcementsController.animateToPage(
@@ -1513,12 +1513,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     //  Maybe rework this a bit.
 
       try {
-        var url = Uri.parse('https://automemeapp.com/gojdu/selectposts.php');
+        var url = Uri.parse('https://cnegojdu.ro/GojduApp/selectposts.php');
         final response = await http.post(url, body: {
           "index": "0",
           "channel": channel,
         });
-        print(response.statusCode);
+        //print(response.statusCode);
         if (response.statusCode == 200) {
           var jsondata = json.decode(response.body);
 
@@ -1563,7 +1563,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 
-                //print(globalMap['id']);
+                ////print(globalMap['id']);
 
 
 
@@ -1572,7 +1572,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
                   if(liked.contains(globalMap['id'].toString())){
                     likedbool = true;
-                    print('a');
+                    //print('a');
                   } else {
                     likedbool = false;
                   }
@@ -1610,9 +1610,9 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
                 /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
               }
@@ -1623,12 +1623,12 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             }
             else
             {
-              print(jsondata["1"]["message"]);
+              //print(jsondata["1"]["message"]);
             }
           }
         }
       } catch (e) {
-        print(e);
+        //print(e);
         if(isAlive){
           setState(() {
             isError = true;
@@ -1700,7 +1700,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
   Future<void> like(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     if(widget.dislikes == true){
       undislike(id, uid);
@@ -1720,7 +1720,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
     try{
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'LIKE',
         'id': id.toString(),
@@ -1730,16 +1730,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1756,7 +1756,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> unlike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     setState(() {
       widget.likes = widget.likes! - 1;
@@ -1771,7 +1771,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNLIKE',
         'id': id.toString(),
@@ -1781,16 +1781,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1807,7 +1807,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> dislike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     if(widget.likesBool == true){
       unlike(id, uid);
@@ -1827,7 +1827,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'DISLIKE',
         'id': id.toString(),
@@ -1837,16 +1837,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1863,7 +1863,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> undislike(int id, int uid) async{
-    //print(ids);
+    ////print(ids);
 
     setState(() {
       widget.likes = widget.likes! + 1;
@@ -1877,7 +1877,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     try{
-      var url = Uri.parse('https://automemeapp.com/gojdu/likes.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/likes.php');
       final response = await http.post(url, body: {
         'action': 'UNDISLIKE',
         'id': id.toString(),
@@ -1887,16 +1887,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata['error']){
-          print(jsondata['message']);
+          //print(jsondata['message']);
         }
 
         if(jsondata['success']){
-          print(jsondata);
+          //print(jsondata);
         }
       }
 
     } catch(e){
-      print(e);
+      //print(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -1955,7 +1955,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    print(widget.imageLink);
+    //print(widget.imageLink);
     if(widget.file == null){
       if(widget.imageLink == null || widget.imageLink == ''){
         return Hero(
@@ -2290,7 +2290,7 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('1'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/parter.png",
+              "https://cnegojdu.ro/GojduApp/assets/parter.png",
               key: Key('1'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
@@ -2298,12 +2298,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2338,11 +2338,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/parter.png",
-                          key: Key('1'),
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://cnegojdu.ro/GojduApp/assets/parter.png",
+                                        key: Key('1'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -2351,20 +2373,20 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('2'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/et1.png",
+              "https://cnegojdu.ro/GojduApp/assets/et1.png",
               key: Key('2'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
                 if (loadingProgress == null) return child;
                 return SizedBox(
                   height: screenHeight * 0.5,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                  child:Center(
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2399,10 +2421,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et1.png",
-                        ),
+                      Material(
+                          color: Colors.transparent,
+                          child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                      clipBehavior: Clip.none,
+                                      child: Image.network(
+                                        "https://cnegojdu.ro/GojduApp/assets/et1.png",
+                                        key: Key('2'),
+                                      )
+                                  ),
+                                ),
+                                Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                        tooltip: 'Close',
+                                        splashRadius: 25,
+                                        icon: const Icon(Icons.close, color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        }
+                                    )
+                                )
+                              ]
+                          )
                       )
               );
             },
@@ -2413,7 +2458,7 @@ class _MapPageState extends State<MapPage>{
           return GestureDetector(
             key: Key('3'),
             child: Image.network(
-              "https://automemeapp.com/gojdu/assets/et2.png",
+              "https://cnegojdu.ro/GojduApp/assets/et2.png",
               key: Key('3'),
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
@@ -2421,12 +2466,12 @@ class _MapPageState extends State<MapPage>{
                 return SizedBox(
                   height: screenHeight * 0.5,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!.toInt()
-                          : null,
-                      color: ColorsB.yellow500,
-                    ),
+                      child: Shimmer.fromColors(child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorsB.gray800,
+                        ),
+                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
                   ),
                 );
               },
@@ -2461,11 +2506,33 @@ class _MapPageState extends State<MapPage>{
               showDialog(
                   context: context,
                   builder: (context) =>
-                      InteractiveViewer(
-                        child: Image.network(
-                          "https://automemeapp.com/gojdu/assets/et2.png",
-                          key: Key('3'),
-                        ),
+                      Material(
+                        color: Colors.transparent,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: InteractiveViewer(
+                                clipBehavior: Clip.none,
+                                  child: Image.network(
+                                    "https://cnegojdu.ro/GojduApp/assets/et2.png",
+                                    key: Key('3'),
+                                  )
+                              ),
+                            ),
+                            Positioned(
+                                top: 10,
+                                right: 10,
+                                child: IconButton(
+                                  tooltip: 'Close',
+                                    splashRadius: 25,
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    }
+                                )
+                            )
+                          ]
+                        )
                       )
               );
             },
@@ -2676,31 +2743,36 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
                             children: [
                               SizedBox(width: _clipAnimationValue.value),
                               const SizedBox(width: 2),
-                              GestureDetector(
-                                onTap: () {
-                                  if(_clipAnimation.status == AnimationStatus.dismissed){
-                                    _clipAnimation.forward();
-                                    _containerAnim.forward();
-                                  }
-                                  else {
-                                    _clipAnimation.reverse();
-                                    _containerAnim.reverse();
-                                  }
-                                },
-                                child: Container(
-                                  width: 15,
-                                  height: screenHeight * 0.5,
-                                  color: Colors.transparent,
-                                  child: Center(
+                              Container(
+                                width: 30,
+                                height: screenHeight * 0.5,
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if(_clipAnimation.status == AnimationStatus.dismissed){
+                                        _clipAnimation.forward();
+                                        _containerAnim.forward();
+                                      }
+                                      else {
+                                        _clipAnimation.reverse();
+                                        _containerAnim.reverse();
+                                      }
+                                    },
                                     child: RotationTransition(
+
                                       turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
-                                      child: const Icon(
-                                        Icons.keyboard_arrow_right_rounded,
-                                        color: Colors.white,
-                                        size: 20
+                                      child: SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: const Icon(
+                                          Icons.keyboard_arrow_right_rounded,
+                                          color: Colors.white,
+                                          size: 35
+                                        ),
                                       ),
                                     ),
-                                  )
+                                  ),
                                 ),
                               )
                             ],
@@ -3352,7 +3424,7 @@ class _CalPag1State extends State<CalPag1> {
                                                   });
 
                                                   try {
-                                                    var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+                                                    var url = Uri.parse('https://cnegojdu.ro/GojduApp/halls.php');
                                                     final response = await http.post(url, body: {
                                                       "action": 'INSERT', // Or IMPORT
                                                       "title": titleController.text,
@@ -3378,7 +3450,7 @@ class _CalPag1State extends State<CalPag1> {
 
                                                   }
                                                   catch (e) {
-                                                    //print(e);
+                                                    ////print(e);
                                                     setState(() {
                                                       errorText = 'Error connecting to server';
                                                       clicked = false;
@@ -3425,10 +3497,11 @@ class _CalPag1State extends State<CalPag1> {
     //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
 
     try {
-      var url = Uri.parse('https://automemeapp.com/gojdu/halls.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/halls.php');
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
+      //print('Gojdu: ${response.statusCode}');
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         //print(jsondata);
@@ -3442,10 +3515,10 @@ class _CalPag1State extends State<CalPag1> {
 
             if (title != null && size != null) {
 
-              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage,);
+              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage, Id: jsondata[i.toString()]['id']);
 
               halls.add(hall);
-              print(halls);
+              //print(halls);
 
             }
             else {
@@ -3462,7 +3535,7 @@ class _CalPag1State extends State<CalPag1> {
 
       }
     } catch (e) {
-      //print(e);
+      ////print(e);
       //return 0;
     }
     setState(() {
@@ -3492,8 +3565,9 @@ class Hall extends StatelessWidget {
   final int index;
   final String title;
   final String size;
+  final int Id;
   final Function(int) changePage;
-  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage}) : super(key: key);
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -3508,7 +3582,7 @@ class Hall extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(30),
           onTap: () {
-            _currentHall = index;
+            _currentHall = Id;
             changePage(1);
           },
           child: Stack(
@@ -3635,13 +3709,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
   Future<int> _getList(DateTime date) async {
     try {
-      var url = Uri.parse('https://automemeapp.com/gojdu/selectbookings.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/selectbookings.php');
       final response = await http.post(url, body: {
         "hall": _currentHall.toString(),
-        "day": DateFormat('yyy-MM-dd').format(date).toString(),
+        "day": DateFormat('yyyy-MM-dd').format(date).toString(),
       });
+      //print(response.statusCode);
+      //print("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
+        //print(jsondata);
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -3658,9 +3735,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                   String begin = jsondata[i.toString()]["begin"].toString();
                   String? end = jsondata[i.toString()]["end"].toString();
                   String? owner = jsondata[i.toString()]["owner"].toString();
-                  //print(begin);
-                  //print(end);
-                  //print(owner);
+                  ////print(begin);
+                  ////print(end);
+                  ////print(owner);
 
                   if(begin != 'null' && end != 'null' && owner != 'null'){
                     if(_events[date] != null && !(_events[date]!.contains('${begin.substring(0, begin.length - 3)}  -  ${end.substring(0, end.length - 3)}  -  ${owner}')) ){
@@ -3677,9 +3754,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
             /* if(post != "null")
               {
-                print(post+ " this is the post");
-                print(title+" this is the title");
-                print(owner+ " this is the owner");
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
               } */
 
           }
@@ -3731,6 +3808,18 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
 
   // TODO: Get the data from the server and shit.
+
+  String convertTo24(String time){
+    var splitTime = time.split(' ');
+    var period = splitTime.last;
+    var hour = splitTime.first.split(':').first;
+    var minutes = splitTime.first.split(':').last;
+    if(period == 'PM'){
+      hour = (int.parse(hour) + 12).toString();
+    }
+    return '$hour:$minutes';
+
+  }
 
 
 
@@ -3829,7 +3918,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                             widget.changePage(2);
                             _selectedDay = selectedDay;
-                            print(_selectedDay);
+                            //print(_selectedDay);
                             _focusedDay = focusedDay;
                             width = 300;
                           });
@@ -3936,15 +4025,17 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
                                                                                 onTap: () async {
                                                                                   TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  print(pickedTime.toString());
+                                                                                  //print(pickedTime.toString());
                                                                                   if(pickedTime != null){
                                                                                     parsedTime1 = pickedTime;
                                                                                     //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = pickedTime.format(context);
-                                                                                    //  print(formattedTime);
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                    //  //print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText.text = formattedTime;
                                                                                       _time1 = formattedTime;
+                                                                                      //print(formattedTime);
+
                                                                                     });
                                                                                   }
 
@@ -4007,8 +4098,8 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                   parsedTime2 = pickedTime;
                                                                                   if(pickedTime != null){
 
-                                                                                    String formattedTime = pickedTime.format(context);
-                                                                                    //  print(formattedTime);
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                    //  //print(formattedTime);
                                                                                     setState(() {
                                                                                       timeText2.text = formattedTime;
                                                                                       _time2 = formattedTime;
@@ -4047,17 +4138,19 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                 setState(() {
                                                                                   clicked = true;
                                                                                 });
-                                                                                var url = Uri.parse('https://automemeapp.com/gojdu/insertbookings.php');
+                                                                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
                                                                                 final response = await http.post(url, body: {
-                                                                                  "day": _selectedDay.toString(),
+                                                                                  "day": _selectedDay.toString().split(' ').first,
                                                                                   "start": _time1+":00",
                                                                                   "end": _time2+":00",
                                                                                   "hall": _currentHall.toString(),
                                                                                   "owner": globalMap["first_name"] + " " + globalMap["last_name"],
                                                                                 });
+                                                                                //print(response.statusCode);
+                                                                                //print("does work");
                                                                                 if (response.statusCode == 200) {
                                                                                   var jsondata = json.decode(response.body);
-                                                                                  print(jsondata);
+                                                                                  //print(jsondata);
                                                                                   if (jsondata["error"]) {
                                                                                   } else {
                                                                                     if (jsondata["success"]){
@@ -4065,11 +4158,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                      print(jsondata["message"]);
+                                                                                      //print(jsondata["message"]);
                                                                                     }
                                                                                   }
                                                                                 }
-                                                                                print(_events);
+                                                                                //print(_events);
 
                                                                                 widget.changePage(3);
                                                                                 setState(() {
@@ -4355,7 +4448,7 @@ class _PostItPageState extends State<PostItPage> {
 
 
 
-      var url = Uri.parse('https://automemeapp.com/gojdu/image_upload.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/image_upload.php');
       final response = await http.post(url, body: {
         "image": baseimage,
         "name": name,
@@ -4365,12 +4458,12 @@ class _PostItPageState extends State<PostItPage> {
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
         if(jsondata["error"]){
-          print(jsondata["msg"]);
+          //print(jsondata["msg"]);
         }else{
-          print("Upload successful");
+          //print("Upload successful");
         }
       } else {
-        print("Upload failed");
+        //print("Upload failed");
       }
 
 
@@ -4378,7 +4471,7 @@ class _PostItPageState extends State<PostItPage> {
 
     }
     catch(e){
-      print("Error during converting to Base64");
+      //print("Error during converting to Base64");
     }
   }
 
@@ -4498,7 +4591,7 @@ class _PostItPageState extends State<PostItPage> {
                                 else {
                                   channels.remove("Students");
                                 }
-                                print(channels);
+                                //print(channels);
                               });
                             },
                           ),
@@ -4527,7 +4620,7 @@ class _PostItPageState extends State<PostItPage> {
                                   else {
                                     channels.remove("Teachers");
                                   }
-                                  print(channels);
+                                  //print(channels);
                                 });
                               },
                             ),
@@ -4556,7 +4649,7 @@ class _PostItPageState extends State<PostItPage> {
                                   else {
                                     channels.remove("Parents");
                                   }
-                                  print(channels);
+                                  //print(channels);
                                 });
                               },
                             ),
@@ -4665,19 +4758,33 @@ class _PostItPageState extends State<PostItPage> {
                                   await uploadImage(_file, name);
                                   imgSub = true;
                                 }
-                                print(channels[i]);
+                                //print(channels[i]);
 
-                                var url = Uri.parse('https://automemeapp.com/gojdu/insertposts.php');
-                                final response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "channel": channels[i],
-                                  "body": _postController.value.text,
-                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                  "link": "https://automemeapp.com/gojdu/imgs/$name.$format"
-                                });
+                                //print(_file);
+
+                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
+                                final response;
+                                if(_file != null){
+                                  response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": channels[i],
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format"
+                                  });
+                                }
+                                else {
+                                  response = await http.post(url, body: {
+                                    "title": _postTitleController.value.text,
+                                    "channel": channels[i],
+                                    "body": _postController.value.text,
+                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "link": ""
+                                  });
+                                }
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  print(jsondata);
+                                  //print(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {
@@ -4689,7 +4796,7 @@ class _PostItPageState extends State<PostItPage> {
 
 
                                       try {
-                                        var ulr2 = Uri.parse('https://automemeapp.com/gojdu/notifications.php');
+                                        var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
                                         final response2 = await http.post(ulr2, body: {
                                           "channel": channels[i],
                                           "owner": globalMap["first_name"] + " " + globalMap["last_name"],
@@ -4698,24 +4805,24 @@ class _PostItPageState extends State<PostItPage> {
 
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
-                                          print(jsondata2);
+                                          //print(jsondata2);
                                           Navigator.of(context).pop();
                                         }
 
                                       } catch (e) {
-                                        print(e);
+                                        //print(e);
                                       }
 
                                       // -------------------------------------------------
                                     }
                                     else
                                     {
-                                      print(jsondata["message"]);
+                                      //print(jsondata["message"]);
                                     }
                                   }
                                 }
                               } catch (e) {
-                                print(e);
+                                //print(e);
                                 //Navigator.of(context).pop();
                               }
                             }

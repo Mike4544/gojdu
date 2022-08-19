@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
-import 'package:gojdu/others/rounded_triangle.dart';
+//import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gojdu/pages/news.dart';
-import 'dart:async';
+//import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Firebase thingys
-import 'package:firebase_core/firebase_core.dart';
+//import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class StudentSignUp extends StatefulWidget {
@@ -96,7 +96,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                   ),
                 ),
 
-                SizedBox(width: 10,),
+                const SizedBox(width: 10,),
 
                 Container(
                   color: ColorsB.yellow500,
@@ -108,7 +108,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
           ),
         ),
         body: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Form(
@@ -138,7 +138,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                     height: device.size.height * 0.075,
                   ),
 
-                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@gojdu.com', errorMessage: error, isEmail: true, isStudent: true,),
+                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@cnego.me', errorMessage: error, isEmail: true, isStudent: true,),
 
                   const SizedBox(height: 50,),
 
@@ -175,7 +175,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         final _prefs = await SharedPreferences.getInstance();
                         String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://automemeapp.com/gojdu/register_student.php');
+                        var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_student.php');
                         final response = await http.post(url, body: {
                           "first_name": _username.value.text,
                           "last_name": _lastname.value.text,

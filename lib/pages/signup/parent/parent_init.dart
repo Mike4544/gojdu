@@ -424,7 +424,7 @@ class _SecondPageState extends State<SecondPage> {
                         _prefs.setString('type', 'Parent');
                         String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://automemeapp.com/gojdu/register_parent.php');
+                        var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_parent.php');
                         final response = await http.post(url, body: {
                           "first_name": fntopass,
                           "last_name": lntopass,

@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,7 +12,6 @@ import 'package:gojdu/pages/signup/main_signup.dart';
 import 'package:gojdu/pages/signup/student.dart';
 import 'package:gojdu/pages/signup/teacher.dart';
 import 'package:gojdu/pages/signup/parent/parent_init.dart';
-
 
 //Importing the splash screen
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -39,41 +36,32 @@ import 'package:gojdu/pages/verified.dart';
 
 import 'package:gojdu/others/colors.dart';
 
-
 String type = '';
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.instance.requestPermission();
 
   final Widget homeWidget = await getPage();
 
   Paint.enableDithering = true;
 
-  
   //FlutterNativeSplash.removeAfter(initialization);
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+  SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   // SUBSCRIBING TO THE NOTIFICATIONS
   await messaging.subscribeToTopic(type + 's');
 
-
-
-
   runApp(MaterialApp(
-
     theme: ThemeData(
       fontFamily: 'Nunito',
     ),
-
-
-
 
     home: homeWidget,
     routes: {
@@ -93,24 +81,23 @@ void initialization(BuildContext context) async {
 }
 
 Future<Widget> getPage() async {
-
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   print(prefs.getString('email').toString());
 
   String? token = await FirebaseMessaging.instance.getToken();
 
-  if(!(prefs.getString('email') != null && prefs.getString("password") != null)){
+  if (!(prefs.getString('email') != null &&
+      prefs.getString("password") != null)) {
     print(false);
     return const Login();
-  }
-  else {
+  } else {
     try {
       //print(true);
-      var url = Uri.parse('https://automemeapp.com/gojdu/login_gojdu.php');
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),
         "password": prefs.getString('password').toString(),
-        "token" : token,
+        "token": token,
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
@@ -124,8 +111,6 @@ Future<Widget> getPage() async {
             String acc_type = jsondata["account"].toString();
             //String acc_type = 'Teacher';
 
-
-
             final loginMap = {
               'first_name': fn,
               'last_name': ln,
@@ -135,11 +120,12 @@ Future<Widget> getPage() async {
               'id': jsondata['id'],
             };
 
-
             type = acc_type;
             await prefs.setString('type', type);
 
-            return NewsPage(data: loginMap,);
+            return NewsPage(
+              data: loginMap,
+            );
           } else {
             return const Login();
           }
@@ -152,8 +138,4 @@ Future<Widget> getPage() async {
     }
     //return NewsPage(isAdmin: false);
   }
-
 }
-
-
-
