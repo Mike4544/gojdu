@@ -21,7 +21,7 @@
     </queries>
 
    <application
-        android:label="gojdu"
+        android:label="GojduApp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
