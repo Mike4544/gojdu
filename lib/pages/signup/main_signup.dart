@@ -22,40 +22,71 @@ class SignupSelect extends StatelessWidget {
     var device = MediaQuery.of(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: ColorsB.gray900,
       bottomNavigationBar: const BackNavbar(),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 100, 20, 0),
-        child: Column(
-          children: [
-            const Text(
-              'Select your account type:',
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w700,
-                fontSize: 35,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              const Text(
+                'Select your account type:',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 35,
+                  color: ColorsB.yellow500,
+                ),
+              ),
+
+              const Divider(
+                height: 25,
+                thickness: 2,
                 color: ColorsB.yellow500,
               ),
-            ),
 
-            const Divider(
-              height: 25,
-              thickness: 2,
-              color: ColorsB.yellow500,
-            ),
+              SizedBox(
+                height: device.size.height * 0.075,
+              ),
 
-            SizedBox(
-              height: device.size.height * 0.075,
-            ),
+              SizedBox(
+                width: device.size.width*0.75,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.push(context, SlideRightRoute(page: StudentSignUp()));
+                    },
+                    child: const Text(
+                        'Student',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w100,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                        fontSize: 30,
+                      ),
+                    ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: ColorsB.yellow500,
+                    padding: EdgeInsets.all(12.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    )
+                  ),
+                ),
+              ),
 
-            SizedBox(
-              width: device.size.width*0.75,
-              child: TextButton(
+              const SizedBox(height: 75),
+
+              SizedBox(
+                width: device.size.width*0.75,
+                child: TextButton(
                   onPressed: () {
-                    Navigator.push(context, SlideRightRoute(page: StudentSignUp()));
+                    Navigator.push(context, SlideRightRoute(page: ParentsSignupPage1()));
                   },
                   child: const Text(
-                      'Student',
+                    'Parent',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w100,
@@ -64,74 +95,47 @@ class SignupSelect extends StatelessWidget {
                       fontSize: 30,
                     ),
                   ),
-                style: TextButton.styleFrom(
-                  backgroundColor: ColorsB.yellow500,
-                  padding: EdgeInsets.all(12.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  )
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 75),
-
-            SizedBox(
-              width: device.size.width*0.75,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(context, SlideRightRoute(page: ParentsSignupPage1()));
-                },
-                child: const Text(
-                  'Parent',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w100,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                    fontSize: 30,
+                  style: TextButton.styleFrom(
+                      backgroundColor: ColorsB.yellow500,
+                      padding: const EdgeInsets.all(12.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      )
                   ),
                 ),
-                style: TextButton.styleFrom(
-                    backgroundColor: ColorsB.yellow500,
-                    padding: const EdgeInsets.all(12.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    )
-                ),
               ),
-            ),
 
-            const SizedBox(height: 75,),
+              const SizedBox(height: 75,),
 
-            SizedBox(
-              width: device.size.width*0.75,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(context, SlideRightRoute(page: TeacherSignUp()));
-                },
-                child: const Text(
-                  'Teacher',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w100,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                    fontSize: 30,
+              SizedBox(
+                width: device.size.width*0.75,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(context, SlideRightRoute(page: TeacherSignUp()));
+                  },
+                  child: const Text(
+                    'Teacher',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w100,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                      fontSize: 30,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                      backgroundColor: ColorsB.yellow500,
+                      padding: const EdgeInsets.all(12.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      )
                   ),
                 ),
-                style: TextButton.styleFrom(
-                    backgroundColor: ColorsB.yellow500,
-                    padding: const EdgeInsets.all(12.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    )
-                ),
               ),
-            ),
 
 
-          ],
+            ],
+          ),
         ),
       ),
     );

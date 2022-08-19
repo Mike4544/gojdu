@@ -138,7 +138,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                     height: device.size.height * 0.075,
                   ),
 
-                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@cnego.me', errorMessage: error, isEmail: true, isStudent: true,),
+                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: error, isEmail: true),
 
                   const SizedBox(height: 50,),
 

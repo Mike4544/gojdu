@@ -125,7 +125,6 @@ class _LoginState extends State<Login> {
                                 isPassword: false,
                                 controller: _nameController.value,
                                 errorMessage: nameError,
-                                isStudent: false,
                                 isEmail: true,),
 
                               const SizedBox(height: 50),

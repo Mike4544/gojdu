@@ -213,7 +213,7 @@ class _FirstPageState extends State<FirstPage> {
                 height: device.size.height * 0.075,
               ),
 
-              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', isEmail: true, isStudent: false, errorMessage: ''),
+              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', isEmail: true, errorMessage: ''),
 
               const SizedBox(height: 50,),
 

@@ -40,6 +40,8 @@ import 'dart:async';
 
 import 'package:gojdu/widgets/post.dart';
 
+import 'package:gojdu/pages/editTables.dart';
+
 
 
 
@@ -59,6 +61,9 @@ class NewsPage extends StatefulWidget {
 late bool loaded;
 
 late Map globalMap;
+
+late Map floors;
+
 
 List<String> titles = [];
 List<String> sizes = [];
@@ -473,7 +478,7 @@ class _NewsPageState extends State<NewsPage>{
       extendBody: true,
       bottomNavigationBar: _bottomNavBar(),
       body: PageView(
-        physics: const NeverScrollableScrollPhysics(),
+        physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
         children: [
           MapPage(),
@@ -1913,7 +1918,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 text: widget.description,
                 style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 15,
+                    fontSize: 17.5,
                     fontWeight: FontWeight.normal
                 ),
                 onOpen: (link) async {
@@ -2025,13 +2030,46 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
             tag: 'title-rectangle',
             child: Stack(
                 children: [
-                  Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.5,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: NetworkImage(widget.imageLink!),
-                          fit: BoxFit.cover
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) =>
+                              Material(
+                                  color: Colors.transparent,
+                                  child: Stack(
+                                      children: [
+                                        Center(
+                                          child: InteractiveViewer(
+                                              clipBehavior: Clip.none,
+                                              child: Image(image: NetworkImage(widget.imageLink!))
+                                          ),
+                                        ),
+                                        Positioned(
+                                            top: 10,
+                                            right: 10,
+                                            child: IconButton(
+                                                tooltip: 'Close',
+                                                splashRadius: 25,
+                                                icon: const Icon(Icons.close, color: Colors.white),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                }
+                                            )
+                                        )
+                                      ]
+                                  )
+                              )
+                      );
+                    },
+                    child: Container(
+                      width: screenWidth,
+                      height: screenHeight * 0.5,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                            image: NetworkImage(widget.imageLink!),
+                            fit: BoxFit.cover
+                        ),
                       ),
                     ),
                   ),
@@ -2144,13 +2182,46 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
           tag: 'title-rectangle',
           child: Stack(
               children: [
-                Container(
-                  width: screenWidth,
-                  height: screenHeight * 0.5,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: FileImage(widget.file!),
-                        fit: BoxFit.cover
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) =>
+                            Material(
+                                color: Colors.transparent,
+                                child: Stack(
+                                    children: [
+                                      Center(
+                                        child: InteractiveViewer(
+                                            clipBehavior: Clip.none,
+                                            child: Image(image: FileImage(widget.file!))
+                                        ),
+                                      ),
+                                      Positioned(
+                                          top: 10,
+                                          right: 10,
+                                          child: IconButton(
+                                              tooltip: 'Close',
+                                              splashRadius: 25,
+                                              icon: const Icon(Icons.close, color: Colors.white),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              }
+                                          )
+                                      )
+                                    ]
+                                )
+                            )
+                    );
+                  },
+                  child: Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.5,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: FileImage(widget.file!),
+                          fit: BoxFit.cover
+                      ),
                     ),
                   ),
                 ),
@@ -2183,12 +2254,14 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.title,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold
+                        Flexible(
+                          child: Text(
+                            widget.title,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold
+                            ),
                           ),
                         ),
                         Text(
@@ -2581,7 +2654,37 @@ class _MapPageState extends State<MapPage>{
                           ),
                         ],
                       ),
-                      DropdownSelector(update: _mapUpdate,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DropdownSelector(update: _mapUpdate,),
+                          globalMap['account'] == "Admin"
+                              ? TextButton.icon(
+                              onPressed: () {
+                                  Navigator.push(context, PageRouteBuilder(
+                                      pageBuilder: (context, a1, a2) =>
+                                          SlideTransition(
+                                            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                            child: EditFloors(floors: floors),
+                                          )
+                                    )
+                                  );
+                                },
+                              icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                              label: const Text(
+                                "Edit floors",
+                                style: TextStyle(
+                                    color: Colors.white
+                                ),
+                              ),
+                              style: TextButton.styleFrom(
+                                backgroundColor: ColorsB.gray800,
+                              )
+                          )
+                              : const SizedBox(width: 0, height: 0),
+                        ]
+                      ),
                       //TODO: Add the images (at least a placeholder one and do the thingy)
 
                     ],

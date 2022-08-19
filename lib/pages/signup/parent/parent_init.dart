@@ -218,7 +218,7 @@ class _FirstPageState extends State<FirstPage> {
                 height: device.size.height * 0.075,
               ),
 
-              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: '', isEmail: true, isStudent: false,),
+              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: '', isEmail: true,),
 
               const SizedBox(height: 50,),
 
@@ -230,11 +230,11 @@ class _FirstPageState extends State<FirstPage> {
 
               const SizedBox(height: 50,),
 
-              InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false, isStudent: false,),
+              InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false,),
 
               const SizedBox(height: 50,),
 
-              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false, isStudent: false,),
+              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false,),
 
               const SizedBox(height: 100,),
 
@@ -385,7 +385,7 @@ class _SecondPageState extends State<SecondPage> {
               SizedBox(
                 height: device.size.height * 0.1,
               ),
-              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText, lengthLimiter: 30, isStudent: false),
+              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText, lengthLimiter: 30, ),
 
               SizedBox(
                 height: device.size.height * 0.05,

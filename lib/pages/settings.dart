@@ -16,8 +16,9 @@ FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 
 class SettingsPage extends StatefulWidget {
+  final String type;
 
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({Key? key, required this.type}) : super(key: key);
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -120,6 +121,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
 
+                      Text(
+                        'Type: ',
+                        style: TextStyle(
+                            color: ColorsB.yellow500,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20
+                        ),
+                      ),
+
+
+
                     ],
                   ),
                 ),
@@ -214,6 +226,22 @@ class _SettingsPageState extends State<SettingsPage> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(50),
                                       )
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
+
+                          Row(
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.fitWidth,
+                                child: Text(
+                                  widget.type,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
                                   ),
                                 ),
                               )

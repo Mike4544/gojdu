@@ -20,7 +20,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> with SingleTickerProviderSt
   void toSettings(){
     Navigator.push(context, PageRouteBuilder(
       reverseTransitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (context, a1, a2) => SettingsPage(),
+        pageBuilder: (context, a1, a2) => SettingsPage(type: widget.accType!),
         transitionsBuilder: (context, a1, a2, child) =>
            SharedAxisTransition(
              animation: a1,
@@ -55,125 +55,61 @@ class _CurvedAppbarState extends State<CurvedAppbar> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return SliverAppBar(
       toolbarHeight: 100,
-      expandedHeight: 500,
+      expandedHeight: 100,
       collapsedHeight: 100,
       automaticallyImplyLeading: false,
       pinned: true,
       elevation: 0,
       backgroundColor: ColorsB.yellow500,
       shape: CustomShape(position: widget.position),
-      flexibleSpace: LayoutBuilder(
-          builder: (context, constraints) {
-            var top = constraints.biggest.height;
-            late bool expanded;
-            if(top <= 200){
-              expanded = false;
-              _controller.forward();
-            }
-            else {
-              expanded = true;
-              _controller.reverse();
-            }
-            //print(expanded);
-
-            //TODO: Implement the animations, implement the shape to the navbar and the news
-
-
-            return FlexibleSpaceBar(
-              titlePadding: EdgeInsets.zero,
-              title: Padding(
-                padding: EdgeInsets.symmetric(vertical: top/4, horizontal: 20),
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(width: 10 ,),
-                            AnimatedContainer(
-                              duration: Duration(milliseconds: 250),
-                              height: expanded ? 35 : 0,
-                              width: 2.5,
-                              color: ColorsB.gray900,
-                            ),
-                            SizedBox(width: 10,),
-                            AnimatedOpacity(
-                              duration: Duration(milliseconds: 250),
-                              opacity: expanded ? 1 : 0,
-                              child: Text(
-                                '${widget.name}',
-                                style: TextStyle(
-                                  color: ColorsB.gray900,
-
-                                ),
-                              ),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                    SlideTransition(
-                      position: _offset,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 500),
-                        opacity: !expanded ? 1 : 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    toSettings();
-                                  },
-                                  splashRadius: 30,
-                                  iconSize: 40,
-                                  icon: const Icon(
-                                    Icons.perm_identity_rounded,
-                                    color: ColorsB.gray900,
-                                  ),
-                                )
-                              ],
-                            ),
-                            accoutType(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+      flexibleSpace: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    toSettings();
+                  },
+                  splashRadius: 30,
+                  iconSize: 40,
+                  icon: const Icon(
+                    Icons.perm_identity_rounded,
+                    color: ColorsB.gray900,
+                  ),
                 )
-              ),
-            );
-          }),
+              ],
+            ),
+            name(),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget accoutType(){
+  Widget name(){
 
-    if(widget.accType != null) {
-      return Row(
-        children: [
-          Text(
-            widget.accType!,
-            style: const TextStyle(
+    return Row(
+      children: [
+        Text(
+          widget.name,
+          style: const TextStyle(
               fontSize: 22.5,
+              fontWeight: FontWeight.bold,
               color: ColorsB.gray900
-            ),
           ),
-          SizedBox(width: 10),
-          Container(
-            color: ColorsB.gray900,
-            width: 2.5,
-            height: 25,
-          )
-        ],
-      );
-    }
-    else {
-      return SizedBox(width: 0, height: 0,);
-    }
+        ),
+        SizedBox(width: 10),
+        Container(
+          color: ColorsB.gray900,
+          width: 2.5,
+          height: 25,
+        )
+      ],
+    );
 
   }
 

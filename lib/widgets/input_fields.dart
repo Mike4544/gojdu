@@ -13,12 +13,11 @@ class InputField extends StatefulWidget {
   final FocusNode? focusNode;
   final String? errorMessage;
   final bool? isEmail;
-  final bool? isStudent;
 
 
 
 
-  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode, this.errorMessage, this.isEmail, this.isStudent}) : super(key: key);
+  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode, this.errorMessage, this.isEmail}) : super(key: key);
 
   @override
   State<InputField> createState() => _InputFieldState();
@@ -84,9 +83,7 @@ class _InputFieldState extends State<InputField> {
               return "Field cannot be empty.";
             }
             else if(widget.isEmail!) {
-                if(!(value.contains('@cnego.me')) && widget.isStudent!) {
-                  return 'Please enter a vaild email adress (example@cnego.me).';
-                } else if(!widget.isStudent! && !value.contains('@')) {
+                if(!value.contains('@')) {
                   return 'Please enter a valid email adress.';
                 }
             }

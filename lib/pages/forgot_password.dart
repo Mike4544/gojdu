@@ -92,7 +92,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
                 const SizedBox(height: 50),
 
-                InputField(fieldName: 'Enter your email below', isPassword: false, isEmail: true, isStudent: false, controller: emailController, errorMessage: errorMessage,),
+                InputField(fieldName: 'Enter your email below', isPassword: false, isEmail: true, controller: emailController, errorMessage: errorMessage,),
 
                 const SizedBox(height: 25),
 
