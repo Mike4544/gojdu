@@ -174,7 +174,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   child: Text(
                                     ln! + ' ' + fn!,
                                     style: TextStyle(
-                                      color: ColorsB.gray800,
+                                      color: Colors.white,
                                       fontSize: 20,
                                     ),
                                   ),

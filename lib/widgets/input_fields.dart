@@ -45,6 +45,7 @@ class _InputFieldState extends State<InputField> {
         const SizedBox(height: 10),
 
         TextFormField(
+          enableSuggestions: false,
           focusNode: widget.focusNode,
           controller: widget.controller,
           autofocus: false,

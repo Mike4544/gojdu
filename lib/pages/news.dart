@@ -54,8 +54,8 @@ class NewsPage extends StatefulWidget {
   _NewsPageState createState() => _NewsPageState();
 }
 
-//Globals
-SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
+// //Globals
+// SMIInput<bool>? _mapInput, _announcementsInput, _reserveInput;
 late bool loaded;
 
 late Map globalMap;
@@ -88,7 +88,6 @@ class _NewsPageState extends State<NewsPage>{
   late final accType;
 
 
-  Artboard? _mapArtboard, _announcementsArtboard, _reserveArtboard;
 
   ConnectivityResult? connectionStatus, lastConnectionStatus;
   late StreamSubscription subscription;
@@ -96,27 +95,6 @@ class _NewsPageState extends State<NewsPage>{
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
-  //Change the animations function
-  void _mapExpandAnim(SMIInput<bool>? _input) {
-    if(_input?.value == false){
-      if(_mapInput?.value == true && _input?.value == false) {
-        _mapInput?.value = false;
-      }
-      if(_announcementsInput?.value == true && _input?.value == false) {
-        _announcementsInput?.value = false;
-      }
-
-      if(_reserveInput?.value == true && _input?.value == false) {
-        _reserveInput?.value = false;
-      }
-
-
-
-      _input?.value = true;
-    }
-
-
-  }
 
   final PageController _pageController = PageController(
     initialPage: 1,
@@ -246,44 +224,7 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
-    rootBundle.load('assets/map.riv').then((data){
-      final file = RiveFile.import(data);
-      final artboard = file.mainArtboard;
-      var StateController = StateMachineController.fromArtboard(artboard, 'ExpandStop');
-      if(StateController != null) {
-        artboard.addController(StateController);
-        _mapInput = StateController.findInput('Expanded');
-      }
-      setState(() {
-        _mapArtboard = artboard;
-      });
-    });
 
-    rootBundle.load('assets/announcements.riv').then((data){
-      final file = RiveFile.import(data);
-      final artboard = file.mainArtboard;
-      var StateController = StateMachineController.fromArtboard(artboard, 'NewsController');
-      if(StateController != null) {
-        artboard.addController(StateController);
-        _announcementsInput = StateController.findInput('Active');
-      }
-      setState(() {
-        _announcementsArtboard = artboard;
-      });
-    });
-
-    rootBundle.load('assets/reservation.riv').then((data){
-      final file = RiveFile.import(data);
-      final artboard = file.mainArtboard;
-      var StateController = StateMachineController.fromArtboard(artboard, 'OpenClose');
-      if(StateController != null) {
-        artboard.addController(StateController);
-        _reserveInput = StateController.findInput('Active');
-      }
-      setState(() {
-        _reserveArtboard = artboard;
-      });
-    });
 
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
@@ -526,30 +467,41 @@ class _NewsPageState extends State<NewsPage>{
       _forNewUsers(context);
     }
 
-    if(_mapArtboard != null && _announcementsArtboard != null && _reserveArtboard != null) {
-      return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: ColorsB.gray900,
-        extendBody: true,
-        bottomNavigationBar: _bottomNavBar(),
-        body: PageView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: _pageController,
-          children: [
-            MapPage(navbarButton: _mapInput),
-            Announcements(navbarButton: _announcementsInput, key: _announcementsKey,),
-            Calendar(navbarButton: _reserveInput,)
-          ],
-        ),
-      );
-    }
-    else {
-      return Container(
-        color: ColorsB.gray900,
-      );
-    }
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: ColorsB.gray900,
+      extendBody: true,
+      bottomNavigationBar: _bottomNavBar(),
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: _pageController,
+        children: [
+          MapPage(),
+          Announcements( key: _announcementsKey,),
+          Calendar()
+        ],
+      ),
+    );
   }
 
+  List<Color> itemsColors = [
+    Colors.white,
+    ColorsB.yellow500,
+    Colors.white,
+    Colors.white,
+  ];
+
+  void changeColors(int index){
+    for(int i = 0; i < itemsColors.length; i++){
+      if(i != index){
+        itemsColors[i] = Colors.white;
+      }
+      else {
+        itemsColors[i] = ColorsB.yellow500;
+      }
+
+    }
+  }
 
   Widget _bottomNavBar() {
     if(globalMap['account'] == 'Admin') {
@@ -728,12 +680,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
-                  ),
+                  child: Icon(Icons.map, color: itemsColors[0], size: 40),
                   onTap: () {
-                    _mapExpandAnim(_mapInput);
+                    //  _mapExpandAnim(_mapInput);
                     setState(() {
                       _currentIndex = 0;
+                      changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                   },
@@ -744,12 +696,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
-                    ),
+                    child: Icon(Icons.announcement, color: itemsColors[1], size: 40),
                     onTap: () {
-                      _mapExpandAnim(_announcementsInput);
+                      //  _mapExpandAnim(_announcementsInput);
                       setState(() {
                         _currentIndex = 1;
+                        changeColors(_currentIndex);
                       });
                       _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                     }
@@ -757,20 +709,35 @@ class _NewsPageState extends State<NewsPage>{
               ),
 
               SizedBox(
-                width: 60,
+                width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
-                  ),
+                  child: Icon(Icons.calendar_today, color: itemsColors[2], size: 30),
                   onTap: () {
-                    _mapExpandAnim(_reserveInput);
+                    //  _mapExpandAnim(_reserveInput);
                     setState(() {
                       _currentIndex = 2;
+                      changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
                 ),
               ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                  child: Icon(Icons.apps, color: itemsColors[3], size: 40),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 3;
+                      changeColors(_currentIndex);
+                    });
+
+                  }
+                ),
+              )
             ]
         ),
       );
@@ -786,7 +753,7 @@ class _NewsPageState extends State<NewsPage>{
                 color: Colors.black.withOpacity(0.25),
                 spreadRadius: 10,
                 blurRadius: 10,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               )
             ]
         ),
@@ -794,16 +761,17 @@ class _NewsPageState extends State<NewsPage>{
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+
               SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Rive(artboard: _mapArtboard!, fit: BoxFit.fill,
-                  ),
+                  child: Icon(Icons.map, color: itemsColors[0], size: 40),
                   onTap: () {
-                    _mapExpandAnim(_mapInput);
+                    //  _mapExpandAnim(_mapInput);
                     setState(() {
                       _currentIndex = 0;
+                      changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                   },
@@ -814,33 +782,48 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Rive(artboard: _announcementsArtboard!, fit: BoxFit.fill,
-                    ),
+                    child: Icon(Icons.announcement, color: itemsColors[1], size: 40),
                     onTap: () {
-                      _mapExpandAnim(_announcementsInput);
+                      //  _mapExpandAnim(_announcementsInput);
                       setState(() {
                         _currentIndex = 1;
+                        changeColors(_currentIndex);
                       });
-                      _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                     }
                 ),
               ),
 
               SizedBox(
-                width: 60,
+                width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Rive(artboard: _reserveArtboard!, fit: BoxFit.fill,
-                  ),
+                  child: Icon(Icons.calendar_today, color: itemsColors[2], size: 30),
                   onTap: () {
-                    _mapExpandAnim(_reserveInput);
+                    //  _mapExpandAnim(_reserveInput);
                     setState(() {
                       _currentIndex = 2;
+                      changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
                 ),
               ),
+
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                    child: Icon(Icons.apps, color: itemsColors[3], size: 40),
+                    onTap: () {
+                      setState(() {
+                        _currentIndex = 3;
+                        changeColors(_currentIndex);
+                      });
+
+                    }
+                ),
+              )
             ]
         ),
       );
@@ -861,9 +844,7 @@ final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_Announcement
 
 class Announcements extends StatefulWidget {
 
-  final SMIInput<bool>? navbarButton;
-
-  const Announcements({Key? key, required this.navbarButton}) : super(key: key);
+  const Announcements({Key? key}) : super(key: key);
 
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
@@ -965,9 +946,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
       initialPage:  _getCurrentIndex(),
 
     );
-    widget.navbarButton?.value = true;
-    _mapInput?.value = false;
-    _reserveInput?.value = false;
     _currentAnnouncement = 1;
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
@@ -2236,10 +2214,9 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
 
 class MapPage extends StatefulWidget {
-  final SMIInput<bool>? navbarButton;
 
 
-  const MapPage({Key? key, required this.navbarButton}) : super(key: key);
+  const MapPage({Key? key}) : super(key: key);
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -2263,9 +2240,7 @@ class _MapPageState extends State<MapPage>{
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.navbarButton?.value = true;
-    _announcementsInput?.value = false;
-    _reserveInput?.value = false;
+
 
     open = false;
   }
@@ -2634,10 +2609,9 @@ class _MapPageState extends State<MapPage>{
 
 
 class Calendar extends StatefulWidget {
-  final SMIInput<bool>? navbarButton;
 
 
-  const Calendar({Key? key, required this.navbarButton}) : super(key: key);
+  const Calendar({Key? key}) : super(key: key);
 
   @override
   State<Calendar> createState() => _CalendarState();
@@ -2664,9 +2638,6 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.navbarButton?.value = true;
-    _announcementsInput?.value = false;
-    _mapInput?.value = false;
     currentPage = 0;
     _stepsColors = [
       ColorsB.yellow500,
@@ -3622,11 +3593,16 @@ class Hall extends StatelessWidget {
                           size: 20,
                         ),
                         const SizedBox(width: 10,),
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.fitWidth,
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                overflow: TextOverflow.ellipsis,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
                       ],
