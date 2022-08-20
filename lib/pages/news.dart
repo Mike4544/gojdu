@@ -41,6 +41,7 @@ import 'dart:async';
 import 'package:gojdu/widgets/post.dart';
 
 import 'package:gojdu/pages/editTables.dart';
+import 'package:gojdu/others/floor.dart';
 
 
 
@@ -62,7 +63,11 @@ late bool loaded;
 
 late Map globalMap;
 
-late Map floors;
+List<Floor> floors = [
+  Floor(floor: 'parter', file: 'parter.png'),
+  Floor(floor: 'parter', file: 'parter.png'),
+  Floor(floor: 'parter', file: 'parter.png'),
+];
 
 
 List<String> titles = [];
