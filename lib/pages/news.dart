@@ -64,9 +64,9 @@ late bool loaded;
 late Map globalMap;
 
 List<Floor> floors = [
-  Floor(floor: 'parter', file: 'parter.png'),
-  Floor(floor: 'parter', file: 'parter.png'),
-  Floor(floor: 'parter', file: 'parter.png'),
+  // Floor(floor: 'parter', file: 'parter.png'),
+  // Floor(floor: 'parter', file: 'parter.png'),
+  // Floor(floor: 'parter', file: 'parter.png'),
 ];
 
 
@@ -75,7 +75,53 @@ List<String> sizes = [];
 
 
 
+Future<int> getFloors() async {
+  try{
+    var url = Uri.parse('https://cnegojdu.ro/GojduApp/getfloors.php');
 
+
+    //  TODO: FIX THIS SOMEHOWWWW
+
+
+    final response = await http.post(url, body: {
+    });
+
+    print(response.statusCode);
+
+    if(response.statusCode == 200){
+      var jsondata = json.decode(response.body);
+      print(jsondata);
+      if(jsondata['0']["error"]){
+        print(jsondata["message"]);
+
+      }else{
+        print("Upload successful");
+
+        for(int i = 1; i <= 3; i++){
+          print(jsondata['$i']);
+          floors.add(Floor(floor:jsondata['$i']["floor"], file: jsondata['$i']['file']));
+        }
+
+
+      }
+    } else {
+      print("Upload failed");
+
+    }
+
+  }
+  catch(e){
+    //print("Error during converting to Base64");
+
+
+  }
+
+  return 1;
+
+
+
+
+}
 
 
 // <---------- Height and width outside of context -------------->
@@ -232,10 +278,7 @@ class _NewsPageState extends State<NewsPage>{
   void initState() {
 
 
-
-
-
-
+    getFloors();
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
@@ -2302,7 +2345,7 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage>{
 
-  int floorNo = 1;
+  int floorNo = 0;
 
   // <---------- Function to switch the floor (placeholder) -------------------->
   void _mapUpdate(int newFloor) {
@@ -2311,12 +2354,20 @@ class _MapPageState extends State<MapPage>{
     });
   }
 
+  void updateThis(List<Floor> newFloors) {
+    setState(() {
+      floors = newFloors.toList();
+      placeMaps();
+    });
+  }
+
   final height = ValueNotifier<double>(0);
   bool open = false;
 
   @override
   void initState() {
-    // TODO: implement initState
+
+    placeMaps();
     super.initState();
 
 
@@ -2334,241 +2385,76 @@ class _MapPageState extends State<MapPage>{
   var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 
 
+  //  Maps List
+  List<Widget> maps = [];
 
-  // <---------- Animated switcher children aka the maps ---------->
-  Widget? _mapChildren() {
 
-    switch(floorNo) {
-      case 0:
-          return GestureDetector(
-            key: Key('1'),
-            child: Image.network(
-              "https://cnegojdu.ro/GojduApp/assets/parter.png",
-              key: Key('1'),
-              loadingBuilder: (BuildContext context, Widget child,
-                  ImageChunkEvent? loadingProgress) {
-                if (loadingProgress == null) return child;
-                return SizedBox(
-                  height: screenHeight * 0.5,
-                  child: Center(
-                      child: Shimmer.fromColors(child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: ColorsB.gray800,
-                        ),
-                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
+  void placeMaps() {
+
+    maps.clear();
+
+    for(int i = 0; i < floors.length; i++){
+      maps.add(GestureDetector(
+        key: Key('$i'),
+        child: Image.network(
+          "https://cnegojdu.ro/GojduApp/floors/${floors[i].file}",
+          key: Key('$i'),
+          loadingBuilder: (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) return child;
+            return SizedBox(
+              height: screenHeight * 0.5,
+              child: Center(
+                  child: Shimmer.fromColors(child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: ColorsB.gray800,
+                    ),
+                  ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
+              ),
+            );
+          },
+          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+            return Column(
+              children: [
+                SizedBox(
+                  height: screenHeight * 0.3,
+                  child: SvgPicture.asset('assets/svgs/404.svg'),
+                ),
+                const Text(
+                  'Zap! Something went wrong!',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
                   ),
-                );
-              },
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                return Column(
-                  children: [
-                    SizedBox(
-                      height: screenHeight * 0.3,
-                      child: SvgPicture.asset('assets/svgs/404.svg'),
-                    ),
-                    const Text(
-                      'Zap! Something went wrong!',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white
-                      ),
-                    ),
-                    Text(
-                      "Please forgive us.",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.25),
-                      ),
-                    ),
-                    const SizedBox(height: 20,),
-                  ],
-                );
-              },
-            ),
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) =>
-                      Material(
-                          color: Colors.transparent,
-                          child: Stack(
-                              children: [
-                                Center(
-                                  child: InteractiveViewer(
-                                      clipBehavior: Clip.none,
-                                      child: Image.network(
-                                        "https://cnegojdu.ro/GojduApp/assets/parter.png",
-                                        key: Key('1'),
-                                      )
-                                  ),
-                                ),
-                                Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: IconButton(
-                                        tooltip: 'Close',
-                                        splashRadius: 25,
-                                        icon: const Icon(Icons.close, color: Colors.white),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        }
-                                    )
-                                )
-                              ]
-                          )
-                      )
-              );
-            },
-          );
-      case 1:
-          return GestureDetector(
-            key: Key('2'),
-            child: Image.network(
-              "https://cnegojdu.ro/GojduApp/assets/et1.png",
-              key: Key('2'),
-              loadingBuilder: (BuildContext context, Widget child,
-                  ImageChunkEvent? loadingProgress) {
-                if (loadingProgress == null) return child;
-                return SizedBox(
-                  height: screenHeight * 0.5,
-                  child:Center(
-                      child: Shimmer.fromColors(child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: ColorsB.gray800,
-                        ),
-                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
+                ),
+                Text(
+                  "Please forgive us.",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withOpacity(0.25),
                   ),
-                );
-              },
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                return Column(
-                  children: [
-                    SizedBox(
-                      height: screenHeight * 0.3,
-                      child: SvgPicture.asset('assets/svgs/404.svg'),
-                    ),
-                    const Text(
-                      'Zap! Something went wrong!',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white
-                      ),
-                    ),
-                    Text(
-                      "Please forgive us.",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.25),
-                      ),
-                    ),
-                    const SizedBox(height: 20,),
-                  ],
-                );
-              },
-            ),
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) =>
-                      Material(
-                          color: Colors.transparent,
-                          child: Stack(
-                              children: [
-                                Center(
-                                  child: InteractiveViewer(
-                                      clipBehavior: Clip.none,
-                                      child: Image.network(
-                                        "https://cnegojdu.ro/GojduApp/assets/et1.png",
-                                        key: Key('2'),
-                                      )
-                                  ),
-                                ),
-                                Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: IconButton(
-                                        tooltip: 'Close',
-                                        splashRadius: 25,
-                                        icon: const Icon(Icons.close, color: Colors.white),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        }
-                                    )
-                                )
-                              ]
-                          )
-                      )
-              );
-            },
-          );
-
-      case 2:
-
-          return GestureDetector(
-            key: Key('3'),
-            child: Image.network(
-              "https://cnegojdu.ro/GojduApp/assets/et2.png",
-              key: Key('3'),
-              loadingBuilder: (BuildContext context, Widget child,
-                  ImageChunkEvent? loadingProgress) {
-                if (loadingProgress == null) return child;
-                return SizedBox(
-                  height: screenHeight * 0.5,
-                  child: Center(
-                      child: Shimmer.fromColors(child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: ColorsB.gray800,
-                        ),
-                      ), baseColor: ColorsB.gray800, highlightColor: ColorsB.gray700)
-                  ),
-                );
-              },
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                return Column(
-                  children: [
-                    SizedBox(
-                      height: screenHeight * 0.3,
-                      child: SvgPicture.asset('assets/svgs/404.svg'),
-                    ),
-                    const Text(
-                      'Zap! Something went wrong!',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white
-                      ),
-                    ),
-                    Text(
-                      "Please forgive us.",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.25),
-                      ),
-                    ),
-                    const SizedBox(height: 20,),
-                  ],
-                );
-              },
-            ),
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) =>
-                      Material(
-                        color: Colors.transparent,
-                        child: Stack(
+                ),
+                const SizedBox(height: 20,),
+              ],
+            );
+          },
+        ),
+        onTap: () {
+          showDialog(
+              context: context,
+              builder: (context) =>
+                  Material(
+                      color: Colors.transparent,
+                      child: Stack(
                           children: [
                             Center(
                               child: InteractiveViewer(
-                                clipBehavior: Clip.none,
+                                  clipBehavior: Clip.none,
                                   child: Image.network(
-                                    "https://cnegojdu.ro/GojduApp/assets/et2.png",
-                                    key: Key('3'),
+                                    "https://cnegojdu.ro/GojduApp/floors/${floors[i].file}",
+                                    key: Key('$i'),
                                   )
                               ),
                             ),
@@ -2576,7 +2462,7 @@ class _MapPageState extends State<MapPage>{
                                 top: 10,
                                 right: 10,
                                 child: IconButton(
-                                  tooltip: 'Close',
+                                    tooltip: 'Close',
                                     splashRadius: 25,
                                     icon: const Icon(Icons.close, color: Colors.white),
                                     onPressed: () {
@@ -2585,12 +2471,24 @@ class _MapPageState extends State<MapPage>{
                                 )
                             )
                           ]
-                        )
                       )
-              );
-            },
+                  )
           );
+        },
+      ));
+    }
+  }
 
+
+  // <---------- Animated switcher children aka the maps ---------->
+  Widget? _mapChildren() {
+
+
+    if(floors.isEmpty){
+      return SizedBox();
+    }
+    else {
+      return maps[floorNo];
     }
 
   }
@@ -2636,7 +2534,8 @@ class _MapPageState extends State<MapPage>{
 
                   //Widgetul pt select floor
 
-                  Stack(
+                  floors.isNotEmpty
+                      ? Stack(
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -2660,40 +2559,73 @@ class _MapPageState extends State<MapPage>{
                         ],
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DropdownSelector(update: _mapUpdate,),
-                          globalMap['account'] == "Admin"
-                              ? TextButton.icon(
-                              onPressed: () {
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DropdownSelector(update: _mapUpdate, floors: floors),
+                            globalMap['account'] == "Admin"
+                                ? TextButton.icon(
+                                onPressed: () {
                                   Navigator.push(context, PageRouteBuilder(
                                       pageBuilder: (context, a1, a2) =>
                                           SlideTransition(
                                             position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                                            child: EditFloors(floors: floors),
+                                            child: EditFloors(floors: floors, update: updateThis,),
                                           )
-                                    )
+                                  )
                                   );
                                 },
-                              icon: Icon(Icons.edit, size: 20, color: Colors.white),
-                              label: const Text(
-                                "Edit floors",
-                                style: TextStyle(
-                                    color: Colors.white
+                                icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                                label: const Text(
+                                  "Edit floors",
+                                  style: TextStyle(
+                                      color: Colors.white
+                                  ),
                                 ),
-                              ),
-                              style: TextButton.styleFrom(
-                                backgroundColor: ColorsB.gray800,
-                              )
-                          )
-                              : const SizedBox(width: 0, height: 0),
-                        ]
+                                style: TextButton.styleFrom(
+                                  backgroundColor: ColorsB.gray800,
+                                )
+                            )
+                                : const SizedBox(width: 0, height: 0),
+                          ]
                       ),
                       //TODO: Add the images (at least a placeholder one and do the thingy)
 
                     ],
-                  ),
+                  )
+                      : Center(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'No maps to display :(',
+                                style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+                              ),
+                              const SizedBox(height: 20),
+                              TextButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(context, PageRouteBuilder(
+                                        pageBuilder: (context, a1, a2) =>
+                                            SlideTransition(
+                                              position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                              child: EditFloors(floors: floors, update: updateThis),
+                                            )
+                                    )
+                                    );
+                                  },
+                                  icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                                  label: const Text(
+                                    "Add floors",
+                                    style: TextStyle(
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: ColorsB.gray800,
+                                  )
+                              )
+                            ],
+                          )
+                   ),
 
                   // DropdownSelector(update: _mapUpdate,),
                   // //TODO: Add the images (at least a placeholder one and do the thingy)

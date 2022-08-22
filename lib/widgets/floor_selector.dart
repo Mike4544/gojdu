@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
+import 'package:gojdu/others/floor.dart';
+import 'package:gojdu/pages/news.dart';
 
 class DropdownSelector extends StatefulWidget {
 
   // <------- For Updating the floor within the parent ------->
   final ValueChanged<int>? update;
+  final List<Floor> floors;
 
 
-  const DropdownSelector({Key? key, this.update}) : super(key: key);
+  const DropdownSelector({Key? key, this.update, required this.floors}) : super(key: key);
 
   @override
   _DropdownSelectorState createState() => _DropdownSelectorState();
@@ -23,14 +26,13 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
   late AnimationController _iconController;
 
 
-  int floorNo = 1;
+  int floorNo = 0;
 
   @override
   void initState() {
-    // TODO: implement initState
     open = false;
-    floorNo = 1;
-    _iconController = AnimationController(vsync: this, duration: Duration(milliseconds: 250),);
+    floorNo = 0;
+    _iconController = AnimationController(vsync: this, duration: const Duration(milliseconds: 250),);
     super.initState();
 
   }
@@ -44,11 +46,12 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
 
 
   //  <------------- For the selected container ------------------>
-  final List<Color> _containerColors = [
-    Colors.transparent,
-    ColorsB.gray700.withOpacity(0.1),
-    Colors.transparent
-  ];
+  // final List<Color> _containerColors = [
+  //   Colors.transparent,
+  //   ColorsB.gray700.withOpacity(0.1),
+  //   Colors.transparent
+  // ];
+
 
 
 
@@ -84,73 +87,78 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
                     child: ListView.builder(
                       scrollDirection: Axis.vertical,
                       shrinkWrap: true,
-                      itemCount: 3,
+                      itemCount: widget.floors.isEmpty ? 1 : widget.floors.length,
                       physics: const BouncingScrollPhysics(),
-                      itemBuilder: (_, index) =>
-                          GestureDetector(
-                            onTap: () {
+                      itemBuilder: (_, index){
+                        if(widget.floors.isEmpty){
+                          return const SizedBox();
+                        }
 
-                              setState(() {
-                                height.value = 0;
-                                open = !open;
-                                floorNo = index;
-                                widget.update!(floorNo);
-                                for(int i = 0; i < 3; i++) {
-                                  if(i != index)
-                                    _containerColors[i] = Colors.transparent;
-                                  _containerColors[index] = ColorsB.gray700.withOpacity(0.1);
-                                }
-                                if(open){
-                                  _iconController.forward();
-                                }
-                                else {
-                                  _iconController.reverse();
-                                }
+                        return  GestureDetector(
+                          onTap: () {
 
-                              });
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  margin: _containerColors[index] == ColorsB.gray700.withOpacity(0.1) ?
-                                      const EdgeInsets.fromLTRB(0, 0, 25, 0) :
-                                      EdgeInsets.zero,
-                                  height: 50,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: _containerColors[index],
+                            setState(() {
+                              height.value = 0;
+                              open = !open;
+                              floorNo = index;
+                              widget.update!(floorNo);
+
+                              if(open){
+                                _iconController.forward();
+                              }
+                              else {
+                                _iconController.reverse();
+                              }
+
+                            });
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: index == floorNo ?
+                                const EdgeInsets.fromLTRB(0, 0, 25, 0) :
+                                EdgeInsets.zero,
+                                height: 50,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    color: index == floorNo
+                                    ? ColorsB.gray700.withOpacity(0.1)
+                                    : ColorsB.gray200,
                                     borderRadius: const BorderRadius.only(
-                                      topRight: Radius.circular(50),
-                                      bottomRight: Radius.circular(50)
+                                        topRight: Radius.circular(50),
+                                        bottomRight: Radius.circular(50)
                                     )
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: Center(
-                                      child: Text(
-                                        'Floor $index',
-                                        style: const TextStyle(
-                                            fontSize: 17
-                                        ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Center(
+                                    child: Text(
+                                      widget.floors[index].floor,
+                                      style: const TextStyle(
+                                          fontSize: 17
                                       ),
                                     ),
                                   ),
                                 ),
-                                Visibility(
-                                  visible: index == 2 ? false : true,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: Divider(
-                                      height: 10,
-                                      thickness: 1,
-                                      color: Colors.grey.withOpacity(0.1),
-                                    ),
+                              ),
+                              Visibility(
+                                visible: index == 2 ? false : true,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Divider(
+                                    height: 10,
+                                    thickness: 1,
+                                    color: Colors.grey.withOpacity(0.1),
                                   ),
-                                )
-                              ],
-                            ),
+                                ),
+                              )
+                            ],
                           ),
+                        );
+
+                      }
+
                     ),
 
                   ),
@@ -175,8 +183,8 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 15, 0, 0),
               child: Text(
-                'Floor $floorNo',
-                style: TextStyle(
+                widget.floors[floorNo].floor,
+                style: const TextStyle(
                   color: ColorsB.gray200,
                   fontSize: 15,
                 ),
