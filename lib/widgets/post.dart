@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:gojdu/others/colors.dart';
 
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,8 @@ class Post extends StatefulWidget {
   var color;
   var likesBool, dislikes;
   var likes, ids;
+  void Function() delete;
+  String admin;
   Function(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) hero;
   var globalMap;
   var context;
@@ -32,6 +35,8 @@ class Post extends StatefulWidget {
     this.dislikes,
     this.likes,
     this.ids,
+    required this.admin,
+    required this.delete,
     required this.context,
   }) : super(key: key);
 
@@ -385,6 +390,101 @@ class _PostState extends State<Post> {
                       ]
                   )
                       : const SizedBox(),
+                ),
+                Visibility(
+                  visible: widget.admin == 'Admin',
+                  child: Positioned(
+                    top: 25,
+                    right: 50,
+                    child: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) =>
+                                AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    backgroundColor: ColorsB.gray900,
+                                    title: Column(
+                                      children: const [
+                                        Text(
+                                          'Are you sure you want delete this post?',
+                                          style: TextStyle(
+                                              color: ColorsB.yellow500,
+                                              fontSize: 15
+                                          ),
+                                        ),
+                                        Divider(
+                                          color: ColorsB.yellow500,
+                                          thickness: 1,
+                                          height: 10,
+                                        )
+                                      ],
+                                    ),
+                                    content: SizedBox(
+                                      height: 75,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                            children: [
+                                              InkWell(
+                                                onTap: () async {
+
+                                                  widget.delete();
+
+                                                  Navigator.of(context).pop();
+
+                                                  setState(() {
+
+                                                  });
+
+                                                  //  logoff(context);
+                                                },
+                                                borderRadius: BorderRadius.circular(30),
+                                                child: Ink(
+                                                  decoration: BoxDecoration(
+                                                    color: ColorsB.yellow500,
+                                                    borderRadius: BorderRadius.circular(30),
+                                                  ),
+                                                  height: 50,
+                                                  width: 75,
+                                                  child: Icon(
+                                                    Icons.check, color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              InkWell(
+                                                onTap: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                borderRadius: BorderRadius.circular(30),
+                                                child: Ink(
+                                                  decoration: BoxDecoration(
+                                                    color: ColorsB.gray800,
+                                                    borderRadius: BorderRadius.circular(30),
+                                                  ),
+                                                  height: 50,
+                                                  width: 75,
+                                                  child: Icon(
+                                                    Icons.close, color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    )
+                                )
+                        );
+                      },
+                    ),
+                  ),
                 )
               ]
           )

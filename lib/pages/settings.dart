@@ -61,6 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
       backgroundColor: ColorsB.gray900,
       bottomNavigationBar: BackNavbar(variation: 1,),
       appBar: AppBar(
+        toolbarHeight: device.height * .15,
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,

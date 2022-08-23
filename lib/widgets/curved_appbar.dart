@@ -53,17 +53,22 @@ class _CurvedAppbarState extends State<CurvedAppbar> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+
+    var height = MediaQuery.of(context).size.height;
+
+    var height2 = height < 675 ? MediaQuery.of(context).size.height * .175 : MediaQuery.of(context).size.height * .15;
+
     return SliverAppBar(
-      toolbarHeight: 100,
-      expandedHeight: 100,
-      collapsedHeight: 100,
+      toolbarHeight: height2,
+      expandedHeight: height2,
+      collapsedHeight: height2,
       automaticallyImplyLeading: false,
       pinned: true,
       elevation: 0,
       backgroundColor: ColorsB.yellow500,
       shape: CustomShape(position: widget.position),
       flexibleSpace: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

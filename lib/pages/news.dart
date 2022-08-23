@@ -412,25 +412,26 @@ class _NewsPageState extends State<NewsPage>{
       //print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
+        //  print(jsondata);
 
-        if (jsondata["1"]["error"]) {
+        if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
           });
         } else {
-          if (jsondata["1"]["success"]) {
+          if (jsondata[0]["success"]) {
 
             _names.clear();
             _emails.clear();
             _types.clear();
             _tokens.clear();
 
-            for(int i = 2; i <= 12; i++)
+            for(int i = 1; i <= jsondata.length; i++)
             {
-              String name = jsondata[i.toString()]["user"].toString();
-              String email = jsondata[i.toString()]["email"].toString();
-              String acc_type = jsondata[i.toString()]["type"].toString();
-              String token = jsondata[i.toString()]["token"].toString();
+              String name = jsondata[i]["user"].toString();
+              String email = jsondata[i]["email"].toString();
+              String acc_type = jsondata[i]["type"].toString();
+              String token = jsondata[i]["token"].toString();
 
 
               if(name != "null" && email != "null"){
@@ -1127,6 +1128,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
             child: Padding(
               padding: const EdgeInsets.fromLTRB(25, 50, 25, 75),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Row(
                     children: [
@@ -1535,7 +1537,124 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
 
+Future<void> deletePost(int Id, int index) async {
 
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/deletepost.php');
+      final response = await http.post(url, body: {
+        "id": Id.toString()
+      });
+
+      print(response.statusCode);
+
+      if(response.statusCode == 200){
+
+        var jsondata = json.decode(response.body);
+        print(jsondata);
+
+        if(jsondata['error']){
+
+          print('Errored');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                content: Row(
+                  children: const [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Uh-oh! Something went wrong!',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Row(
+                  children: const [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Hooray! The post was deleted.',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+          posts.removeAt(index);
+
+
+        }
+
+
+
+      }
+      else {
+        print("Deletion failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              content: Row(
+                children: const [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Uh-oh! Something went wrong!',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      }
+
+    } catch(e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            content: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 20,),
+                Text(
+                  'Uh-oh! Something went wrong!',
+                  style: TextStyle(
+                      color: Colors.white
+                  ),
+                )
+              ],
+            ),
+          )
+      );
+
+      print(e);
+
+    }
+
+
+}
 
 
 
@@ -1624,6 +1743,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                       owners: owner,
                       link: link,
                       hero: _hero,
+                      admin: globalMap['account'],
+                      delete: () async {
+                        await deletePost(id!, i - 2);
+                        setState(() {
+
+                        });
+                      },
                       globalMap: globalMap,
                       context: context,)
                   );
@@ -4842,6 +4968,25 @@ class _PostItPageState extends State<PostItPage> {
                                 //Navigator.of(context).pop();
                               }
                             }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: Colors.green,
+                                  content: Row(
+                                    children: const [
+                                      Icon(Icons.check, color: Colors.white),
+                                      SizedBox(width: 20,),
+                                      Text(
+                                        'Hooray! A new post was born.',
+                                        style: TextStyle(
+                                            color: Colors.white
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                            );
+
                             Navigator.of(context).pop();
 
                             //TODO: There is some unhandled exception and I have no fucking idea where. - Mihai

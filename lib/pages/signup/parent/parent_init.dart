@@ -61,6 +61,7 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
   Widget build(BuildContext context) {
 
     var device = MediaQuery.of(context);
+    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
 
     return GestureDetector(
       onTap: () {
@@ -73,6 +74,7 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
+          toolbarHeight: height,
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(20, 35, 0, 0),
             child: Row(

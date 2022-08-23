@@ -72,6 +72,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
     var device = MediaQuery.of(context);
 
+    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -82,6 +84,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
+          toolbarHeight: height,
           elevation: 0,
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(20, 35, 0, 0),

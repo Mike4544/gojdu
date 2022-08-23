@@ -59,6 +59,7 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
   Widget build(BuildContext context) {
 
     var device = MediaQuery.of(context);
+    var name = widget.floors[floorNo].floor;
 
     return Container(
       width: device.size.width * 0.4,
@@ -168,11 +169,6 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
 
 
 
-
-
-
-
-
           Container(
             width: double.infinity,
             height: 50,
@@ -183,7 +179,7 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 15, 0, 0),
               child: Text(
-                widget.floors[floorNo].floor,
+                name.length <= 12 ? name : name.substring(0, 12) + '...',
                 style: const TextStyle(
                   color: ColorsB.gray200,
                   fontSize: 15,

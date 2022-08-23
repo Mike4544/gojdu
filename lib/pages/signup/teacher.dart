@@ -53,6 +53,8 @@ bool firstPage = true;
   Widget build(BuildContext context) {
 
     var device = MediaQuery.of(context);
+    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
+
 
     return GestureDetector(
       onTap: () {
@@ -64,6 +66,7 @@ bool firstPage = true;
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
+          toolbarHeight: height,
           elevation: 0,
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(20, 35, 0, 0),
@@ -180,6 +183,7 @@ class _FirstPageState extends State<FirstPage> {
   Widget build(BuildContext context) {
 
     var device = MediaQuery.of(context);
+
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),

@@ -109,139 +109,134 @@ class _LoginState extends State<Login> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                     vertical: 100, horizontal: 20), //Padding
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
                   children: [
-                    Column(
-                      children: [
-                        Image.asset('assets/images/Logo.png', height: 300,),
-                        SizedBox(height: size.size.height * 0.10,),
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              InputField(fieldName: "Email",
-                                isPassword: false,
-                                controller: _nameController.value,
-                                errorMessage: nameError,
-                                isEmail: true,),
+                    Image.asset('assets/images/Logo.png', height: 300,),
+                    SizedBox(height: size.size.height * 0.10,),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          InputField(fieldName: "Email",
+                            isPassword: false,
+                            controller: _nameController.value,
+                            errorMessage: nameError,
+                            isEmail: true,),
 
-                              const SizedBox(height: 50),
+                          const SizedBox(height: 50),
 
-                              InputField(fieldName: "Password",
-                                isPassword: true,
-                                controller: _passController.value,
-                                errorMessage: nameError,
-                                isEmail: false,),
+                          InputField(fieldName: "Password",
+                            isPassword: true,
+                            controller: _passController.value,
+                            errorMessage: nameError,
+                            isEmail: false,),
 
-                              //TODO: Make the error text pop only on sign-in
+                          //TODO: Make the error text pop only on sign-in
 
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const ForgotPassword()));
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 0),
-                                  child: Text(
-                                    "Forgot your password?",
-                                    style: TextStyle(
-                                      fontFamily: 'Nunito',
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 14,
-                                      color: ColorsB.gray700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-
-                        const SizedBox(height: 50,),
-
-                        ValueListenableBuilder(
-                          valueListenable: _passController.value,
-                          builder: (_, value, __) =>
-                              TextButton(
-                                onPressed: (_nameController.value.text
-                                    .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty) || isLoggingIn
-                                    ? login
-                                    : null,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 30),
-                                  child: !isLoggingIn ? const Text(
-                                      "Sign-in",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.normal,
-                                        fontFamily: 'Nunito',
-                                        letterSpacing: 2.5,
-                                      )
-                                  ) :
-                                  const CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(ColorsB.gray900),
-                                  )
-                                ),
-                                style: TextButton.styleFrom(
-                                    backgroundColor: _nameController.value.text
-                                        .isNotEmpty &&
-                                        _passController.value.text.isNotEmpty
-                                        ? ColorsB.yellow500
-                                        : ColorsB.gray800,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                    shadowColor: ColorsB.yellow500.withOpacity(0.25),
-                                    elevation: _nameController.value.text
-                                        .isNotEmpty &&
-                                        _passController.value.text.isNotEmpty
-                                        ? 15
-                                        : 0
-                                ),
-                              ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'or',
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ForgotPassword()));
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 0),
+                              child: Text(
+                                "Forgot your password?",
                                 style: TextStyle(
-                                  color: Colors.white,
                                   fontFamily: 'Nunito',
-                                  fontSize: 12.5,
+                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14,
+                                  color: ColorsB.gray700,
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/signup');
-                                },
-                                child: const Text(
-                                  'Sign-Up',
-                                  style: TextStyle(
-                                    fontFamily: 'Nunito',
-                                    color: ColorsB.yellow500,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              )
-                            ],
+                            ),
                           ),
-                        )
-
-
-                      ],
+                        ],
+                      ),
                     ),
+
+
+                    const SizedBox(height: 50,),
+
+                    ValueListenableBuilder(
+                      valueListenable: _passController.value,
+                      builder: (_, value, __) =>
+                          TextButton(
+                            onPressed: (_nameController.value.text
+                                .isNotEmpty &&
+                                _passController.value.text.isNotEmpty) || isLoggingIn
+                                ? login
+                                : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 30),
+                              child: !isLoggingIn ? const Text(
+                                  "Sign-in",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.normal,
+                                    fontFamily: 'Nunito',
+                                    letterSpacing: 2.5,
+                                  )
+                              ) :
+                              const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(ColorsB.gray900),
+                              )
+                            ),
+                            style: TextButton.styleFrom(
+                                backgroundColor: _nameController.value.text
+                                    .isNotEmpty &&
+                                    _passController.value.text.isNotEmpty
+                                    ? ColorsB.yellow500
+                                    : ColorsB.gray800,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                shadowColor: ColorsB.yellow500.withOpacity(0.25),
+                                elevation: _nameController.value.text
+                                    .isNotEmpty &&
+                                    _passController.value.text.isNotEmpty
+                                    ? 15
+                                    : 0
+                            ),
+                          ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'or',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Nunito',
+                              fontSize: 12.5,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/signup');
+                            },
+                            child: const Text(
+                              'Sign-Up',
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                color: ColorsB.yellow500,
+                                fontSize: 20,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+
+
                   ],
                 ),
               ),

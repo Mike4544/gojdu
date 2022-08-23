@@ -32,42 +32,6 @@ class _EditFloorsState extends State<EditFloors> {
 
   String? format;
 
-  Future<void> uploadImage(File file, String name) async {
-    try{
-      if(images.isEmpty){
-        return;
-      }
-      var imageBytes = file.readAsBytesSync();
-      String baseimage = base64Encode(imageBytes);
-
-
-
-      var url = Uri.parse('https://cnegojdu.ro/GojduApp/image_upload.php');
-      final response = await http.post(url, body: {
-        "image": baseimage,
-        "name": name,
-        "format": format
-      });
-
-      if(response.statusCode == 200){
-        var jsondata = json.decode(response.body);
-        if(jsondata["error"]){
-          //print(jsondata["msg"]);
-        }else{
-          //print("Upload successful");
-        }
-      } else {
-        //print("Upload failed");
-      }
-
-
-
-
-    }
-    catch(e){
-      //print("Error during converting to Base64");
-    }
-  }
 
   Future<void> uploadTable(Map<String, dynamic> data) async {
     try{
@@ -556,6 +520,7 @@ class _EditFloorsState extends State<EditFloors> {
         child: AppBar(
           backgroundColor: ColorsB.gray900,
           automaticallyImplyLeading: false,
+          toolbarHeight: height * .15,
           elevation: 0,
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
