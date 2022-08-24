@@ -274,11 +274,12 @@ class _NewsPageState extends State<NewsPage>{
     //print(1);
   }
 
+  //  Testing smthing
+  late final Future? gFloors = getFloors();
+
   @override
   void initState() {
 
-
-    getFloors();
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
@@ -383,6 +384,7 @@ class _NewsPageState extends State<NewsPage>{
     _emails.clear();
     _types.clear();
     _tokens.clear();
+    floors.clear();
     super.dispose();
 
 
@@ -526,36 +528,29 @@ class _NewsPageState extends State<NewsPage>{
       backgroundColor: ColorsB.gray900,
       extendBody: true,
       bottomNavigationBar: _bottomNavBar(),
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: _pageController,
-        children: [
-          MapPage(),
-          Announcements( key: _announcementsKey,),
-          Calendar()
-        ],
+      body: FutureBuilder(
+        future: gFloors,
+        builder: (context, snapshot) {
+          if(!snapshot.hasData){
+            return const SizedBox();
+          }
+          else {
+            return PageView(
+              physics: NeverScrollableScrollPhysics(),
+              controller: _pageController,
+              children: [
+                MapPage(),
+                Announcements( key: _announcementsKey,),
+                Calendar()
+              ],
+            );
+          }
+
+        }
       ),
     );
   }
 
-  List<Color> itemsColors = [
-    Colors.white,
-    ColorsB.yellow500,
-    Colors.white,
-    Colors.white,
-  ];
-
-  void changeColors(int index){
-    for(int i = 0; i < itemsColors.length; i++){
-      if(i != index){
-        itemsColors[i] = Colors.white;
-      }
-      else {
-        itemsColors[i] = ColorsB.yellow500;
-      }
-
-    }
-  }
 
   Widget _bottomNavBar() {
     if(globalMap['account'] == 'Admin') {
@@ -734,12 +729,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.map, color: itemsColors[0], size: 40),
+                  child: Icon(Icons.map, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
                   onTap: () {
                     //  _mapExpandAnim(_mapInput);
                     setState(() {
                       _currentIndex = 0;
-                      changeColors(_currentIndex);
+                      //  changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                   },
@@ -750,12 +745,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Icon(Icons.announcement, color: itemsColors[1], size: 40),
+                    child: Icon(Icons.announcement, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       //  _mapExpandAnim(_announcementsInput);
                       setState(() {
                         _currentIndex = 1;
-                        changeColors(_currentIndex);
+                        //  changeColors(_currentIndex);
                       });
                       _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                     }
@@ -766,12 +761,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.calendar_today, color: itemsColors[2], size: 30),
+                  child: Icon(Icons.calendar_today, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white, size: 30),
                   onTap: () {
                     //  _mapExpandAnim(_reserveInput);
                     setState(() {
                       _currentIndex = 2;
-                      changeColors(_currentIndex);
+                      //  changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
@@ -782,11 +777,11 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.apps, color: itemsColors[3], size: 40),
+                  child: Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white, size: 40),
                   onTap: () {
                     setState(() {
                       _currentIndex = 3;
-                      changeColors(_currentIndex);
+                      //  changeColors(_currentIndex);
                     });
 
                   }
@@ -820,12 +815,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.map, color: itemsColors[0], size: 40),
+                  child: Icon(Icons.map, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
                   onTap: () {
                     //  _mapExpandAnim(_mapInput);
                     setState(() {
                       _currentIndex = 0;
-                      changeColors(_currentIndex);
+                      //  changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                   },
@@ -836,12 +831,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Icon(Icons.announcement, color: itemsColors[1], size: 40),
+                    child: Icon(Icons.announcement, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       //  _mapExpandAnim(_announcementsInput);
                       setState(() {
                         _currentIndex = 1;
-                        changeColors(_currentIndex);
+                        //  changeColors(_currentIndex);
                       });
                       _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
                     }
@@ -852,12 +847,12 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.calendar_today, color: itemsColors[2], size: 30),
+                  child: Icon(Icons.calendar_today, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white, size: 30),
                   onTap: () {
                     //  _mapExpandAnim(_reserveInput);
                     setState(() {
                       _currentIndex = 2;
-                      changeColors(_currentIndex);
+                      //  changeColors(_currentIndex);
                     });
                     _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                   },
@@ -868,11 +863,11 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Icon(Icons.apps, color: itemsColors[3], size: 40),
+                    child: Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       setState(() {
                         _currentIndex = 3;
-                        changeColors(_currentIndex);
+                        //  changeColors(_currentIndex);
                       });
 
                     }
@@ -1208,85 +1203,87 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   Widget teachersBar() {
     if(globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
 
+
+
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: SizedBox(
+        child: Container(
           height: 75,
           width: device.width * 0.90,
-          child: Container(
-            decoration: BoxDecoration(
-                color: Colors.black12,
-                borderRadius: BorderRadius.circular(50)
-            ),
-            child: Align(
-              alignment: Alignment(0, 0.5),
+          decoration: BoxDecoration(
+              color: Colors.black12,
+              borderRadius: BorderRadius.circular(50)
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints){
+              var barWidth = constraints.maxWidth / 3;
 
-              //  TODO: Modify the alignment here.
-              child: Transform.translate(
-                offset: Offset(0, 20),
-                child: Stack(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        GestureDetector(
-                          child: Text(
-                            'Students',
-                            key: _textKeyStudent,
-                            style: TextStyle(
-                                color: selectedColorS,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          onTap: () {
-                            setState(() {
-                              selectedColorS = ColorsB.yellow500;
-                              selectedColorT = Colors.white;
-                              selectedColorP = Colors.white;
-                              _alignment = Alignment.centerLeft;
-                              _currentAnnouncement = 0;
-                              currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                              currentChannel = 'Students';
-                              _refresh();
-                              //print(currentWidth);
-                            });
-                            _announcementsController.animateToPage(
-                                _currentAnnouncement,
-                                duration: Duration(milliseconds: 250),
-                                curve: Curves.easeInOut);
-                          },
-                        ),
-                        GestureDetector(
-                          child: Text(
-                            'Teachers',
-                            key: _textKeyTeacher,
-                            style: TextStyle(
-                                color: selectedColorT,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          onTap: () {
 
-                              setState(() {
-                                selectedColorS = Colors.white;
-                                selectedColorT = ColorsB.yellow500;
-                                selectedColorP = Colors.white;
-                                _alignment = Alignment.center;
-                                _currentAnnouncement = 1;
-                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                                currentChannel = 'Teachers';
-                                _refresh();
-                                //print(currentWidth);
-                              });
-                              _announcementsController.animateToPage(
-                                  _currentAnnouncement,
-                                  duration: Duration(milliseconds: 250),
-                                  curve: Curves.easeInOut);
-                          },
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        child: Text(
+                          'Students',
+                          key: _textKeyStudent,
+                          style: TextStyle(
+                              color: selectedColorS,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold
+                          ),
                         ),
-                        GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedColorS = ColorsB.yellow500;
+                            selectedColorT = Colors.white;
+                            selectedColorP = Colors.white;
+                            _alignment = Alignment.centerLeft;
+                            _currentAnnouncement = 0;
+                            currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                            currentChannel = 'Students';
+                            _refresh();
+                            //print(currentWidth);
+                          });
+                          _announcementsController.animateToPage(
+                              _currentAnnouncement,
+                              duration: Duration(milliseconds: 250),
+                              curve: Curves.easeInOut);
+                        },
+                      ),
+                      GestureDetector(
+                        child: Text(
+                          'Teachers',
+                          key: _textKeyTeacher,
+                          style: TextStyle(
+                              color: selectedColorT,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        onTap: () {
+
+                          setState(() {
+                            selectedColorS = Colors.white;
+                            selectedColorT = ColorsB.yellow500;
+                            selectedColorP = Colors.white;
+                            _alignment = Alignment.center;
+                            _currentAnnouncement = 1;
+                            currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                            currentChannel = 'Teachers';
+                            _refresh();
+                            //print(currentWidth);
+                          });
+                          _announcementsController.animateToPage(
+                              _currentAnnouncement,
+                              duration: Duration(milliseconds: 250),
+                              curve: Curves.easeInOut);
+                        },
+                      ),
+                      GestureDetector(
                           child: Text(
                             'Parents',
                             key: _textKeyParent,
@@ -1298,47 +1295,49 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                           ),
                           onTap: () {
 
-                              setState(() {
-                                selectedColorS = Colors.white;
-                                selectedColorT = Colors.white;
-                                selectedColorP = ColorsB.yellow500;
-                                _alignment = Alignment.centerRight;
-                                _currentAnnouncement = 2;
-                                currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                                currentChannel = 'Parents';
-                                _refresh();
-                                //print(currentWidth);
-                              });
+                            setState(() {
+                              selectedColorS = Colors.white;
+                              selectedColorT = Colors.white;
+                              selectedColorP = ColorsB.yellow500;
+                              _alignment = Alignment.centerRight;
+                              _currentAnnouncement = 2;
+                              currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+                              currentChannel = 'Parents';
+                              _refresh();
+                              //print(currentWidth);
+                            });
 
-                              _announcementsController.animateToPage(
-                                  _currentAnnouncement,
-                                  duration: Duration(milliseconds: 250),
-                                  curve: Curves.easeInOut);
-                            }
-                        )
-                      ],
-                    ),
-                    AnimatedAlign(
+                            _announcementsController.animateToPage(
+                                _currentAnnouncement,
+                                duration: Duration(milliseconds: 250),
+                                curve: Curves.easeInOut);
+                          }
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: AnimatedAlign(
                       curve: Curves.easeInOut,
                       duration: const Duration(milliseconds: 250),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: currentWidth/3),
-                        child: AnimatedContainer(
-                          curve: Curves.easeInOut,
-                          duration: const Duration(milliseconds: 250),
-                          width: currentWidth,
-                          height: 2,
-                          color: ColorsB.yellow500,
+                      alignment: _alignment,
+                      child: SizedBox(
+                        width: barWidth,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Container(
+                            height: 2,
+                            color: ColorsB.yellow500,
+                          ),
                         ),
                       ),
-                      alignment: _alignment,
                     ),
+                  ),
 
-                  ],
-                ),
-              ),
-            ),
+                ],
+              );
+            }
           ),
         ),
       );
@@ -2614,6 +2613,9 @@ class _MapPageState extends State<MapPage>{
       return SizedBox();
     }
     else {
+      print(floorNo);
+      print(floors[floorNo].file);
+      print(floors);
       return maps[floorNo];
     }
 
@@ -2784,19 +2786,8 @@ class Calendar extends StatefulWidget {
 }
 
 
-class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
+class _CalendarState extends State<Calendar>{
 
-
-  late List<EdgeInsetsGeometry> _padding;
-  late List<Color> _wordColor;
-
-  late AnimationController _clipAnimation;
-  late Animation<double> _clipAnimationValue;
-
-  late AnimationController _containerAnim;
-  late Animation<double> _containerAnimValue;
-
-  late Animation<double> _gradientAnim;
 
   int maxStep = 0;
 
@@ -2805,42 +2796,6 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
     // TODO: implement initState
     super.initState();
     currentPage = 0;
-    _stepsColors = [
-      ColorsB.yellow500,
-      ColorsB.gray800,
-      ColorsB.gray800,
-      ColorsB.gray800,
-    ];
-    _padding = [
-      const EdgeInsets.only(bottom: 50),
-      EdgeInsets.zero,
-      EdgeInsets.zero,
-      EdgeInsets.zero,
-    ];
-    _wordColor = [
-      Colors.white,
-      ColorsB.gray800,
-      ColorsB.gray800,
-      ColorsB.gray800,
-    ];
-
-    _clipAnimation = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _containerAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _clipAnimationValue = Tween<double>(begin: 0, end: 1).animate(_clipAnimation);
-
-    _clipAnimationValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1).animate(CurvedAnimation(
-        parent: _clipAnimation,
-        curve: Curves.easeInOut
-    ));
-    _containerAnimValue = Tween<double>(begin: screenWidth * 0.25, end: screenWidth * 0.1 + 20).animate(CurvedAnimation(
-        parent: _containerAnim,
-        curve: Curves.easeInOut
-    ));
-
-    _gradientAnim = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-        parent: _clipAnimation,
-        curve: Curves.easeInOut
-    ));
 
     maxStep = 0;
     
@@ -2850,12 +2805,49 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
 
   @override
   void dispose() {
-    _clipAnimation.dispose();
-    _stepsColors.clear();
-    _padding.clear();
-    _wordColor.clear();
-    _containerAnim.dispose();
+
     super.dispose();
+  }
+
+  Widget buildSteps(int no) {
+
+    List<Widget> steps = [];
+
+    for(int i = 1; i <= no; ++i){
+      steps.add(AnimatedPadding(
+        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 250),
+        padding: currentPage == i - 1 ? const EdgeInsets.only(bottom: 10) : EdgeInsets.zero,
+        child: AnimatedContainer(duration: const Duration(milliseconds: 250),
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: currentPage == i - 1 ? ColorsB.yellow500 : ColorsB.gray800,
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: Center(
+            child: Text(
+              '$i',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.normal
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    return SizedBox(
+        height: screenHeight *.75,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: steps
+        )
+    );
+
+
   }
 
   @override
@@ -2871,234 +2863,8 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
             padding: const EdgeInsets.fromLTRB(25, 0, 0, 70),
             child: Row(
               children: [
-                AnimatedBuilder(
-                  animation: _clipAnimation,
-                  builder: (_, __) =>
-                      Stack(
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(width: _clipAnimationValue.value),
-                              const SizedBox(width: 2),
-                              Container(
-                                width: 30,
-                                height: screenHeight * 0.5,
-                                color: Colors.transparent,
-                                child: Center(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      if(_clipAnimation.status == AnimationStatus.dismissed){
-                                        _clipAnimation.forward();
-                                        _containerAnim.forward();
-                                      }
-                                      else {
-                                        _clipAnimation.reverse();
-                                        _containerAnim.reverse();
-                                      }
-                                    },
-                                    child: RotationTransition(
-
-                                      turns: Tween<double>(begin: 0.5, end: 0).animate(CurvedAnimation(parent: _clipAnimation, curve: Curves.easeInOut)),
-                                      child: SizedBox(
-                                        width: 30,
-                                        height: 30,
-                                        child: const Icon(
-                                          Icons.keyboard_arrow_right_rounded,
-                                          color: Colors.white,
-                                          size: 35
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-
-                          ClipRect(
-                            clipper: CustomClipBar(widthFactor: _clipAnimationValue.value),
-                            child: SizedBox(
-                                height: screenHeight * 0.5,
-                                width:  _clipAnimationValue.value <= screenWidth * 0.2 ? _containerAnimValue.value : screenWidth * 0.25,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    AnimatedPadding(
-                                      curve: Curves.easeInOut,
-                                      duration: const Duration(milliseconds: 250),
-                                      padding: _padding[0],
-                                      child: Row(
-                                        children: [
-                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              color: _stepsColors[0],
-                                              borderRadius: BorderRadius.circular(50),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                '1',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.normal
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15,),
-                                          Flexible(
-                                            child: AnimatedDefaultTextStyle(
-                                              duration: const Duration(milliseconds: 250),
-                                              style: TextStyle(
-                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[0],
-                                                fontSize: 10,
-                                                fontFamily: 'Nunito',
-                                              ),
-                                              child: Text(
-                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select your hall.',
-                                              ),
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                                    AnimatedPadding(
-                                      curve: Curves.easeInOut,
-                                      duration: const Duration(milliseconds: 250),
-                                      padding: _padding[1],
-                                      child: Row(
-                                        children: [
-                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              color: _stepsColors[1],
-                                              borderRadius: BorderRadius.circular(50),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                '2',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.normal
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15,),
-                                          Flexible(
-                                            child: AnimatedDefaultTextStyle(
-                                              duration: const Duration(milliseconds: 250),
-                                              style: TextStyle(
-                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[1],
-                                                fontSize: 10,
-                                                fontFamily: 'Nunito',
-                                              ),
-                                              child: Text(
-                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the day of interest.',
-                                              ),
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                                    AnimatedPadding(
-                                      curve: Curves.easeInOut,
-                                      duration: const Duration(milliseconds: 250),
-                                      padding: _padding[2],
-                                      child: Row(
-                                        children: [
-                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              color: _stepsColors[2],
-                                              borderRadius: BorderRadius.circular(50),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                '3',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.normal
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15,),
-                                          Flexible(
-                                            child: AnimatedDefaultTextStyle(
-                                              duration: const Duration(milliseconds: 250),
-                                              style: TextStyle(
-                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[2],
-                                                fontSize: 10,
-                                                fontFamily: 'Nunito',
-                                              ),
-                                              child: Text(
-                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Select the time interval.',
-                                              ),
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                                    AnimatedPadding(
-                                      curve: Curves.easeInOut,
-                                      duration: const Duration(milliseconds: 250),
-                                      padding: _padding[3],
-                                      child: Row(
-                                        children: [
-                                          AnimatedContainer(duration: const Duration(milliseconds: 250),
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              color: _stepsColors[3],
-                                              borderRadius: BorderRadius.circular(50),
-                                            ),
-                                            child: const Center(
-                                              child: Text(
-                                                '4',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.normal
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15,),
-                                          Flexible(
-                                            child: AnimatedDefaultTextStyle(
-                                              duration: const Duration(milliseconds: 250),
-                                              style: TextStyle(
-                                                color: _clipAnimationValue.value <= screenWidth * 0.23 ? Colors.transparent : _wordColor[3],
-                                                fontSize: 10,
-                                                fontFamily: 'Nunito',
-                                              ),
-                                              child: Text(
-                                                _clipAnimationValue.value <= screenWidth * 0.2 ? '' : 'Profit!',
-                                              ),
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                )
-                            ),
-                          ),
-                        ],
-                      )
-                ),
-                const SizedBox(width: 10),
+                buildSteps(4),
+                const SizedBox(width: 25),
                 Expanded(
                   child: _calendarBuild(),
 
@@ -3111,6 +2877,53 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
       ],
     );
   }
+
+
+  List<Widget> stepsText = [
+    const Text(
+      'Select your hall.',
+      style:  TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+      )
+    ),
+    const Text(
+      'Select the day of interest.',
+      style:  TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+      )
+    ),
+    const Text(
+      'Select the time interval.',
+      style:  TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+      )
+    ),
+    const Text(
+      'Profit!',
+      style:  TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+      )
+    ),
+  ];
+
+
+  Widget _stepsText(){
+    return SizedBox(
+      key: Key("$currentPage"),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          stepsText[currentPage]
+        ]
+      ),
+    );
+
+  }
+
 
   Widget _calendarBuild() {
     if(_connectionStatus == ConnectivityResult.none){
@@ -3141,78 +2954,63 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
           )
       );
     }
-    return AnimatedBuilder(
-      animation: _clipAnimation,
-      builder: (_, __) =>
-          Stack(
+    return Stack(
+      children: [
+        SizedBox(
+          child: Column(
             children: [
-              ShaderMask(
-                shaderCallback: (rect) {
-                  return material.LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      ColorsB.gray900.withOpacity(_gradientAnim.value),
-                      ColorsB.gray900,
-                    ],
-                  ).createShader(rect);
-                },
-                blendMode: BlendMode.dstATop,
-                child: SizedBox(
-                  height: screenHeight * 0.5,
-                  child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 750),
-                      reverse: true,
-                      transitionBuilder: (child, animation, anim2) {
-                        return SharedAxisTransition(
-                          fillColor: ColorsB.gray900,
-                          animation: animation,
-                          secondaryAnimation: anim2,
-                          child: child,
-                          transitionType: SharedAxisTransitionType.vertical,
-                        );
-                      },
-                      child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
-                  ),
-                ),
-              ),
-              Transform.translate(
-                offset: Offset(0, screenHeight * 0.5 - 40),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if(currentPage != 0){
 
-                          _changePage(0);
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if(currentPage != 0){
 
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 15,
-                              spreadRadius: 10,
-                              offset: Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
-                          , size: 30,
-                        ),
-                      ),
+                        _changePage(0);
+
+                      }
+                    },
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                      , size: 30,
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: PageTransitionSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      //  switchOutCurve: Curves.easeInOut,
+                      child: _stepsText(),
+                      transitionBuilder: (child, animation, secondaryAnimation) =>
+                          SharedAxisTransition(animation: animation, secondaryAnimation: secondaryAnimation, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: Colors.transparent,)
+                    ),
+                  ),
+
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: screenHeight * .75,
+                child: PageTransitionSwitcher(
+                    duration: const Duration(milliseconds: 750),
+                    reverse: true,
+                    transitionBuilder: (child, animation, anim2) {
+                      return SharedAxisTransition(
+                        fillColor: ColorsB.gray900,
+                        animation: animation,
+                        secondaryAnimation: anim2,
+                        child: child,
+                        transitionType: SharedAxisTransitionType.vertical,
+                      );
+                    },
+                    child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
                 ),
               ),
             ],
           ),
+        ),
+      ],
     );
   }
 
@@ -3226,51 +3024,15 @@ class _CalendarState extends State<Calendar> with TickerProviderStateMixin{
   void _changePage(int page) {
 
     setState(() {
-      _stepsColors[currentPage] = ColorsB.gray800;
-      _padding[currentPage] = EdgeInsets.zero;
-      _wordColor[currentPage] = ColorsB.gray800;
-
-      _padding[page] = const EdgeInsets.only(bottom: 50);
-      _stepsColors[page] = ColorsB.yellow500;
-      _wordColor[page] = Colors.white;
-
       if(page > currentPage){
         maxStep = page;
       }
-
-
       currentPage = page;
     });
   }
 
 
-  List<Color> _stepsColors = [
-    ColorsB.yellow500,
-    ColorsB.gray800,
-    ColorsB.gray800,
-    ColorsB.gray800,
-  ];
-
-
 }
-
-class CustomClipBar extends CustomClipper<Rect> {
-  final double widthFactor;
-
-  const CustomClipBar({required this.widthFactor});
-
-  @override
-  Rect getClip(Size size) {
-    return Rect.fromLTRB(0, 0, widthFactor, size.height);
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Rect> oldClipper) {
-    return true;
-  }
-}
-
-
 
 //  <-----------------  Calendar page 1 ------------------>
 class CalPag1 extends StatefulWidget {
@@ -3310,8 +3072,7 @@ class _CalPag1State extends State<CalPag1> {
       padding: const EdgeInsets.all(10.0),
       child: Stack(
         children: [
-          ok == false
-          ? ListView.builder(
+          if (ok == false) ListView.builder(
             itemCount: 5,
             itemBuilder: (context, index) =>
                 Padding(
@@ -3330,8 +3091,7 @@ class _CalPag1State extends State<CalPag1> {
                     )
                   ),
                 )
-          )
-          : ListView.builder(
+          ) else ListView.builder(
             clipBehavior: Clip.hardEdge,         //  Find a way to do it better
             physics: const BouncingScrollPhysics(),
             itemCount: halls.isNotEmpty ? halls.length : 1,
@@ -3380,8 +3140,9 @@ class _CalPag1State extends State<CalPag1> {
 
           Visibility(
             visible: globalMap['account'] == 'Admin' ? true : false,
-            child: Align(
-              alignment: Alignment.bottomRight,
+            child: Positioned(
+              bottom: screenHeight * .1,
+              right: screenWidth * .05,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: FloatingActionButton(

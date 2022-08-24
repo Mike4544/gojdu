@@ -206,6 +206,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                               _prefs.setString('email', email!);
                               _prefs.setString('first_name', first_name);
+                              _prefs.setString('password', _password.value.text);
                               _prefs.setString('last_name', last_name);
                               _prefs.setString('type', acc_type!);
 

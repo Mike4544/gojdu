@@ -423,6 +423,7 @@ class _SecondPageState extends State<SecondPage> {
                         _prefs.setString('email', email1topass!);
                         _prefs.setString('first_name', fntopass!);
                         _prefs.setString('last_name', lntopass!);
+                        _prefs.setString('password', pass1topass!);
                         _prefs.setString('type', 'Parent');
                         String? token = await _firebaseMessaging.getToken();
 
