@@ -7,47 +7,29 @@ class CurvedAppbar extends StatefulWidget {
   final String name;
   final String? accType;
   final int position;
+  final Map map;
 
-  const CurvedAppbar({Key? key, required this.name, this.accType, required this.position}) : super(key: key);
+  const CurvedAppbar({Key? key, required this.name, this.accType, required this.position, required this.map}) : super(key: key);
 
   @override
   _CurvedAppbarState createState() => _CurvedAppbarState();
 }
 
-class _CurvedAppbarState extends State<CurvedAppbar> with SingleTickerProviderStateMixin {
+class _CurvedAppbarState extends State<CurvedAppbar>{
 
-  //  <-----------------  Void for settings ------------------>
-  void toSettings(){
-    Navigator.push(context, PageRouteBuilder(
-      reverseTransitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (context, a1, a2) => SettingsPage(type: widget.accType!),
-        transitionsBuilder: (context, a1, a2, child) =>
-           SharedAxisTransition(
-             animation: a1,
-             secondaryAnimation: a2,
-             transitionType: SharedAxisTransitionType.vertical,
-             fillColor: ColorsB.gray900,
-             child: child,
-           )
-    ));
-  }
+  final scoala = 'Colegiul National "Emanuil Gojdu"';
 
-  late AnimationController _controller;
-  late Animation<Offset> _offset;
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds:250));
-    _offset = Tween<Offset>(begin: Offset(0, 1), end: Offset.zero)
-    .animate(_controller);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    //  _controller.dispose();
     super.dispose();
   }
 
@@ -71,22 +53,30 @@ class _CurvedAppbarState extends State<CurvedAppbar> with SingleTickerProviderSt
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    toSettings();
-                  },
-                  splashRadius: 30,
-                  iconSize: 40,
-                  icon: const Icon(
-                    Icons.perm_identity_rounded,
-                    color: ColorsB.gray900,
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${widget.map["first_name"]} ${widget.map["last_name"]}',
+                    style: const TextStyle(
+                      color: ColorsB.gray900,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20
+                    ),
                   ),
-                )
-              ],
+                  Text(
+                    scoala,
+                    style: const TextStyle(
+                        color: ColorsB.gray900,
+                        fontSize: 15
+                    ),
+                  )
+                ],
+              ),
             ),
             name(),
           ],

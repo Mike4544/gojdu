@@ -125,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               )),
                               DataCell(Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: device.height * .02),
                                 child: Center(
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -184,7 +184,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               )),
                               DataCell(Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: EdgeInsets.symmetric(vertical: device.height * .02),
                                 child: Center(
                                   child: TextButton(
                                     onPressed: () {
@@ -334,26 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 );
               },
               child: Container(
-                child: Stack(
-                  children: [
-                    CustomPaint(
-                      size: Size(device.width * 0.5, (device.width * 0.5*0.3214626550806168).toDouble()), //You can Replace [WIDTH] with your desired width for Custom Paint and height will be calculated automatically
-                      painter: RPSCustomPainter(),
-
-                    ),
-                    Transform.translate(
-                      offset: Offset(75,12.5),
-                      child: const Text(
-                        'Log-off',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: SvgPicture.asset('assets/svgs/logOff.svg'),
                 //SvgPicture.asset('assets/svgs/logout_button.svg', colorBlendMode: BlendMode.dstATop,),
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
@@ -622,64 +603,6 @@ Future<void> deleteAccount(BuildContext context, String email) async {
 
 }
 
-
-
-class RPSCustomPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-
-    Path path_0 = Path();
-    path_0.moveTo(size.width*0.1148727,size.height);
-    path_0.lineTo(size.width*0.1148727,size.height);
-    path_0.lineTo(0,size.height*0.8125000);
-    path_0.lineTo(0,0);
-    path_0.lineTo(size.width*0.2106083,0);
-    path_0.lineTo(size.width*0.2106083,size.height*0.3125000);
-    path_0.lineTo(size.width*0.1914210,size.height*0.3125000);
-    path_0.lineTo(size.width*0.1914210,size.height*0.06250000);
-    path_0.lineTo(size.width*0.03827415,size.height*0.06250000);
-    path_0.lineTo(size.width*0.1148727,size.height*0.1875000);
-    path_0.lineTo(size.width*0.1148727,size.height*0.7500000);
-    path_0.lineTo(size.width*0.1914210,size.height*0.7500000);
-    path_0.lineTo(size.width*0.1914210,size.height*0.5625000);
-    path_0.lineTo(size.width*0.2106083,size.height*0.5625000);
-    path_0.lineTo(size.width*0.2106083,size.height*0.8125000);
-    path_0.lineTo(size.width*0.1148727,size.height*0.8125000);
-    path_0.lineTo(size.width*0.1148727,size.height);
-    path_0.close();
-    path_0.moveTo(size.width*0.8693556,size.height*0.8125000);
-    path_0.lineTo(size.width*0.2063388,size.height*0.8125000);
-    path_0.lineTo(size.width*0.2063388,size.height*0.5000000);
-    path_0.lineTo(size.width*0.1289869,size.height*0.5000000);
-    path_0.lineTo(size.width*0.1289869,size.height*0.3750000);
-    path_0.lineTo(size.width*0.2063388,size.height*0.3750000);
-    path_0.lineTo(size.width*0.2063388,0);
-    path_0.lineTo(size.width*0.8693556,0);
-    path_0.arcToPoint(Offset(size.width*0.9617259,size.height*0.1190625),radius: Radius.elliptical(size.width*0.1297905, size.height*0.4037500),rotation: 0 ,largeArc: false,clockwise: true);
-    path_0.arcToPoint(Offset(size.width*0.9895022,size.height*0.5643750),radius: Radius.elliptical(size.width*0.1305942, size.height*0.4062500),rotation: 0 ,largeArc: false,clockwise: true);
-    path_0.arcToPoint(Offset(size.width*0.9615249,size.height*0.6935938),radius: Radius.elliptical(size.width*0.1294389, size.height*0.4026562),rotation: 0 ,largeArc: false,clockwise: true);
-    path_0.arcToPoint(Offset(size.width*0.8693556,size.height*0.8125000),radius: Radius.elliptical(size.width*0.1300417, size.height*0.4045313),rotation: 0 ,largeArc: false,clockwise: true);
-    path_0.close();
-    path_0.moveTo(size.width*0.2247225,size.height*0.5000000);
-    path_0.lineTo(size.width*0.2247225,size.height*0.6250000);
-    path_0.lineTo(size.width*0.2821337,size.height*0.4375000);
-    path_0.lineTo(size.width*0.2247225,size.height*0.2500000);
-    path_0.lineTo(size.width*0.2247225,size.height*0.3750000);
-    path_0.lineTo(size.width*0.2063388,size.height*0.3750000);
-    path_0.lineTo(size.width*0.2063388,size.height*0.5000000);
-    path_0.close();
-
-    Paint paint_0_fill = Paint()..style=PaintingStyle.fill;
-    paint_0_fill.shader = ui.Gradient.linear(Offset(size.width*-459.6062,size.height*8.267656), Offset(size.width*-460.2893,size.height*8.297500), [Color(0xfff93333).withOpacity(1),Color(0xffee3d6d).withOpacity(1)], [0,1]);
-    canvas.drawPath(path_0,paint_0_fill);
-
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
 
 //  For the logoff button
 

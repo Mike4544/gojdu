@@ -264,7 +264,7 @@ class _EditFloorsState extends State<EditFloors> {
                                     terms[i] = _format!;
                                   }
 
-                                  array[i].file = nameController.text + _format!;
+                                  array[i].file = removeSpaces(nameController.text) + _format!;
 
                                 }
 
@@ -502,6 +502,12 @@ class _EditFloorsState extends State<EditFloors> {
 
 
 
+  String removeSpaces(String original){
+    return original.replaceAll(' ', '_');
+
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -688,7 +694,7 @@ class _EditFloorsState extends State<EditFloors> {
                                             });
                                             temporary.add(Floor(
                                                 floor: nameController.text,
-                                                file: nameController.text + _format!
+                                                file: removeSpaces(nameController.text) + _format!
                                             ));
 
                                             setState(() {
@@ -849,7 +855,7 @@ class _EditFloorsState extends State<EditFloors> {
                       data.addAll({"id[$i]":{"floor": temporary[i].floor, "file": temporary[i].file}});
                     }
                     for(int i = 0; i < images.length; i++){
-                      data['id[$i]']!.addAll({"b64": images[i], 'name': temporary[i].floor, 'term': terms[i]});
+                      data['id[$i]']!.addAll({"b64": images[i], 'name': temporary[i].file.split('.').first, 'term': terms[i]});
                     }
 
                     print(jsonEncode(data).toString());

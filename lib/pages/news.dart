@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:gojdu/pages/settings.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -42,6 +43,8 @@ import 'package:gojdu/widgets/post.dart';
 
 import 'package:gojdu/pages/editTables.dart';
 import 'package:gojdu/others/floor.dart';
+
+import 'package:gojdu/pages/menus.dart';
 
 
 
@@ -136,7 +139,7 @@ class _NewsPageState extends State<NewsPage>{
 
   bool pressed = false; //????????????? Ii folosit undeva?????
 
-  int _currentIndex = 1;
+  int _currentIndex = 0;
 
 
 
@@ -153,7 +156,7 @@ class _NewsPageState extends State<NewsPage>{
 
 
   final PageController _pageController = PageController(
-    initialPage: 1,
+    initialPage: 0,
   );
 
   void checkConnectivity() {
@@ -539,9 +542,12 @@ class _NewsPageState extends State<NewsPage>{
               physics: NeverScrollableScrollPhysics(),
               controller: _pageController,
               children: [
-                MapPage(),
                 Announcements( key: _announcementsKey,),
-                Calendar()
+                MenuTabs(pages: [
+                  SettingsPage(type: globalMap['account'], key: const ValueKey(1)),
+                  const MapPage(key: ValueKey(2)),
+                  const Calendar(key: ValueKey(3)),
+                ], map: globalMap)
               ],
             );
           }
@@ -725,31 +731,16 @@ class _NewsPageState extends State<NewsPage>{
                 ),
               ),
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Icon(Icons.map, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                  onTap: () {
-                    //  _mapExpandAnim(_mapInput);
-                    setState(() {
-                      _currentIndex = 0;
-                      //  changeColors(_currentIndex);
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                  },
-                ),
-              ),
 
               SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Icon(Icons.announcement, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
+                    child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       //  _mapExpandAnim(_announcementsInput);
                       setState(() {
-                        _currentIndex = 1;
+                        _currentIndex = 0;
                         //  changeColors(_currentIndex);
                       });
                       _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
@@ -757,32 +748,19 @@ class _NewsPageState extends State<NewsPage>{
                 ),
               ),
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Icon(Icons.calendar_today, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white, size: 30),
-                  onTap: () {
-                    //  _mapExpandAnim(_reserveInput);
-                    setState(() {
-                      _currentIndex = 2;
-                      //  changeColors(_currentIndex);
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                  },
-                ),
-              ),
 
               SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white, size: 40),
+                  child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
                   onTap: () {
                     setState(() {
-                      _currentIndex = 3;
+                      _currentIndex = 1;
                       //  changeColors(_currentIndex);
                     });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
 
                   }
                 ),
@@ -815,27 +793,11 @@ class _NewsPageState extends State<NewsPage>{
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                  child: Icon(Icons.map, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                  onTap: () {
-                    //  _mapExpandAnim(_mapInput);
-                    setState(() {
-                      _currentIndex = 0;
-                      //  changeColors(_currentIndex);
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                  },
-                ),
-              ),
-
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                    child: Icon(Icons.announcement, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
+                    child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       //  _mapExpandAnim(_announcementsInput);
                       setState(() {
-                        _currentIndex = 1;
+                        _currentIndex = 0;
                         //  changeColors(_currentIndex);
                       });
                       _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
@@ -843,32 +805,19 @@ class _NewsPageState extends State<NewsPage>{
                 ),
               ),
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Icon(Icons.calendar_today, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white, size: 30),
-                  onTap: () {
-                    //  _mapExpandAnim(_reserveInput);
-                    setState(() {
-                      _currentIndex = 2;
-                      //  changeColors(_currentIndex);
-                    });
-                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                  },
-                ),
-              ),
 
               SizedBox(
                 width: 50,
                 height: 50,
                 child: GestureDetector(
-                    child: Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white, size: 40),
+                    child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
                     onTap: () {
                       setState(() {
-                        _currentIndex = 3;
+                        _currentIndex = 1;
                         //  changeColors(_currentIndex);
                       });
+
+                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
 
                     }
                 ),
@@ -1117,7 +1066,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1,),
+        CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1, map: globalMap,),
 
         SliverToBoxAdapter(
             child: Padding(
@@ -2627,147 +2576,137 @@ class _MapPageState extends State<MapPage>{
 
 
 
-    return CustomScrollView(
-      physics: BouncingScrollPhysics(),
-      slivers: [
-        CurvedAppbar(name: 'Map', position: 0, accType: globalMap['account'] + ' account'),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Select floor',
+                style: TextStyle(
+                    color: ColorsB.yellow500,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600
+                ),
+              ),
+              const SizedBox(width: 10,),
+              Expanded(
+                child: Container(
+                  color: ColorsB.gray800,
+                  height: 2,
+                ),
+              ),
+            ],
+          ),
 
-        SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(height: 50,),
+
+          //Widgetul pt select floor
+
+          floors.isNotEmpty
+              ? Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Select floor',
-                        style: TextStyle(
-                            color: ColorsB.yellow500,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w600
-                        ),
-                      ),
-                      const SizedBox(width: 10,),
-                      Expanded(
-                        child: Container(
-                          color: ColorsB.gray800,
-                          height: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 50,),
-
-                  //Widgetul pt select floor
-
-                  floors.isNotEmpty
-                      ? Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 100),
-                          AnimatedSwitcher(
-                            duration: Duration(milliseconds: 250),
-                            child: _mapChildren(),
-                            transitionBuilder: (child, animation) =>
-                                SlideTransition(
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  ),
-                                  position: Tween<Offset>(
-                                      begin: Offset(1, 0),
-                                      end: Offset.zero
-                                  ).animate(animation),
-                                ),
+                  SizedBox(height: 100),
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    child: _mapChildren(),
+                    transitionBuilder: (child, animation) =>
+                        SlideTransition(
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
                           ),
-                        ],
-                      ),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            DropdownSelector(update: _mapUpdate, floors: floors),
-                            globalMap['account'] == "Admin"
-                                ? TextButton.icon(
-                                onPressed: () {
-                                  Navigator.push(context, PageRouteBuilder(
-                                      pageBuilder: (context, a1, a2) =>
-                                          SlideTransition(
-                                            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                                            child: EditFloors(floors: floors, update: updateThis,),
-                                          )
-                                  )
-                                  );
-                                },
-                                icon: Icon(Icons.edit, size: 20, color: Colors.white),
-                                label: const Text(
-                                  "Edit floors",
-                                  style: TextStyle(
-                                      color: Colors.white
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  backgroundColor: ColorsB.gray800,
-                                )
-                            )
-                                : const SizedBox(width: 0, height: 0),
-                          ]
-                      ),
-                      //TODO: Add the images (at least a placeholder one and do the thingy)
-
-                    ],
-                  )
-                      : Center(
-                          child: Column(
-                            children: [
-                              const Text(
-                                'No maps to display :(',
-                                style: TextStyle(color: ColorsB.gray800, fontSize: 30),
-                              ),
-                              const SizedBox(height: 20),
-                              TextButton.icon(
-                                  onPressed: () {
-                                    Navigator.push(context, PageRouteBuilder(
-                                        pageBuilder: (context, a1, a2) =>
-                                            SlideTransition(
-                                              position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                                              child: EditFloors(floors: floors, update: updateThis),
-                                            )
-                                    )
-                                    );
-                                  },
-                                  icon: Icon(Icons.edit, size: 20, color: Colors.white),
-                                  label: const Text(
-                                    "Add floors",
-                                    style: TextStyle(
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: ColorsB.gray800,
-                                  )
-                              )
-                            ],
-                          )
-                   ),
-
-                  // DropdownSelector(update: _mapUpdate,),
-                  // //TODO: Add the images (at least a placeholder one and do the thingy)
-
-
-
-
-
+                          position: Tween<Offset>(
+                              begin: Offset(1, 0),
+                              end: Offset.zero
+                          ).animate(animation),
+                        ),
+                  ),
                 ],
               ),
-            )
-        )
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownSelector(update: _mapUpdate, floors: floors),
+                    globalMap['account'] == "Admin"
+                        ? TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(context, PageRouteBuilder(
+                              pageBuilder: (context, a1, a2) =>
+                                  SlideTransition(
+                                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                    child: EditFloors(floors: floors, update: updateThis,),
+                                  )
+                          )
+                          );
+                        },
+                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        label: const Text(
+                          "Edit floors",
+                          style: TextStyle(
+                              color: Colors.white
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorsB.gray800,
+                        )
+                    )
+                        : const SizedBox(width: 0, height: 0),
+                  ]
+              ),
+              //TODO: Add the images (at least a placeholder one and do the thingy)
 
-      ],
+            ],
+          )
+              : Center(
+              child: Column(
+                children: [
+                  const Text(
+                    'No maps to display :(',
+                    style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(context, PageRouteBuilder(
+                            pageBuilder: (context, a1, a2) =>
+                                SlideTransition(
+                                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                  child: EditFloors(floors: floors, update: updateThis),
+                                )
+                        )
+                        );
+                      },
+                      icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                      label: const Text(
+                        "Add floors",
+                        style: TextStyle(
+                            color: Colors.white
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: ColorsB.gray800,
+                      )
+                  )
+                ],
+              )
+          ),
+
+          // DropdownSelector(update: _mapUpdate,),
+          // //TODO: Add the images (at least a placeholder one and do the thingy)
+
+
+
+
+
+        ],
+      ),
     );
 
 
@@ -2840,7 +2779,7 @@ class _CalendarState extends State<Calendar>{
     }
 
     return SizedBox(
-        height: screenHeight *.75,
+        height: screenHeight *.6,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: steps
@@ -2852,29 +2791,53 @@ class _CalendarState extends State<Calendar>{
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      clipBehavior: Clip.none,
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        CurvedAppbar(name: 'Hall Manager', position: 2, accType: '${globalMap['account']} account'),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(25, 0, 0, 0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if(currentPage != 0){
 
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 0, 0, 70),
-            child: Row(
-              children: [
-                buildSteps(4),
-                const SizedBox(width: 25),
-                Expanded(
-                  child: _calendarBuild(),
+                    _changePage(0);
 
-                  )
-              ],
-            ),
+                  }
+                },
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                  , size: 30,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: PageTransitionSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    //  switchOutCurve: Curves.easeInOut,
+                    child: _stepsText(),
+                    transitionBuilder: (child, animation, secondaryAnimation) =>
+                        SharedAxisTransition(animation: animation, secondaryAnimation: secondaryAnimation, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: Colors.transparent,)
+                ),
+              ),
+
+            ],
           ),
-        )
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildSteps(4),
+              const SizedBox(width: 25),
+              Expanded(
+                child: _calendarBuild(),
 
-      ],
+              )
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -2954,60 +2917,23 @@ class _CalendarState extends State<Calendar>{
           )
       );
     }
-    return Stack(
+    return Column(
       children: [
         SizedBox(
-          child: Column(
-            children: [
-
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if(currentPage != 0){
-
-                        _changePage(0);
-
-                      }
-                    },
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
-                      , size: 30,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      //  switchOutCurve: Curves.easeInOut,
-                      child: _stepsText(),
-                      transitionBuilder: (child, animation, secondaryAnimation) =>
-                          SharedAxisTransition(animation: animation, secondaryAnimation: secondaryAnimation, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: Colors.transparent,)
-                    ),
-                  ),
-
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: screenHeight * .75,
-                child: PageTransitionSwitcher(
-                    duration: const Duration(milliseconds: 750),
-                    reverse: true,
-                    transitionBuilder: (child, animation, anim2) {
-                      return SharedAxisTransition(
-                        fillColor: ColorsB.gray900,
-                        animation: animation,
-                        secondaryAnimation: anim2,
-                        child: child,
-                        transitionType: SharedAxisTransitionType.vertical,
-                      );
-                    },
-                    child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
-                ),
-              ),
-            ],
+          height: screenHeight * .65,
+          child: PageTransitionSwitcher(
+              duration: const Duration(milliseconds: 750),
+              reverse: true,
+              transitionBuilder: (child, animation, anim2) {
+                return SharedAxisTransition(
+                  fillColor: ColorsB.gray900,
+                  animation: animation,
+                  secondaryAnimation: anim2,
+                  child: child,
+                  transitionType: SharedAxisTransitionType.vertical,
+                );
+              },
+              child: currentPage == 0 ? CalPag1(changePage: _changePage,) : CalPag2(changePage: _changePage,)
           ),
         ),
       ],
@@ -3050,11 +2976,12 @@ class _CalPag1State extends State<CalPag1> {
   late Function(int) changePage;
   bool ok = false;
 
+  late Future loadHalls = _loadHalls();
+
   @override
   void initState() {
     changePage = widget.changePage;
     ok = false;
-    _loadHalls();
     super.initState();
   }
 
@@ -3072,77 +2999,88 @@ class _CalPag1State extends State<CalPag1> {
       padding: const EdgeInsets.all(10.0),
       child: Stack(
         children: [
-          if (ok == false) ListView.builder(
-            itemCount: 5,
-            itemBuilder: (context, index) =>
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 125,
-                    child: Shimmer.fromColors(
-                      highlightColor: ColorsB.gray700,
-                      baseColor: ColorsB.gray800,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: ColorsB.gray800,
-                        ),
-                      ),
-                    )
-                  ),
-                )
-          ) else ListView.builder(
-            clipBehavior: Clip.hardEdge,         //  Find a way to do it better
-            physics: const BouncingScrollPhysics(),
-            itemCount: halls.isNotEmpty ? halls.length : 1,
-            itemBuilder: (context, index) {
-              if(halls.isNotEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: halls[index],
+          FutureBuilder(
+            future: loadHalls,
+            builder: (context, snapshot) {
+              if(!snapshot.hasData){
+                return ListView.builder(
+                    itemCount: 5,
+                    itemBuilder: (context, index) =>
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                              height: 125,
+                              child: Shimmer.fromColors(
+                                highlightColor: ColorsB.gray700,
+                                baseColor: ColorsB.gray800,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color: ColorsB.gray800,
+                                  ),
+                                ),
+                              )
+                          ),
+                        )
                 );
               }
               else {
-                // Return a nice No halls found message followed by the no_posts svg
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Wow, such empty!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
+                return ListView.builder(
+                  clipBehavior: Clip.hardEdge,         //  Find a way to do it better
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: halls.isNotEmpty ? halls.length : 1,
+                  itemBuilder: (context, index) {
+                    if(halls.isNotEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: halls[index],
+                      );
+                    }
+                    else {
+                      // Return a nice No halls found message followed by the no_posts svg
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Wow, such empty!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 10,),
+                            Text(
+                              'No halls found',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 20,),
+                            SvgPicture.asset(
+                              'assets/svgs/no_posts.svg',
+                              height: 200,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 10,),
-                      Text(
-                        'No halls found',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 20,),
-                      SvgPicture.asset(
-                        'assets/svgs/no_posts.svg',
-                        height: 200,
-                      ),
-                    ],
-                  ),
+                      );
+
+
+
+                    }
+                  },
                 );
-
-
-
               }
-            },
+
+            }
           ),
 
           Visibility(
             visible: globalMap['account'] == 'Admin' ? true : false,
             child: Positioned(
               bottom: screenHeight * .1,
-              right: screenWidth * .05,
+              right: screenWidth * .025,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: FloatingActionButton(
@@ -3436,9 +3374,6 @@ class _CalPag1State extends State<CalPag1> {
       ////print(e);
       //return 0;
     }
-    setState(() {
-      ok = true;
-    });
 
     // This is where the halls are loaded.
     return 1;

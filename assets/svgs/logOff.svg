@@ -1,0 +1,10 @@
+<svg data-name="Component 6 – 1" xmlns="http://www.w3.org/2000/svg" width="200.087" height="63.992">
+    <defs>
+        <linearGradient id="a" x1="1.17" y1=".936" x2="-.199" y2="-.972" gradientUnits="objectBoundingBox">
+            <stop offset="0" stop-color="#f93333"/>
+            <stop offset="1" stop-color="#ee3d6d"/>
+        </linearGradient>
+    </defs>
+    <path data-name="Exclusion 4" d="m-4511.046-1971.007-22.953-12V-2035h42.083v20h-3.825v-16h-30.607l15.3 8v35.995h15.3v-12h3.825v16h-19.129v12Zm151.132-11.993h-132v-20h-15.306v-8h15.306v-24h132a25.837 25.837 0 0 1 10.121 2.043 25.912 25.912 0 0 1 8.264 5.572 25.912 25.912 0 0 1 5.573 8.264 25.844 25.844 0 0 1 2.043 10.12 25.847 25.847 0 0 1-2.043 10.121 25.917 25.917 0 0 1-5.573 8.265 25.907 25.907 0 0 1-8.264 5.572 25.837 25.837 0 0 1-10.121 2.043Zm-128.177-20v8l11.477-12-11.477-12v8h-3.823v8Z" transform="translate(4534 2035)" fill="url(#a)"/>
+    <text transform="translate(75.043 34.996)" fill="#fff" font-size="21" font-family="Nunito-SemiBold, Nunito" font-weight="600"><tspan x="0" y="0">Log-off</tspan></text>
+</svg>
