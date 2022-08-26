@@ -347,7 +347,7 @@ class _PostState extends State<Post> {
                 ),
                 Positioned(
                   bottom: 10,
-                  right: 50,
+                  right: 20,
                   child: widget.globalMap['verification'] != 'Pending'
                       ? Row(
                         children: [
@@ -395,7 +395,7 @@ class _PostState extends State<Post> {
                   visible: widget.admin == 'Admin',
                   child: Positioned(
                     top: 25,
-                    right: 50,
+                    right: 25,
                     child: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.white),
                       onPressed: () {

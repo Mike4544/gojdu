@@ -4,6 +4,7 @@ import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MenuTabs extends StatefulWidget {
   List<Widget> pages;
@@ -24,6 +25,7 @@ class _MenuTabsState extends State<MenuTabs> {
   late List<Tab> tabs;
 
   late List<Widget> switcherPages;
+
 
 
   void update() {
@@ -49,7 +51,7 @@ class _MenuTabsState extends State<MenuTabs> {
       Tab(
         color: Colors.pink[400],
         image: "assets/images/Map.png",
-        description: "Having trouble navigating the school? Worry not! We've got you covered!",
+        description: "Having trouble navigating through the school? Worry not! We've got you covered!",
         title: "School Map",
         index: 2,
         update: update,
@@ -104,34 +106,36 @@ class _MenuTabsState extends State<MenuTabs> {
           SharedAxisTransition(animation: pAnim, secondaryAnimation: sAnim, transitionType: SharedAxisTransitionType.horizontal, fillColor: ColorsB.gray900, child: child),
       child: current_tab == 0
           ? switcherPages[current_tab]
-          : Column(
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    current_tab = 0;
-                    setState(() {
+          : Center(
+            child: Column(
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      current_tab = 0;
+                      setState(() {
 
-                    });
-                  },
-                  icon: const Icon(RoundedTriangle.polygon_1, color: Colors.white),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  tabs[current_tab - 1].title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25
+                      });
+                    },
+                    icon: const Icon(RoundedTriangle.polygon_1, color: Colors.white),
                   ),
-                )
-              ],
-            ),
-            const SizedBox(height: 10),
-            switcherPages[current_tab]
-          ],
+                  const SizedBox(width: 10),
+                  Text(
+                    tabs[current_tab - 1].title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 25
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 10),
+              switcherPages[current_tab]
+            ],
         ),
+          ),
     );
 
   }
@@ -147,6 +151,7 @@ class _MenuTabsState extends State<MenuTabs> {
 
   @override
   Widget build(BuildContext context) {
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -181,127 +186,122 @@ class Tab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    var sp = MediaQuery.of(context).textScaleFactor;
+
     var device = MediaQuery.of(context);
     var height = device.size.height;
     var width = device.size.width;
 
+    var borderRadius = height * .075;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
-      child: Container(
-        height: height * .25,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [color, Color.alphaBlend(Colors.white.withOpacity(.5), color)],
-            stops: const [
-              .3, 1
-            ],
-            begin: Alignment.center,
-            end: Alignment.topRight
-          ),
-          borderRadius: BorderRadius.circular(30)
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(2),
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    color: color
+
+    return ScreenUtilInit(
+      designSize: const Size(412, 732),
+      minTextAdapt: true,
+      builder: (context, child){
+        return Padding(
+          padding: EdgeInsets.all(height * .01),
+          child: Container(
+            height: height * .25,
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [color, Color.alphaBlend(Colors.white.withOpacity(.5), color)],
+                    stops: const [
+                      .3, 1
+                    ],
+                    begin: Alignment.center,
+                    end: Alignment.topRight
                 ),
-
-              ),
+                borderRadius: BorderRadius.circular(borderRadius)
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Flexible(
-                      flex: 2,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 50,
-                            width: 50,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.white,
-                                  blurRadius: 50,
-                                )
-                              ]
-                            ),
-                          ),
-                          Image.asset(image),
-                        ],
-                      )
-                  ),
-                  Flexible(
-                    flex: 3,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 30,
-                            ),
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            description,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.normal,
-                              fontSize: 20,
-                            ),
-                          ),
-                        )
-                      ],
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                        color: color
                     ),
-                  )
-                ],
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  if(index == 1){
-                    Navigator.push(context, PageRouteBuilder(
-                        reverseTransitionDuration: const Duration(milliseconds: 500),
-                        pageBuilder: (context, a1, a2) => page!,
-                        transitionsBuilder: (context, a1, a2, child) =>
-                            SharedAxisTransition(
-                              animation: a1,
-                              secondaryAnimation: a2,
-                              transitionType: SharedAxisTransitionType.vertical,
-                              fillColor: ColorsB.gray900,
-                              child: child,
-                            )
-                    ));
-                  }
-                  else {
-                    current_tab = index;
-                    update();
 
-                  }
-                },
-                borderRadius: BorderRadius.circular(30),
-              ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Flexible(
+                          flex: 2,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.white,
+                                        blurRadius: 50,
+                                      )
+                                    ]
+                                ),
+                              ),
+                              Image.asset(image),
+                            ],
+                          )
+                      ),
+                      Flexible(
+                        flex: 3,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 25.sp,
+                                ),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                description,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 15.sp,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+
+                      current_tab = index;
+                      update();
+
+                    },
+                    borderRadius: BorderRadius.circular(borderRadius),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

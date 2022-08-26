@@ -515,6 +515,8 @@ class _EditFloorsState extends State<EditFloors> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
 
+    final _controller = ScrollController();
+
 
     return Scaffold(
       key: _scaffoldKey,
@@ -569,11 +571,13 @@ class _EditFloorsState extends State<EditFloors> {
               ),
             ),
             if (temporary.isNotEmpty) Scrollbar(
+              controller: _controller,
               radius: const Radius.circular(50),
               isAlwaysShown: true,
               child: SizedBox(
                 height: height * .35,
                 child: SingleChildScrollView(
+                  controller: _controller,
                   physics: const BouncingScrollPhysics(),
                   child: FittedBox(
                     fit: BoxFit.contain,

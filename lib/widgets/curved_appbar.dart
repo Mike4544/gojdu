@@ -55,24 +55,38 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Flexible(
+            SizedBox(
+              width: MediaQuery.of(context).size.width * .35,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    '${widget.map["first_name"]} ${widget.map["last_name"]}',
-                    style: const TextStyle(
-                      color: ColorsB.gray900,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20
+                  Flexible(
+                    flex: 2,
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: Text(
+                        '${widget.map["first_name"]} ${widget.map["last_name"]}',
+                        style: const TextStyle(
+                          color: ColorsB.gray900,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    scoala,
-                    style: const TextStyle(
-                        color: ColorsB.gray900,
-                        fontSize: 15
+                  Flexible(
+                    flex: 1,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                        scoala,
+                        style: const TextStyle(
+                            color: ColorsB.gray900,
+                          fontSize: 20
+
+                        ),
+                      ),
                     ),
                   )
                 ],

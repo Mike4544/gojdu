@@ -270,12 +270,30 @@ class _NewsPageState extends State<NewsPage>{
     }
   }
 
+  void loadRes(BuildContext context){
+
+    precacheImage(const AssetImage('assets/images/Alert.png'), context);
+    precacheImage(const AssetImage('assets/images/Calendar.png'), context);
+    precacheImage(const AssetImage('assets/images/Carnet.png'), context);
+    precacheImage(const AssetImage('assets/images/Map.png'), context);
+    precacheImage(const AssetImage('assets/images/Settings.png'), context);
+    precachePicture(ExactAssetPicture(
+        SvgPicture.svgStringDecoderBuilder,
+        'assets/svgs/no_posts.svg'
+    ),
+      null,
+    );
+
+  }
+
 
   @override
   void deactivate() {
     super.deactivate();
     //print(1);
   }
+
+
 
   //  Testing smthing
   late final Future? gFloors = getFloors();
@@ -373,6 +391,14 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+
+    loadRes(context);
   }
 
   @override
@@ -544,7 +570,7 @@ class _NewsPageState extends State<NewsPage>{
               children: [
                 Announcements( key: _announcementsKey,),
                 MenuTabs(pages: [
-                  SettingsPage(type: globalMap['account'], key: const ValueKey(1)),
+                  SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
                   const Calendar(key: ValueKey(3)),
                 ], map: globalMap)
@@ -563,7 +589,7 @@ class _NewsPageState extends State<NewsPage>{
 
       return Container(
         width: screenWidth,
-        height: 75,
+        height: screenHeight * .1,
         decoration: BoxDecoration(
             color: ColorsB.gray800,
             boxShadow: [
@@ -1064,13 +1090,13 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       slivers: [
         CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1, map: globalMap,),
 
         SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 50, 25, 75),
+              padding: const EdgeInsets.fromLTRB(25, 0, 25, 75),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -1109,35 +1135,31 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                   const SizedBox(height: 25,),
 
                   teachersBar(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
-                    child: SizedBox(
-                      height: 450,
-                      child: ShaderMask(
-                        shaderCallback: (Rect bounds) =>
-                        const material.LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: [
-                            0, 0.25
-                          ],
-                          colors: [Colors.transparent, ColorsB.gray900]
-                        ).createShader(bounds),
-                        blendMode: BlendMode.dstIn,
-                        child: PageView(
-                          clipBehavior: Clip.hardEdge,
-                          controller: _announcementsController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            _buildLists(ColorsB.gray800),
-                            _buildLists(Colors.amber),
-                            _buildLists(Colors.indigoAccent),
+                  SizedBox(
+                    height: 450,
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) =>
+                      const material.LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: [
+                          0, 0.25
+                        ],
+                        colors: [Colors.transparent, ColorsB.gray900]
+                      ).createShader(bounds),
+                      blendMode: BlendMode.dstIn,
+                      child: PageView(
+                        controller: _announcementsController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildLists(ColorsB.gray800),
+                          _buildLists(Colors.amber),
+                          _buildLists(Colors.indigoAccent),
 
 
-                          ],
-                        ),
-                      )
-                    ),
+                        ],
+                      ),
+                    )
                   )
 
                 ],
@@ -1346,21 +1368,23 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                   // var owner = owners[index];
 
                   if(index != maxScrollCount){
-                    return posts[index];
+                    return Center(child: posts[index]);
                   }
                   else{
-                    return Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Shimmer.fromColors(
-                        baseColor: ColorsB.gray800,
-                        highlightColor: ColorsB.gray700,
-                        child: Container(                         // Student containers. Maybe get rid of the hero
-                          width: screenWidth * 0.75,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: ColorsB.gray800,
-                            borderRadius: BorderRadius.circular(
-                                50),
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Shimmer.fromColors(
+                          baseColor: ColorsB.gray800,
+                          highlightColor: ColorsB.gray700,
+                          child: Container(                         // Student containers. Maybe get rid of the hero
+                            width: screenWidth * 0.75,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: ColorsB.gray800,
+                              borderRadius: BorderRadius.circular(
+                                  50),
+                            ),
                           ),
                         ),
                       ),
