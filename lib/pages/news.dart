@@ -881,7 +881,7 @@ class Announcements extends StatefulWidget {
 
 int maximumCount = 0;
 
-class _AnnouncementsState extends State<Announcements> with SingleTickerProviderStateMixin {
+class _AnnouncementsState extends State<Announcements> with TickerProviderStateMixin {
 
 
   var selectedColorS = Colors.white;
@@ -912,10 +912,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   int maxScrollCount = 5;
 
 
-  //  <-----------------  Text Keys ----------------------------->
-  final GlobalKey _textKeyStudent = GlobalKey();
-  final GlobalKey _textKeyTeacher = GlobalKey();
-  final GlobalKey _textKeyParent = GlobalKey();
 
 
 
@@ -940,9 +936,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     maximumCount = 0;
     isError = false;
 
-
-
-
     int _getCurrentIndex() {
       switch(globalMap['account']) {
         case 'Student':
@@ -957,19 +950,49 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
           _currentAnnouncement = 2;
           currentChannel = 'Parents';
           return 2;
-          case 'Admin':
-            _currentAnnouncement = 1;
-            currentChannel = 'Teachers';
-            return 1;
+        case 'Admin':
+          _currentAnnouncement = 1;
+          currentChannel = 'Teachers';
+          return 1;
         default:
           return 0;
       }
     }
 
-    _announcementsController = PageController(
-      initialPage:  _getCurrentIndex(),
 
+    _tabController = TabController(
+        length: 3,
+        vsync: this,
+        initialIndex: _getCurrentIndex(),
+        animationDuration: const Duration(milliseconds: 500)
     );
+
+    _tabController.addListener(() async {
+      if(!_tabController.indexIsChanging){
+        print(_tabController.index);
+        setState(() {
+          currentChannel = labels[_tabController.index];
+          _refresh();
+        });
+      }
+      //  await Future.delayed(Duration(milliseconds:100));
+    });
+
+    _tabController.animation?.addListener(() {
+      if(_tabController.offset >= 0.25 || _tabController.offset <= -0.25){
+        setState(() {
+          isLoading = true;
+          loaded = false;
+        });
+      }
+    });
+
+
+
+
+
+
+
     _currentAnnouncement = 1;
     _shimmerController = AnimationController.unbounded(vsync: this)
       ..repeat(min: -0.5, max: 1.5, period: const Duration(milliseconds: 1000));
@@ -995,7 +1018,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
   @override
   void dispose() {
-    _announcementsController.dispose();
+    _tabController.dispose();
     _shimmerController.dispose();
     _scrollController.dispose();
 
@@ -1027,6 +1050,8 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     posts.clear();
 
     maximumCount = 0;
+
+
     setState(() {
       maxScrollCount = 5; //  Reset to the original scroll count
       isLoading = true;
@@ -1061,8 +1086,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   // Max max max posts
 
 
-  //  <----------------- Alignment for the bar -------------->
-  Alignment _alignment = Alignment.center;
 
 
   List<String> labels = [
@@ -1071,12 +1094,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     'Parents'
   ];
 
-  Size _textSize(String text, TextStyle style) {
-    final TextPainter textPainter = TextPainter(
-        text: TextSpan(text: text, style: style), maxLines: 1, textDirection: ui.TextDirection.ltr)
-      ..layout(minWidth: 0, maxWidth: double.infinity);
-    return textPainter.size;
-  }
 
   final style = const TextStyle(
       fontSize: 20,
@@ -1087,7 +1104,7 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
 
-    currentWidth = _textSize(labels[_currentAnnouncement], style).width;
+    //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return CustomScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -1148,9 +1165,11 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
                         colors: [Colors.transparent, ColorsB.gray900]
                       ).createShader(bounds),
                       blendMode: BlendMode.dstIn,
-                      child: PageView(
-                        controller: _announcementsController,
+                      child: TabBarView(
                         physics: const NeverScrollableScrollPhysics(),
+                        controller: _tabController,
+                        // controller: _announcementsController,
+                        // physics: const NeverScrollableScrollPhysics(),
                         children: [
                           _buildLists(ColorsB.gray800),
                           _buildLists(Colors.amber),
@@ -1171,6 +1190,10 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
     );
   }
 
+  late TabController _tabController;
+
+
+
   Widget teachersBar() {
     if(globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
 
@@ -1185,131 +1208,68 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
               color: Colors.black12,
               borderRadius: BorderRadius.circular(50)
           ),
-          child: LayoutBuilder(
-            builder: (context, constraints){
-              var barWidth = constraints.maxWidth / 3;
+          child: Theme(
+            data: Theme.of(context).copyWith(highlightColor: Colors.transparent, splashColor: Colors.transparent),
+            child: TabBar(
+              labelColor: ColorsB.yellow500,
+              unselectedLabelColor: Colors.white,
+              controller: _tabController,
+              indicator: const UnderlineTabIndicator(
+                borderSide: BorderSide(color: ColorsB.yellow500, width: 3),
+                insets: EdgeInsets.fromLTRB(50, 0, 50, 10)
 
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      GestureDetector(
+              ),
+              tabs: const [
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: material.Tab(
+                    child: SizedBox.expand(
+                      child: FittedBox(
+                        fit: BoxFit.contain,
                         child: Text(
-                          'Students',
-                          key: _textKeyStudent,
-                          style: TextStyle(
-                              color: selectedColorS,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                          ),
+                        'Students',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold
                         ),
-                        onTap: () {
-                          setState(() {
-                            selectedColorS = ColorsB.yellow500;
-                            selectedColorT = Colors.white;
-                            selectedColorP = Colors.white;
-                            _alignment = Alignment.centerLeft;
-                            _currentAnnouncement = 0;
-                            currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                            currentChannel = 'Students';
-                            _refresh();
-                            //print(currentWidth);
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        },
-                      ),
-                      GestureDetector(
-                        child: Text(
-                          'Teachers',
-                          key: _textKeyTeacher,
-                          style: TextStyle(
-                              color: selectedColorT,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        onTap: () {
-
-                          setState(() {
-                            selectedColorS = Colors.white;
-                            selectedColorT = ColorsB.yellow500;
-                            selectedColorP = Colors.white;
-                            _alignment = Alignment.center;
-                            _currentAnnouncement = 1;
-                            currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                            currentChannel = 'Teachers';
-                            _refresh();
-                            //print(currentWidth);
-                          });
-                          _announcementsController.animateToPage(
-                              _currentAnnouncement,
-                              duration: Duration(milliseconds: 250),
-                              curve: Curves.easeInOut);
-                        },
-                      ),
-                      GestureDetector(
-                          child: Text(
-                            'Parents',
-                            key: _textKeyParent,
-                            style: TextStyle(
-                                color: selectedColorP,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          onTap: () {
-
-                            setState(() {
-                              selectedColorS = Colors.white;
-                              selectedColorT = Colors.white;
-                              selectedColorP = ColorsB.yellow500;
-                              _alignment = Alignment.centerRight;
-                              _currentAnnouncement = 2;
-                              currentWidth = _textSize(labels[_currentAnnouncement], style).width;
-                              currentChannel = 'Parents';
-                              _refresh();
-                              //print(currentWidth);
-                            });
-
-                            _announcementsController.animateToPage(
-                                _currentAnnouncement,
-                                duration: Duration(milliseconds: 250),
-                                curve: Curves.easeInOut);
-                          }
-                      )
-                    ],
                   ),
-                  const SizedBox(height: 5),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: AnimatedAlign(
-                      curve: Curves.easeInOut,
-                      duration: const Duration(milliseconds: 250),
-                      alignment: _alignment,
-                      child: SizedBox(
-                        width: barWidth,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Container(
-                            height: 2,
-                            color: ColorsB.yellow500,
-                          ),
-                        ),
                       ),
                     ),
                   ),
-
-                ],
-              );
-            }
-          ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: material.Tab(
+                    child: SizedBox.expand(
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text(
+                        'Teachers',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold
+                        ),
+                  ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: material.Tab(
+                      child: SizedBox.expand(
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: Text(
+                          'Parents',
+                          style: TextStyle(
+                                  fontWeight: FontWeight.bold
+                          ),
+                  ),
+                        ),
+                      )),
+                )
+              ]
+            ),
+          )
         ),
       );
     }
@@ -1321,7 +1281,6 @@ class _AnnouncementsState extends State<Announcements> with SingleTickerProvider
 
 
   Widget _buildLists(Color _color) {
-
 
     if(!isError) {
       if(isLoading) {
@@ -1630,7 +1589,7 @@ Future<void> deletePost(int Id, int index) async {
 
 
 
-  Future<int> load(String channel) async {
+Future<int> load(String channel) async {
 
     //  Maybe rework this a bit.
 
