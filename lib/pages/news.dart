@@ -45,6 +45,7 @@ import 'package:gojdu/pages/editTables.dart';
 import 'package:gojdu/others/floor.dart';
 
 import 'package:gojdu/pages/menus.dart';
+import './notes.dart';
 
 
 
@@ -573,6 +574,7 @@ class _NewsPageState extends State<NewsPage>{
                   SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
                   const Calendar(key: ValueKey(3)),
+                  const Notes()
                 ], map: globalMap)
               ],
             );
@@ -1214,59 +1216,50 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               labelColor: ColorsB.yellow500,
               unselectedLabelColor: Colors.white,
               controller: _tabController,
-              indicator: const UnderlineTabIndicator(
-                borderSide: BorderSide(color: ColorsB.yellow500, width: 3),
-                insets: EdgeInsets.fromLTRB(50, 0, 50, 10)
+              indicator: UnderlineTabIndicator(
+                borderSide: const BorderSide(color: ColorsB.yellow500, width: 3),
+                insets: EdgeInsets.fromLTRB(screenWidth * .1, 0, screenWidth * .1, 10)
 
               ),
               tabs: const [
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: material.Tab(
+                material.Tab(
+                  child: SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                      'Students',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold
+                      ),
+                ),
+                    ),
+                  ),
+                ),
+                material.Tab(
+                  child: SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                      'Teachers',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold
+                      ),
+                ),
+                    ),
+                  ),
+                ),
+                material.Tab(
                     child: SizedBox.expand(
                       child: FittedBox(
                         fit: BoxFit.contain,
                         child: Text(
-                        'Students',
+                        'Parents',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold
+                                fontWeight: FontWeight.bold
                         ),
-                  ),
-                      ),
-                    ),
-                  ),
                 ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: material.Tab(
-                    child: SizedBox.expand(
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: Text(
-                        'Teachers',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold
-                        ),
-                  ),
                       ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: material.Tab(
-                      child: SizedBox.expand(
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: Text(
-                          'Parents',
-                          style: TextStyle(
-                                  fontWeight: FontWeight.bold
-                          ),
-                  ),
-                        ),
-                      )),
-                )
+                    ))
               ]
             ),
           )
