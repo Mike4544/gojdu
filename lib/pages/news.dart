@@ -47,6 +47,14 @@ import 'package:gojdu/others/floor.dart';
 import 'package:gojdu/pages/menus.dart';
 import './notes.dart';
 
+import './alertPage.dart';
+
+import '../databases/alertsdb.dart';
+import '../widgets/Alert.dart';
+
+import 'package:flutter/services.dart'; // For vibration
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 
 
@@ -76,6 +84,13 @@ List<Floor> floors = [
 
 List<String> titles = [];
 List<String> sizes = [];
+
+List<Alert>? alerts;
+bool haveNew = false;
+
+final bar1Key = GlobalKey();
+final bar2Key = GlobalKey();
+
 
 
 
@@ -137,6 +152,10 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 ConnectivityResult? _connectionStatus;
 
 class _NewsPageState extends State<NewsPage>{
+
+
+
+
 
   bool pressed = false; //????????????? Ii folosit undeva?????
 
@@ -299,8 +318,49 @@ class _NewsPageState extends State<NewsPage>{
   //  Testing smthing
   late final Future? gFloors = getFloors();
 
+  Future setBall(bool state) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool('activeBall', state);
+
+    if(bar1Key.currentState != null){
+      bar1Key.currentState!.setState(() {
+
+      });
+    }
+
+    // if(bar2Key.currentState != null){
+    //   bar2Key.currentState!.setState(() {
+    //
+    //   });
+    // }
+
+  }
+
+
+  Future addAlert(var message) async {
+    final data = message.data;
+
+
+    final alert = Alert(
+      read: false,
+      title: data['report_title'],
+      description: data['report_desc'],
+      imageString: data['report_image'].toString(),
+      createdTime: DateTime.parse(data['report_time']),
+      owner: data['report_owner']
+    );
+
+    await AlertDatabase.instance.create(alert);
+
+
+  }
+
+
   @override
   void initState() {
+
+    //  refreshAlerts();
 
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
@@ -353,18 +413,58 @@ class _NewsPageState extends State<NewsPage>{
             backgroundColor: Colors.green,
           ));
         }
+
+        if(message.data['type'] == 'Report') {
+          await setBall(true);
+
+          setState(() {
+            addAlert(message);
+
+          });
+
+          HapticFeedback.mediumImpact();
+
+          //  refreshAlerts();
+
+          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.check, color: Colors.white, size: 17,),
+                SizedBox(width: 10),
+                Text('Uh-oh! Somebody used the alert system!', style: TextStyle(fontFamily: 'Nunito'),),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ));
+
+        }
       }
 
 
 
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
       if(message.data['type'] == 'Post') {
         if(_announcementsKey.currentState != null){
           _announcementsKey.currentState!._refresh();
         }
       }
+
+      if(message.data['type'] == 'Report'){
+        await setBall(true);
+
+        setState(() {
+          addAlert(message);
+
+          //  refreshAlerts();
+
+          haveNew = true;
+        });
+      }
+
     });
 
 
@@ -386,8 +486,6 @@ class _NewsPageState extends State<NewsPage>{
     //  <-----------  Loaded  ------------------>
     loaded = false;
     //Initialising the navbar icons -
-
-
 
 
 
@@ -426,6 +524,14 @@ class _NewsPageState extends State<NewsPage>{
   List<String> _types = [];
   List<String> _tokens = [];
 
+
+
+
+  void updateRedButton() async {
+    setState(() {
+
+    });
+  }
 
 
 
@@ -555,6 +661,7 @@ class _NewsPageState extends State<NewsPage>{
 
     return Scaffold(
       key: _scaffoldKey,
+      appBar: CurvedAppbar(names: const ['Announcements', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
       backgroundColor: ColorsB.gray900,
       extendBody: true,
       bottomNavigationBar: _bottomNavBar(),
@@ -566,7 +673,7 @@ class _NewsPageState extends State<NewsPage>{
           }
           else {
             return PageView(
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               controller: _pageController,
               children: [
                 Announcements( key: _announcementsKey,),
@@ -574,8 +681,13 @@ class _NewsPageState extends State<NewsPage>{
                   SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
                   const Calendar(key: ValueKey(3)),
-                  const Notes()
-                ], map: globalMap)
+                  const Notes(),
+                  AlertPage(gMap: globalMap)
+                ], map: globalMap, notif: haveNew, update: () {
+                  setState(() {
+
+                  });
+                }, key2: bar2Key,)
               ],
             );
           }
@@ -894,6 +1006,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
 
 
+
   late final _announcementsController;
 
   var _currentAnnouncement = 1;
@@ -980,14 +1093,6 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
       //  await Future.delayed(Duration(milliseconds:100));
     });
 
-    _tabController.animation?.addListener(() {
-      if(_tabController.offset >= 0.25 || _tabController.offset <= -0.25){
-        setState(() {
-          isLoading = true;
-          loaded = false;
-        });
-      }
-    });
 
 
 
@@ -1111,7 +1216,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
     return CustomScrollView(
       physics: const NeverScrollableScrollPhysics(),
       slivers: [
-        CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1, map: globalMap,),
+        //  CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key),
 
         SliverToBoxAdapter(
             child: Padding(
@@ -1253,7 +1358,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                       child: FittedBox(
                         fit: BoxFit.contain,
                         child: Text(
-                        'Parents',
+                        'Parents ',
                         style: TextStyle(
                                 fontWeight: FontWeight.bold
                         ),
@@ -4617,9 +4722,11 @@ class _PostItPageState extends State<PostItPage> {
                                           "action": "Post"
                                         });
 
+                                        print(response2.statusCode);
+
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
-                                          //print(jsondata2);
+                                          print(jsondata2);
                                           Navigator.of(context).pop();
                                         }
 

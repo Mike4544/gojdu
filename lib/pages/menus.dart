@@ -9,9 +9,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class MenuTabs extends StatefulWidget {
   List<Widget> pages;
   Map map;
+  bool notif;
+  VoidCallback update;
+  GlobalKey key2;
 
 
-  MenuTabs({Key? key, required this.pages, required this.map}) : super(key: key);
+  MenuTabs({Key? key, required this.pages, required this.map, required this.notif, required this.update, required this.key2}) : super(key: key);
 
   @override
   State<MenuTabs> createState() => _MenuTabsState();
@@ -26,16 +29,20 @@ class _MenuTabsState extends State<MenuTabs> {
 
   late List<Widget> switcherPages;
 
+  final _controller = ScrollController();
+
 
 
   void update() {
     setState(() {
+      _controller.jumpTo(0);
 
     });
   }
 
   @override
   void initState() {
+
     switcherPages = [];
     current_tab = 0;
     tabs = [
@@ -106,8 +113,8 @@ class _MenuTabsState extends State<MenuTabs> {
           SharedAxisTransition(animation: pAnim, secondaryAnimation: sAnim, transitionType: SharedAxisTransitionType.horizontal, fillColor: ColorsB.gray900, child: child),
       child: current_tab == 0
           ? switcherPages[current_tab]
-          : Center(
-            child: Column(
+          : Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Row(
                 children: [
@@ -133,9 +140,8 @@ class _MenuTabsState extends State<MenuTabs> {
               ),
               const SizedBox(height: 10),
               switcherPages[current_tab]
-            ],
+          ],
         ),
-          ),
     );
 
   }
@@ -152,18 +158,13 @@ class _MenuTabsState extends State<MenuTabs> {
   @override
   Widget build(BuildContext context) {
 
-    return CustomScrollView(
+    return SingleChildScrollView(
+      controller: _controller,
       physics: const BouncingScrollPhysics(),
-      slivers: [
-        CurvedAppbar(name: 'Menus', position: 2, map: widget.map,),
-        SliverToBoxAdapter(
-          child: SizedBox(
-              //  height: MediaQuery.of(context).size.height,
-              child: mainPage()
-          ),
-
-        )
-      ],
+      child: SizedBox(
+        //  height: MediaQuery.of(context).size.height,
+          child: mainPage()
+      ),
     );
   }
 }
