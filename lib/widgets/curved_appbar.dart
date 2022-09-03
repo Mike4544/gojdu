@@ -19,7 +19,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget{
 
 
   CurvedAppbar({Key? key, required this.names, required this.nameIndex, this.accType, required this.position, required this.map, this.update}) :  preferredSize = Size.fromHeight(
-    screenHeight < 675 ? screenHeight * .175 : screenHeight *.15
+    screenHeight < 675 ? screenHeight * .175 : screenHeight * .15
   ), super(key: key);
 
   @override
@@ -29,6 +29,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget{
   _CurvedAppbarState createState() => _CurvedAppbarState();
 }
 
+// <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 

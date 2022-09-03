@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -33,9 +34,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
   late String? fn, ln, email, pass;
+  late bool? notifActive;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  late var loadInitData = _getData();
 
 
   @override
@@ -55,6 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
     ln = prefs.getString('last_name');
     email = prefs.getString('email');
     pass = prefs.getString('password');
+    notifActive = prefs.getBool('notifActive');
 
     return 0;
   }
@@ -72,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           FutureBuilder(
-              future: _getData(),
+              future: loadInitData,
               builder: (context, snapshot) {
                 if(!snapshot.hasData){
                   return const CircularProgressIndicator(
@@ -80,149 +85,254 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 }
                 else {
-                  return Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                    child: FittedBox(
+                  return Column(
+                    children: [
+                      Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: FittedBox(
 
-                      child: DataTable(
-                        dataRowHeight: MediaQuery.of(context).size.height * .1,
-                        columns: const [
-                          DataColumn(label: Text('')),
-                          DataColumn(label: Text(''))
-                        ],
-                        rows: [
-                          DataRow(cells: [
-                            const DataCell(Text(
-                              'Email Address:',
-                              style: TextStyle(
-                                  color: ColorsB.yellow500,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 20
-                              ),
-                            )),
-                            DataCell(Padding(
-                              padding: EdgeInsets.symmetric(vertical: device.height * .02),
-                              child: Center(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.blueGrey[900]!.withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(50),
-                                      border: Border.all(color: Colors.grey[900]!)
+                          child: DataTable(
+                            dataRowHeight: MediaQuery.of(context).size.height * .1,
+                            columns: const [
+                              DataColumn(label: Text('')),
+                              DataColumn(label: Text(''))
+                            ],
+                            rows: [
+                              DataRow(cells: [
+                                const DataCell(Text(
+                                  'Email Address:',
+                                  style: TextStyle(
+                                      color: ColorsB.yellow500,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20
                                   ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8.5),
-                                    child: Center(
-                                      child: FittedBox(
-                                        fit: BoxFit.fitWidth,
-                                        child: Text(
-                                          email!,
-                                          style: TextStyle(
-                                            color: Colors.white24.withOpacity(0.5),
+                                )),
+                                DataCell(Padding(
+                                  padding: EdgeInsets.symmetric(vertical: device.height * .02),
+                                  child: Center(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.blueGrey[900]!.withOpacity(0.5),
+                                          borderRadius: BorderRadius.circular(50),
+                                          border: Border.all(color: Colors.grey[900]!)
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8.5),
+                                        child: Center(
+                                          child: FittedBox(
+                                            fit: BoxFit.fitWidth,
+                                            child: Text(
+                                              email!,
+                                              style: TextStyle(
+                                                color: Colors.white24.withOpacity(0.5),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  constraints: BoxConstraints(
-                                    minWidth: 100,
-                                    maxWidth: device.width * 0.45,
-                                  ),
-                                ),
-                              ),
-                            ))
-                          ]),
-                          DataRow(cells: [
-                            const DataCell(Text(
-                              'Full Name:',
-                              style: TextStyle(
-                                  color: ColorsB.yellow500,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 20
-                              ),
-                            )),
-                            DataCell(Center(
-                              child: Text(
-                                ln! + ' ' + fn!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ))
-                          ]),
-                          DataRow(cells: [
-                            const DataCell(Text(
-                              'Password:',
-                              style: TextStyle(
-                                  color: ColorsB.yellow500,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 20
-                              ),
-                            )),
-                            DataCell(Padding(
-                              padding: EdgeInsets.symmetric(vertical: device.height * .02),
-                              child: Center(
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(context, PageRouteBuilder(
-                                      transitionDuration: const Duration(milliseconds: 500),
-                                      reverseTransitionDuration: const Duration(milliseconds: 500),
-                                      pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
-                                      transitionsBuilder: (context, a1, a2, child) =>
-                                          SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
-                                    ));
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                    child: Center(
-                                      child: Text(
-                                        'Change your password',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.normal
-                                        ),
+                                      constraints: BoxConstraints(
+                                        minWidth: 100,
+                                        maxWidth: device.width * 0.45,
                                       ),
                                     ),
                                   ),
-                                  style: TextButton.styleFrom(
-                                      backgroundColor: ColorsB.gray800,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(50),
+                                ))
+                              ]),
+                              DataRow(cells: [
+                                const DataCell(Text(
+                                  'Full Name:',
+                                  style: TextStyle(
+                                      color: ColorsB.yellow500,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20
+                                  ),
+                                )),
+                                DataCell(Center(
+                                  child: Text(
+                                    ln! + ' ' + fn!,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ))
+                              ]),
+                              DataRow(cells: [
+                                const DataCell(Text(
+                                  'Password:',
+                                  style: TextStyle(
+                                      color: ColorsB.yellow500,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20
+                                  ),
+                                )),
+                                DataCell(Padding(
+                                  padding: EdgeInsets.symmetric(vertical: device.height * .02),
+                                  child: Center(
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.push(context, PageRouteBuilder(
+                                          transitionDuration: const Duration(milliseconds: 500),
+                                          reverseTransitionDuration: const Duration(milliseconds: 500),
+                                          pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
+                                          transitionsBuilder: (context, a1, a2, child) =>
+                                              SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
+                                        ));
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                        child: Center(
+                                          child: Text(
+                                            'Change your password',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.normal
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                          backgroundColor: ColorsB.gray800,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(50),
+                                          )
+                                      ),
+                                    ),
+                                  ),
+                                ))
+                              ]),
+                              DataRow(cells: [
+                                const DataCell(Text(
+                                  'Type: ',
+                                  style: TextStyle(
+                                      color: ColorsB.yellow500,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20
+                                  ),
+                                )),
+                                DataCell(Center(
+                                  child: Text(
+                                    widget.type + ' account',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ))
+                              ]),
+                              const DataRow(cells: [
+                                DataCell.empty,
+                                DataCell.empty
+                              ]),
+                              DataRow(
+                                cells: [
+                                  DataCell(
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: const [
+                                          Icon(Icons.notifications, color: ColorsB.yellow500),
+                                          SizedBox(width: 10,),
+                                          Text(
+                                            'Notifications:',
+                                            style: TextStyle(
+                                                color: ColorsB.yellow500,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 20
+                                            ),
+                                          )
+                                        ],
                                       )
                                   ),
-                                ),
-                              ),
-                            ))
-                          ]),
-                          DataRow(cells: [
-                            const DataCell(Text(
-                              'Type: ',
-                              style: TextStyle(
-                                  color: ColorsB.yellow500,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 20
-                              ),
-                            )),
-                            DataCell(Center(
-                              child: Text(
-                                widget.type + ' account',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ))
-                          ]),
-                        ],
+                                  DataCell(Center(
+                                    child: CupertinoSwitch(
+                                      value: notifActive ?? false,
+                                      onChanged: (value) async {
+
+                                        notifActive = value;
+
+                                        if(!value){
+                                          await messaging.unsubscribeFromTopic(widget.type + 's');
+                                          final prefs = await _prefs;
+
+                                          await prefs.setBool('notifActive', false);
+
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                  behavior: SnackBarBehavior.floating,
+                                                  content: const Text(
+                                                    'Dully noted! You won\'t be receiving notifications from us anymore.',
+                                                    style: TextStyle(
+                                                        color: Colors.white
+                                                    ),
+                                                  ),
+                                                  backgroundColor: ColorsB.gray800,
+                                                  action: SnackBarAction(
+                                                    label: 'Revert',
+                                                    onPressed: () async {
+
+                                                      notifActive = true;
+
+                                                      setState(() {
+
+                                                      });
+
+                                                      await messaging.subscribeToTopic(widget.type + 's');
+                                                      final prefs = await _prefs;
+
+                                                      await prefs.setBool('notifActive', true);
+
+
+                                                      //  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                                                    },
+                                                  )
+                                              )
+                                          );
+
+                                        }
+                                        else {
+                                          await messaging.subscribeToTopic(widget.type + 's');
+                                          final prefs = await _prefs;
+
+                                          await prefs.setBool('notifActive', true);
+
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                behavior: SnackBarBehavior.floating,
+                                                content: Text(
+                                                  'Welcome back! Glad to be able to annoy you again!',
+                                                  style: TextStyle(
+                                                      color: Colors.white
+                                                  ),
+                                                ),
+                                                backgroundColor: ColorsB.gray800,
+                                              )
+                                          );
+                                        }
+
+
+                                        setState(() {
+
+                                        });
+
+                                      },
+
+                                    ),
+                                  ))
+                                ]
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   );
                 }
               }
           ),
           SizedBox(
-            height: device.height * 0.1,
+            height: device.height * 0.075,
           ),
           GestureDetector(
             onTap: () {
