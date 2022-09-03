@@ -59,7 +59,14 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
   Widget build(BuildContext context) {
 
     var device = MediaQuery.of(context);
-    var name = widget.floors[floorNo].floor;
+    var name;
+    try{
+      name = widget.floors[floorNo].floor;
+    }
+    catch(e) {
+      floorNo = 0;
+      name = widget.floors[floorNo].floor;
+    }
 
     return Container(
       width: device.size.width * 0.4,
@@ -85,81 +92,89 @@ class _DropdownSelectorState extends State<DropdownSelector> with TickerProvider
                         )
                     ),
 
-                    child: ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemCount: widget.floors.isEmpty ? 1 : widget.floors.length,
+                    child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      itemBuilder: (_, index){
-                        if(widget.floors.isEmpty){
-                          return const SizedBox();
-                        }
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 50,),
+                          ListView.builder(
+                              scrollDirection: Axis.vertical,
+                              shrinkWrap: true,
+                              itemCount: widget.floors.isEmpty ? 1 : widget.floors.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (_, index){
+                                if(widget.floors.isEmpty){
+                                  return const SizedBox();
+                                }
 
-                        return  GestureDetector(
-                          onTap: () {
+                                return  GestureDetector(
+                                  onTap: () {
 
-                            setState(() {
-                              height.value = 0;
-                              open = !open;
-                              floorNo = index;
-                              widget.update!(floorNo);
+                                    setState(() {
+                                      height.value = 0;
+                                      open = !open;
+                                      floorNo = index;
+                                      widget.update!(floorNo);
 
-                              if(open){
-                                _iconController.forward();
-                              }
-                              else {
-                                _iconController.reverse();
-                              }
+                                      if(open){
+                                        _iconController.forward();
+                                      }
+                                      else {
+                                        _iconController.reverse();
+                                      }
 
-                            });
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: index == floorNo ?
-                                const EdgeInsets.fromLTRB(0, 0, 25, 0) :
-                                EdgeInsets.zero,
-                                height: 50,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                    color: index == floorNo
-                                    ? ColorsB.gray700.withOpacity(0.1)
-                                    : ColorsB.gray200,
-                                    borderRadius: const BorderRadius.only(
-                                        topRight: Radius.circular(50),
-                                        bottomRight: Radius.circular(50)
-                                    )
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: Center(
-                                    child: Text(
-                                      widget.floors[index].floor,
-                                      style: const TextStyle(
-                                          fontSize: 17
+                                    });
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: index == floorNo ?
+                                        const EdgeInsets.fromLTRB(0, 0, 25, 0) :
+                                        EdgeInsets.zero,
+                                        height: 50,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                            color: index == floorNo
+                                                ? ColorsB.gray700.withOpacity(0.1)
+                                                : ColorsB.gray200,
+                                            borderRadius: const BorderRadius.only(
+                                                topRight: Radius.circular(50),
+                                                bottomRight: Radius.circular(50)
+                                            )
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          child: Center(
+                                            child: Text(
+                                              widget.floors[index].floor,
+                                              style: const TextStyle(
+                                                  fontSize: 17
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      Visibility(
+                                        visible: index == 2 ? false : true,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          child: Divider(
+                                            height: 10,
+                                            thickness: 1,
+                                            color: Colors.grey.withOpacity(0.1),
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
-                                ),
-                              ),
-                              Visibility(
-                                visible: index == 2 ? false : true,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: Divider(
-                                    height: 10,
-                                    thickness: 1,
-                                    color: Colors.grey.withOpacity(0.1),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
+                                );
 
-                      }
+                              }
 
+                          )
+                        ],
+                      ),
                     ),
 
                   ),

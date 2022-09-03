@@ -23,8 +23,6 @@ class _EditFloorsState extends State<EditFloors> {
 
   List<Floor> temporary = [];
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<String> images = [];
-  List<String> terms = [];
 
   late bool canClick;
 
@@ -150,8 +148,6 @@ class _EditFloorsState extends State<EditFloors> {
   @override
   void dispose() {
     temporary.clear();
-    images.clear();
-    terms.clear();
     super.dispose();
   }
 
@@ -160,9 +156,9 @@ class _EditFloorsState extends State<EditFloors> {
 
     for(int i = 0; i < widget.floors.length; ++i){
       temporary.add(widget.floors[i].clone());
+       print('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
     }
-    images = [];
-    terms = [];
+
     canClick = false;
 
 
@@ -208,7 +204,7 @@ class _EditFloorsState extends State<EditFloors> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 7.5, horizontal: 10),
                   child: Text(
-                    array[i].file.length > 10 ? '${array[i].file.substring(0, 10)}...${array[i].file.substring(array[i].file.length - 4)}' : array[i].file,
+                    array[i].file.split('.').first.length > 10 ? '${array[i].file.split('.').first.substring(0, 10)}...${array[i].file.substring(array[i].file.length - 4)}' : array[i].file,
                     style: style,
                   )
                 ),
@@ -223,7 +219,7 @@ class _EditFloorsState extends State<EditFloors> {
                     canClick = true;
                   });
 
-                  var nameController = TextEditingController();
+                  var nameController = TextEditingController(text: temporary[i].floor);
                   String buttonText = 'Choose image';
 
                   String? _format;
@@ -255,14 +251,11 @@ class _EditFloorsState extends State<EditFloors> {
                                   var imageBytes = _file!.readAsBytesSync();
                                   String baseimage = base64Encode(imageBytes);
 
-                                  if(i >= images.length){
-                                    images.add(baseimage);
-                                    terms.add(_format!);
-                                  }
-                                  else {
-                                    images[i] = baseimage;
-                                    terms[i] = _format!;
-                                  }
+                                  print('Index $i is $baseimage');
+
+                                  // images[i] = baseimage;
+                                  temporary[i].image = baseimage;
+                                  // terms[i] = _format!;
 
                                   array[i].file = removeSpaces(nameController.text) + _format!;
 
@@ -360,6 +353,8 @@ class _EditFloorsState extends State<EditFloors> {
 
                                         _format = '.' + image!.name.split('.').last;
 
+                                        print(_format.toString());
+
                                         buttonText = image!.name;
 
 
@@ -438,10 +433,7 @@ class _EditFloorsState extends State<EditFloors> {
                                         InkWell(
                                           onTap: () async {
                                             temporary.removeAt(i);
-                                            if(images.length > i){
-                                              images.removeAt(i);
-                                              terms.removeAt(i);
-                                            }
+
                                             Navigator.of(context).pop();
 
                                             setState(() {
@@ -690,15 +682,14 @@ class _EditFloorsState extends State<EditFloors> {
                                             var imageBytes = _file!.readAsBytesSync();
                                             String baseimage = base64Encode(imageBytes);
 
-                                            images.add(baseimage);
-                                            terms.add(_format!);
 
                                             setThisState(() {
                                               errorText = '';
                                             });
                                             temporary.add(Floor(
                                                 floor: nameController.text,
-                                                file: removeSpaces(nameController.text) + _format!
+                                                file: removeSpaces(nameController.text) + _format!,
+                                                image: baseimage
                                             ));
 
                                             setState(() {
@@ -795,6 +786,7 @@ class _EditFloorsState extends State<EditFloors> {
                                                     _file = File(image!.path);
 
                                                     _format = '.' + image!.name.split('.').last;
+                                                    //  print(_format.toString());
 
                                                     buttonText = image!.name;
 
@@ -856,10 +848,7 @@ class _EditFloorsState extends State<EditFloors> {
                     Map<String, Map<String, String>> data = {};
 
                     for(int i = 0; i < temporary.length; i++){
-                      data.addAll({"id[$i]":{"floor": temporary[i].floor, "file": temporary[i].file}});
-                    }
-                    for(int i = 0; i < images.length; i++){
-                      data['id[$i]']!.addAll({"b64": images[i], 'name': temporary[i].file.split('.').first, 'term': terms[i]});
+                      data.addAll({"id[$i]":{"floor": temporary[i].floor, "file": temporary[i].file, "b64": temporary[i].image}});
                     }
 
                     print(jsonEncode(data).toString());

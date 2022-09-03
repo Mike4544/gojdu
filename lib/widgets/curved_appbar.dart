@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:animations/animations.dart';
+import '../pages/notifications.dart';
 
-class CurvedAppbar extends StatefulWidget {
-  final String name;
+import 'package:shared_preferences/shared_preferences.dart';
+
+class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget{
+  final List<String> names;
+  final int nameIndex;
   final String? accType;
   final int position;
   final Map map;
+  final VoidCallback? update;
 
-  const CurvedAppbar({Key? key, required this.name, this.accType, required this.position, required this.map}) : super(key: key);
+
+  const CurvedAppbar({Key? key, required this.names, required this.nameIndex, this.accType, required this.position, required this.map, this.update}) :  preferredSize = const Size.fromHeight(100), super(key: key);
+
+  @override
+  final Size preferredSize;
 
   @override
   _CurvedAppbarState createState() => _CurvedAppbarState();
@@ -18,6 +28,20 @@ class CurvedAppbar extends StatefulWidget {
 class _CurvedAppbarState extends State<CurvedAppbar>{
 
   final scoala = 'Colegiul National "Emanuil Gojdu"';
+
+  late bool? isActive;
+
+  Future<int> getBall() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    isActive = prefs.getBool('activeBall');
+
+    return 1;
+  }
+
+  late var loadBall = getBall();
+
+  final double size = 25;
 
 
 
@@ -33,6 +57,57 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
     super.dispose();
   }
 
+
+  Widget notifBell({required double size}) {
+
+    if(widget.map['account'] == 'Admin' || widget.map['account'] == 'Teacher'){
+      return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const NotifPage()
+            )
+          );
+
+
+        },
+
+
+        child: SizedBox(
+          height: size,
+          width: size,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Stack(
+              children: [
+                const Icon(Icons.notifications, color: ColorsB.gray900),
+                Visibility(
+                  visible: isActive == true && isActive != null,
+                  child: Positioned(
+                    child: Container(
+                      width: size / 2.5,
+                      height: size / 2.5,
+                      decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle
+                      ),
+                    ),
+                    bottom: 0,
+                    right: 0,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    else {
+      return const SizedBox();
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -40,12 +115,9 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
 
     var height2 = height < 675 ? MediaQuery.of(context).size.height * .175 : MediaQuery.of(context).size.height * .15;
 
-    return SliverAppBar(
+    return AppBar(
       toolbarHeight: height2,
-      expandedHeight: height2,
-      collapsedHeight: height2,
       automaticallyImplyLeading: false,
-      pinned: true,
       elevation: 0,
       backgroundColor: ColorsB.yellow500,
       shape: CustomShape(position: widget.position),
@@ -55,42 +127,65 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * .35,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    flex: 2,
-                    child: FittedBox(
-                      fit: BoxFit.fitHeight,
-                      child: Text(
-                        '${widget.map["first_name"]} ${widget.map["last_name"]}',
-                        style: const TextStyle(
-                          color: ColorsB.gray900,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15
+            Row(
+              children: [
+                FutureBuilder(
+                  future: getBall(),
+                  builder: (context, snapshot) {
+                    if(!snapshot.hasData){
+                      return SizedBox(
+                        height: size,
+                        width: size,
+                        child: const FittedBox(
+                          fit: BoxFit.contain,
+                          child: Icon(Icons.notifications, color: ColorsB.gray900),
+                        ),
+                      );
+                    }
+                    else {
+                      return notifBell(size: size);
+                    }
+                  },
+                ),
+                const SizedBox(width: 15,),
+                SizedBox(
+                width: widget.map['account'] == 'Admin' || widget.map['account'] == 'Teacher' ? MediaQuery.of(context).size.width * .25 : MediaQuery.of(context).size.width * .35,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: FittedBox(
+                        fit: BoxFit.fitHeight,
+                        child: Text(
+                          '${widget.map["first_name"]} ${widget.map["last_name"]}',
+                          style: const TextStyle(
+                              color: ColorsB.gray900,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Text(
-                        scoala,
-                        style: const TextStyle(
-                            color: ColorsB.gray900,
-                          fontSize: 20
+                    Flexible(
+                      flex: 1,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text(
+                          scoala,
+                          style: const TextStyle(
+                              color: ColorsB.gray900,
+                              fontSize: 20
 
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                )
               ),
+              ]
             ),
             name(),
           ],
@@ -99,19 +194,32 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
     );
   }
 
+  Widget nameText() {
+
+    return Text(
+      widget.names[widget.nameIndex],
+      key: ValueKey(widget.nameIndex),
+      style: const TextStyle(
+          fontSize: 22.5,
+          fontWeight: FontWeight.bold,
+          color: ColorsB.gray900
+      ),
+    );
+
+  }
+
+
+
   Widget name(){
 
     return Row(
       children: [
-        Text(
-          widget.name,
-          style: const TextStyle(
-              fontSize: 22.5,
-              fontWeight: FontWeight.bold,
-              color: ColorsB.gray900
-          ),
+        PageTransitionSwitcher(
+          duration: const Duration(milliseconds: 500),
+          child: nameText(),
+          transitionBuilder: (child, a1, a2) => SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.yellow500,),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Container(
           color: ColorsB.gray900,
           width: 2.5,
@@ -124,6 +232,8 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
 
 
 }
+
+
 
 
 class CustomShape extends ContinuousRectangleBorder {

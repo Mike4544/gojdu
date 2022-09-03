@@ -4,7 +4,8 @@ import 'package:gojdu/others/colors.dart';
 
 class BackNavbar extends StatelessWidget {
   final int? variation;
-  const BackNavbar({Key? key, this.variation}) : super(key: key);
+  final VoidCallback? update;
+  const BackNavbar({Key? key, this.variation, this.update}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,15 @@ class BackNavbar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(10, 30, 0, 0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: TextButton.icon(onPressed: () {Navigator.pop(context);},
+              child: TextButton.icon(onPressed: () {
+                Navigator.pop(context);
+
+                if(update != null){
+                  update!();
+                }
+
+
+                },
                   icon: const Icon(RoundedTriangle.polygon_1, color: Colors.white,),
                   label: const Text(
                     'Back',
