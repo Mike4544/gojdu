@@ -118,7 +118,7 @@ Future<int> getFloors() async {
 
         for(int i = 1; i <= 3; i++){
           print(jsondata['$i']);
-          floors.add(Floor(floor:jsondata['$i']["floor"], file: jsondata['$i']['file']));
+          floors.add(Floor(floor:jsondata['$i']["floor"], file: jsondata['$i']['file'], image: jsondata['$i']['image']));
         }
 
 
@@ -2643,10 +2643,15 @@ class _MapPageState extends State<MapPage>{
       return SizedBox();
     }
     else {
-      print(floorNo);
-      print(floors[floorNo].file);
-      print(floors);
-      return maps[floorNo];
+      try{
+        print(floorNo);
+        print(floors[floorNo].file);
+        print(floors);
+        return maps[floorNo];
+      }
+      catch (e) {
+        return maps[0];
+      }
     }
 
   }
@@ -2688,7 +2693,7 @@ class _MapPageState extends State<MapPage>{
 
           floors.isNotEmpty
               ? Stack(
-            children: [
+              children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
