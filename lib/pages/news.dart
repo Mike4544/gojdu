@@ -45,6 +45,7 @@ import 'package:gojdu/pages/editTables.dart';
 import 'package:gojdu/others/floor.dart';
 
 import 'package:gojdu/pages/menus.dart';
+import '../widgets/Event.dart';
 import './notes.dart';
 
 import './alertPage.dart';
@@ -56,6 +57,8 @@ import 'package:flutter/services.dart'; // For vibration
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/switchPosts.dart';
+
+import 'EventPage.dart';
 
 
 
@@ -119,7 +122,7 @@ Future<int> getFloors() async {
         print("Upload successful");
 
         for(int i = 1; i <= 3; i++){
-          print(jsondata['$i']);
+          //  print(jsondata['$i']);
           floors.add(Floor(floor:jsondata['$i']["floor"], file: jsondata['$i']['file'], image: jsondata['$i']['image']));
         }
 
@@ -707,6 +710,7 @@ class _NewsPageState extends State<NewsPage>{
         width: screenWidth,
         height: screenHeight * .075,
         decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
             boxShadow: [
               BoxShadow(
@@ -928,6 +932,7 @@ class _NewsPageState extends State<NewsPage>{
         width: screenWidth,
         height: 75,
         decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
             boxShadow: [
               BoxShadow(
@@ -943,37 +948,49 @@ class _NewsPageState extends State<NewsPage>{
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                    child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                    onTap: () {
-                      //  _mapExpandAnim(_announcementsInput);
-                      setState(() {
-                        _currentIndex = 0;
-                        //  changeColors(_currentIndex);
-                      });
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                    }
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: GestureDetector(
+                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
+                        onTap: () {
+                          //  _mapExpandAnim(_announcementsInput);
+                          setState(() {
+                            _currentIndex = 0;
+                            //  changeColors(_currentIndex);
+                          });
+                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                        }
+                    ),
+                  ),
                 ),
               ),
 
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                    child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                    onTap: () {
-                      setState(() {
-                        _currentIndex = 1;
-                        //  changeColors(_currentIndex);
-                      });
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: GestureDetector(
+                        child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
+                        onTap: () {
+                          setState(() {
+                            _currentIndex = 1;
+                            //  changeColors(_currentIndex);
+                          });
 
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
 
-                    }
+                        }
+                    ),
+                  ),
                 ),
               )
             ]
@@ -1138,8 +1155,13 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
     });
 
     //print(globalMap['account']);
+    _eventCtrl = PageController(initialPage: currSelect);
+    events = [];
+
 
   }
+
+  late var _loadEvents = loadEvents();
 
   @override
   void dispose() {
@@ -1197,6 +1219,18 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
   }
 
+  void _showWritableEvent() {
+
+    Navigator.push(context, PageRouteBuilder(
+        pageBuilder: (context, a1, a2) =>
+            SlideTransition(
+              position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+              child: PostEvent(gMap: globalMap),
+            )
+    ));
+
+  }
+
 
   // ---------- Placeholder title ------------
   String title = '';
@@ -1225,7 +1259,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
       fontWeight: FontWeight.bold
   );
 
-  final _eventCtrl = PageController(initialPage: 0);
+  late final _eventCtrl;
 
 
   @override
@@ -1234,13 +1268,15 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
     //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(25, 0, 25, 75),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            PostsSwitcher(index: currSelect, ctrl: _eventCtrl),
+            PostsSwitcher(index: currSelect, ctrl: _eventCtrl, update: (val) {
+              setState(() => currSelect = val);
+            }),
 
             SizedBox(
               height: MediaQuery.of(context).size.height,
@@ -1318,6 +1354,148 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                   Column(
                     children: [
 
+                      Row(
+                        children: [
+                          const Text(
+                            'Events',
+                            style: TextStyle(
+                                color: ColorsB.yellow500,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w600
+                            ),
+                          ),
+                          const SizedBox(width: 10,),
+                          GestureDetector(
+                            onTap: _showWritableEvent,
+                            child: const Icon(
+                              Icons.add_circle_outline,
+                              size: 40,
+                              color: ColorsB.gray800,
+
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: ColorsB.gray800,
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 25,),
+                      Expanded(
+                        child: FutureBuilder(
+                          future: _loadEvents,
+                          builder: (context, snapshot){
+                            if(snapshot.hasData){
+                              return RefreshIndicator(
+                                onRefresh: () async {
+                                  events.clear();
+
+
+                                  _loadEvents = loadEvents();
+
+                                  setState(() {});
+
+                                },
+                                child: ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: events.isNotEmpty ? events.length : 1,
+                                    itemBuilder: (context, index) {
+                                      if(events.isNotEmpty) {
+                                        return events[index];
+                                      }
+                                      else {
+                                        return Center(
+                                            child: Column(
+                                              children: [
+                                                SizedBox(
+                                                    height: screenHeight * 0.25,
+                                                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                                                ),
+                                                const Text(
+                                                  'Wow! Such empty. So class.',
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white.withOpacity(0.25),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 20,),
+                                                TextButton.icon(
+                                                    icon: Icon(
+                                                      Icons.refresh,
+                                                      color: Colors.white,
+                                                    ),
+                                                    label: Text(
+                                                      'Refresh',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      //  _refresh();
+                                                      events.clear();
+
+
+                                                      _loadEvents = loadEvents();
+
+                                                      setState(() {});
+
+                                                    },
+                                                    style: TextButton.styleFrom(
+                                                      backgroundColor: ColorsB.yellow500,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(
+                                                            50),
+                                                      ),
+                                                    )
+                                                ),
+                                              ],
+                                            )
+                                        );
+                                      }
+                                    }
+                                ),
+                              );
+                            }
+                            else {
+                              return ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: 5,
+                                itemBuilder: (_, index) =>
+                                    Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Shimmer.fromColors(
+                                        baseColor: ColorsB.gray800,
+                                        highlightColor: ColorsB.gray700,
+                                        child: Container(                         // Student containers. Maybe get rid of the hero
+                                          height: screenHeight * 3,
+                                          decoration: BoxDecoration(
+                                            color: ColorsB.gray800,
+                                            borderRadius: BorderRadius.circular(
+                                                50),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                              );
+                            }
+                          }
+                        ),
+                      )
+
                     ]
                   )
                 ],
@@ -1331,6 +1509,100 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
   }
 
   late TabController _tabController;
+  Future<int> loadEvents() async {
+
+    events.clear();
+
+    //  Maybe rework this a bit.
+
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/getEvents.php');
+      final response = await http.post(url, body: {
+        "index": "0"
+      });
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        print(jsondata);
+
+        if (jsondata["1"]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata["1"]["success"]) {
+
+            for(int i = 2; i <= 52; i++)
+            {
+              String post = jsondata[i.toString()]["post"].toString();
+              String title = jsondata[i.toString()]["title"].toString();
+              String owner = jsondata[i.toString()]["owner"].toString();
+              String location = jsondata[i.toString()]["location"].toString();
+              String date = jsondata[i.toString()]["date"].toString();
+              String link = jsondata[i.toString()]["link"].toString();
+
+
+              int? id = jsondata[i.toString()]["id"];
+
+
+
+              ////print(globalMap['id']);
+
+
+
+              if(post != "null" && post != null){
+
+
+                events.add(Event(title: title,
+                  id: id,
+                  body: post,
+                  owner: owner,
+                  link: link,
+                  date: date,
+                  location: location,
+                  gMap: globalMap,
+                  Context: context,
+                  delete: () async {
+                    await deleteEvent(id!, i - 2);
+
+                    setState(() {
+
+                    });
+
+                  },
+                )
+                );
+
+
+
+
+              }
+
+              /* if(post != "null")
+              {
+                //print(post+ " this is the post");
+                //print(title+" this is the title");
+                //print(owner+ " this is the owner");
+              } */
+
+            }
+            //  print(events);
+          }
+          else
+          {
+            //print(jsondata["1"]["message"]);
+          }
+        }
+      }
+    } catch (e) {
+
+    }
+
+    return 0;
+
+  }
+
+  late List<Event> events;
 
 
 
@@ -1718,6 +1990,127 @@ Future<void> deletePost(int Id, int index) async {
 
 }
 
+  Future<void> deleteEvent(int Id, int index) async {
+
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/deleteEvent.php');
+      final response = await http.post(url, body: {
+        "id": Id.toString()
+      });
+
+      print(Id.toString());
+      print(response.statusCode);
+
+      if(response.statusCode == 200){
+        print(response.body);
+
+        var jsondata = json.decode(response.body);
+        //  print(jsondata);
+
+        if(jsondata['error']){
+
+          print('Errored');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                content: Row(
+                  children: const [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Uh-oh! Something went wrong!',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Row(
+                  children: const [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Hooray! The post was deleted.',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+          events.removeAt(index);
+
+
+        }
+
+
+
+      }
+      else {
+        print("Deletion failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              content: Row(
+                children: const [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Uh-oh! Something went wrong!',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      }
+
+    } catch(e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            content: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 20,),
+                Text(
+                  'Uh-oh! Something went wrong!',
+                  style: TextStyle(
+                      color: Colors.white
+                  ),
+                )
+              ],
+            ),
+          )
+      );
+
+      print(e);
+
+    }
+
+
+  }
+
 
 
 Future<int> load(String channel) async {
@@ -1858,6 +2251,7 @@ Future<int> load(String channel) async {
       return 0;
 
   }
+
 
   void update() {
     setState(() {

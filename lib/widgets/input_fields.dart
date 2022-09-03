@@ -13,11 +13,12 @@ class InputField extends StatefulWidget {
   final FocusNode? focusNode;
   final String? errorMessage;
   final bool? isEmail;
+  final Icon? icon;
 
 
 
 
-  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode, this.errorMessage, this.isEmail}) : super(key: key);
+  const InputField({Key? key, required this.fieldName, required this.isPassword, this.lengthLimiter, this.controller, this.onChanged, this.label, this.focusNode, this.errorMessage, this.isEmail, this.icon}) : super(key: key);
 
   @override
   State<InputField> createState() => _InputFieldState();
@@ -59,6 +60,7 @@ class _InputFieldState extends State<InputField> {
           obscureText: widget.isPassword,
           textAlign: TextAlign.start,
           decoration: InputDecoration(
+            icon: widget.icon,
             errorText: widget.errorMessage!.isNotEmpty ? widget.errorMessage : null,
             hintText: widget.label,
             errorBorder: OutlineInputBorder(

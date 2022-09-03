@@ -4,9 +4,10 @@ import '../others/colors.dart';
 class PostsSwitcher extends StatefulWidget {
   int index;
   final PageController ctrl;
+  final Function(int value) update;
 
 
-  PostsSwitcher({Key? key, required this.index, required this.ctrl}) : super(key: key);
+  PostsSwitcher({Key? key, required this.index, required this.ctrl, required this.update}) : super(key: key);
 
   @override
   State<PostsSwitcher> createState() => _PostsSwitcherState();
@@ -17,9 +18,7 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
 
   void anim(int value){
 
-    setState(() {
-      widget.index = value;
-    });
+    widget.update(value);
 
     widget.ctrl.animateToPage(value, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
 
@@ -119,6 +118,7 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
                             Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,),
                             const SizedBox(width: 5,),
                             SizedBox(
+                              height: height * .025,
                               child: FittedBox(
                                 fit: BoxFit.contain,
                                 child: Text(
@@ -166,6 +166,7 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
                             Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
                             const SizedBox(width: 5,),
                             SizedBox(
+                              height: height * .025,
                               child: FittedBox(
                                 fit: BoxFit.contain,
                                 child: Text(
