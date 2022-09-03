@@ -55,6 +55,8 @@ import '../widgets/Alert.dart';
 import 'package:flutter/services.dart'; // For vibration
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../widgets/switchPosts.dart';
+
 
 
 
@@ -703,7 +705,7 @@ class _NewsPageState extends State<NewsPage>{
 
       return Container(
         width: screenWidth,
-        height: screenHeight * .1,
+        height: screenHeight * .075,
         decoration: BoxDecoration(
             color: ColorsB.gray800,
             boxShadow: [
@@ -719,11 +721,11 @@ class _NewsPageState extends State<NewsPage>{
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
                   child: FittedBox(
                     child: GestureDetector(
                       child: const Icon(Icons.verified_user_outlined, color: Colors.white),
@@ -872,37 +874,49 @@ class _NewsPageState extends State<NewsPage>{
               ),
 
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                    child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                    onTap: () {
-                      //  _mapExpandAnim(_announcementsInput);
-                      setState(() {
-                        _currentIndex = 0;
-                        //  changeColors(_currentIndex);
-                      });
-                      _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                    }
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: GestureDetector(
+                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
+                        onTap: () {
+                          //  _mapExpandAnim(_announcementsInput);
+                          setState(() {
+                            _currentIndex = 0;
+                            //  changeColors(_currentIndex);
+                          });
+                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                        }
+                    ),
+                  ),
                 ),
               ),
 
 
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: GestureDetector(
-                  child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                  onTap: () {
-                    setState(() {
-                      _currentIndex = 1;
-                      //  changeColors(_currentIndex);
-                    });
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: GestureDetector(
+                      child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 1;
+                          //  changeColors(_currentIndex);
+                        });
 
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                        _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
 
-                  }
+                      }
+                    ),
+                  ),
                 ),
               )
             ]
@@ -1038,6 +1052,8 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
   List<Post> posts = [];
 
 
+  late int currSelect;
+
 
 
   @override
@@ -1047,6 +1063,8 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
     //  <-------------- Lists ------------->
     posts = [];
+
+    currSelect = 0;
 
     maximumCount = 0;
     isError = false;
@@ -1207,93 +1225,108 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
       fontWeight: FontWeight.bold
   );
 
+  final _eventCtrl = PageController(initialPage: 0);
+
 
   @override
   Widget build(BuildContext context) {
 
     //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
-    return CustomScrollView(
+    return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
-      slivers: [
-        //  CurvedAppbar(name: 'Announcements', accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(25, 0, 25, 75),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            PostsSwitcher(index: currSelect, ctrl: _eventCtrl),
 
-        SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 0, 25, 75),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: PageView(
+                controller: _eventCtrl,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  Row(
+                  Column(
                     children: [
-                      const Text(
-                        'Latest news',
-                        style: TextStyle(
-                            color: ColorsB.yellow500,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w600
-                        ),
-                      ),
-                      const SizedBox(width: 10,),
-                      Visibility(
-                        visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
-                        child: GestureDetector(
-                          onTap: _showWritable,
-                          child: const Icon(
-                            Icons.add_circle_outline,
-                            size: 40,
-                            color: ColorsB.gray800,
-
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Container(
-                          height: 2,
-                          color: ColorsB.gray800,
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 25,),
-
-                  teachersBar(),
-                  SizedBox(
-                    height: 450,
-                    child: ShaderMask(
-                      shaderCallback: (Rect bounds) =>
-                      const material.LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: [
-                          0, 0.25
-                        ],
-                        colors: [Colors.transparent, ColorsB.gray900]
-                      ).createShader(bounds),
-                      blendMode: BlendMode.dstIn,
-                      child: TabBarView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        controller: _tabController,
-                        // controller: _announcementsController,
-                        // physics: const NeverScrollableScrollPhysics(),
+                      Row(
                         children: [
-                          _buildLists(ColorsB.gray800),
-                          _buildLists(Colors.amber),
-                          _buildLists(Colors.indigoAccent),
+                          const Text(
+                            'Latest news',
+                            style: TextStyle(
+                                color: ColorsB.yellow500,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w600
+                            ),
+                          ),
+                          const SizedBox(width: 10,),
+                          Visibility(
+                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
+                            child: GestureDetector(
+                              onTap: _showWritable,
+                              child: const Icon(
+                                Icons.add_circle_outline,
+                                size: 40,
+                                color: ColorsB.gray800,
 
-
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: ColorsB.gray800,
+                            ),
+                          )
                         ],
                       ),
-                    )
-                  )
+                      const SizedBox(height: 25,),
 
+                      teachersBar(),
+                      SizedBox(
+                          height: 450,
+                          child: ShaderMask(
+                            shaderCallback: (Rect bounds) =>
+                                const material.LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    stops: [
+                                      0, 0.25
+                                    ],
+                                    colors: [Colors.transparent, ColorsB.gray900]
+                                ).createShader(bounds),
+                            blendMode: BlendMode.dstIn,
+                            child: TabBarView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              controller: _tabController,
+                              // controller: _announcementsController,
+                              // physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                _buildLists(ColorsB.gray800),
+                                _buildLists(Colors.amber),
+                                _buildLists(Colors.indigoAccent),
+
+
+                              ],
+                            ),
+                          )
+                      )
+                    ]
+                  ),
+                  Column(
+                    children: [
+
+                    ]
+                  )
                 ],
               ),
             )
-        )
 
-      ],
+          ],
+        ),
+      )
     );
   }
 
@@ -1457,7 +1490,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               child: Column(
                 children: [
                   SizedBox(
-                    height: screenHeight * 0.3,
+                    height: screenHeight * 0.25,
                     child: SvgPicture.asset('assets/svgs/no_posts.svg')
                   ),
                   const Text(

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:gojdu/others/colors.dart';
@@ -16,7 +18,9 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget{
   final VoidCallback? update;
 
 
-  const CurvedAppbar({Key? key, required this.names, required this.nameIndex, this.accType, required this.position, required this.map, this.update}) :  preferredSize = const Size.fromHeight(100), super(key: key);
+  CurvedAppbar({Key? key, required this.names, required this.nameIndex, this.accType, required this.position, required this.map, this.update}) :  preferredSize = Size.fromHeight(
+    screenHeight < 675 ? screenHeight * .175 : screenHeight * .15
+  ), super(key: key);
 
   @override
   final Size preferredSize;
@@ -24,6 +28,10 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget{
   @override
   _CurvedAppbarState createState() => _CurvedAppbarState();
 }
+
+// <---------- Height and width outside of context -------------->
+var screenHeight = window.physicalSize.height / window.devicePixelRatio;
+var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 
 class _CurvedAppbarState extends State<CurvedAppbar>{
 
