@@ -127,9 +127,10 @@ class _NotifPageState extends State<NotifPage> {
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(Icons.notifications, color: ColorsB.yellow500, size: 40,),
                     SizedBox(width: 20,),
@@ -143,23 +144,26 @@ class _NotifPageState extends State<NotifPage> {
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
-                    onPressed: () async {
-                      await AlertDatabase.instance.truncate();
-                      await setBall(false);
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton(
+                      onPressed: () async {
+                        await AlertDatabase.instance.truncate();
+                        await setBall(false);
 
-                      refreshAlerts();
-                    },
-                    child: const Text(
-                      "Clear notifications",
-                      style: TextStyle(
-                        color: Colors.white,
+                        refreshAlerts();
+                      },
+                      child: const Text(
+                        "Clear notifications",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 )
+
               ],
             )
           ),
