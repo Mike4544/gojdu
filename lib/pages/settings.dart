@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gojdu/pages/forgot_password.dart';
 import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/pages/login.dart';
@@ -16,6 +18,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+
+import 'dart:io';
+
+import 'package:shimmer/shimmer.dart';
+import 'package:http_parser/http_parser.dart';
 
 FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -33,7 +43,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
 
 
-  late String? fn, ln, email, pass;
+  late String? fn, ln, email, pass, profileImage;
   late bool? notifActive;
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
@@ -41,9 +51,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   late var loadInitData = _getData();
 
+  var _lastFile;
+
 
   @override
   void initState() {
+
+
     super.initState();
   }
 
@@ -61,8 +75,47 @@ class _SettingsPageState extends State<SettingsPage> {
     pass = prefs.getString('password');
     notifActive = prefs.getBool('notifActive');
 
+    var _response = await http.get(Uri.parse('https://cnegojdu.ro/GojduApp/profiles/${fn}_$ln.jpg'));
+
+    _lastFile = _response.bodyBytes;
+
     return 0;
   }
+
+
+  Future uploadFile(CroppedFile _file) async {
+
+    print('Trying...');
+
+    File file = File(_file.path);
+
+    var imageBytes = file.readAsBytesSync();
+    String baseimage = base64Encode(imageBytes);
+
+
+
+    var url = Uri.parse('https://cnegojdu.ro/GojduApp/profile_upload.php');
+    final response = await http.post(url, body: {
+      "image": baseimage,
+      "name": '${fn}_$ln',
+      "format": 'jpg'
+    });
+
+    if(response.statusCode == 200){
+      var jsondata = json.decode(response.body);
+      if(jsondata["error"]){
+        print(jsondata["msg"]);
+      }else{
+        print("Upload successful");
+      }
+    } else {
+      //print("Upload failed");
+    }
+
+
+  }
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +123,16 @@ class _SettingsPageState extends State<SettingsPage> {
     //  <------------ For size  ---------------->
     final device = MediaQuery.of(context).size;
 
+    const textStyle = TextStyle(
+    color: ColorsB.yellow500,
+    fontWeight: FontWeight.w700,
+    fontSize: 25
+    );
+
+
+
     return SizedBox(
-      height: device.height,
+      height: device.height ,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -92,139 +153,187 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: FittedBox(
 
                           child: DataTable(
-                            dataRowHeight: MediaQuery.of(context).size.height * .1,
+                            dataRowHeight: MediaQuery.of(context).size.height * .2 ,
                             columns: const [
                               DataColumn(label: Text('')),
                               DataColumn(label: Text(''))
                             ],
                             rows: [
-                              DataRow(cells: [
-                                const DataCell(Text(
-                                  'Email Address:',
-                                  style: TextStyle(
-                                      color: ColorsB.yellow500,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 20
-                                  ),
-                                )),
-                                DataCell(Padding(
-                                  padding: EdgeInsets.symmetric(vertical: device.height * .02),
-                                  child: Center(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.blueGrey[900]!.withOpacity(0.5),
-                                          borderRadius: BorderRadius.circular(50),
-                                          border: Border.all(color: Colors.grey[900]!)
+                              DataRow(
+                                cells: [
+                                  DataCell(
+                                    Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "$fn $ln",
+                                            style: textStyle,
+                                          ),
+
+                                          //  Chips
+                                          SizedBox(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Chip(
+                                                  label: Text(
+                                                      widget.type,
+                                                    style: const TextStyle(
+                                                      fontSize: 12.5,
+                                                      color: Colors.white
+                                                    ),
+                                                  ),
+                                                  avatar: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white,),
+                                                  backgroundColor: ColorsB.gray800,
+                                                  elevation: 0,
+                                                ),
+                                                Chip(
+                                                  label: Text(
+                                                    email!,
+                                                    style: const TextStyle(
+                                                        fontSize: 12.5,
+                                                        color: Colors.white
+                                                    ),
+                                                  ),
+                                                  avatar: const Icon(Icons.email, color: Colors.white,),
+                                                  backgroundColor: ColorsB.gray800,
+                                                  elevation: 0,
+                                                ),
+                                              ],
+                                            ),
+                                          )
+
+                                        ],
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8.5),
-                                        child: Center(
-                                          child: FittedBox(
-                                            fit: BoxFit.fitWidth,
+                                    )
+                                  ),
+                                  DataCell(
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+
+                                          Container(
+                                            width: screenHeight * .15,
+                                            clipBehavior: Clip.hardEdge,
+                                              decoration: const BoxDecoration(
+                                                  color: ColorsB.gray800,
+                                                  shape: BoxShape.circle
+                                              ),
+                                              child: isLoading
+                                                  ? SizedBox(
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    child: Shimmer.fromColors(
+                                                      baseColor: ColorsB.gray800,
+                                                      highlightColor: ColorsB.gray700,
+                                                      child: Container(color: Colors.white,),
+                                                    ),
+                                                  )
+                                                  : Image.memory(
+                                                    _lastFile,
+                                                    errorBuilder: (_, __, ___) => const Padding(
+                                                      padding: EdgeInsets.all(40),
+                                                      child: Icon(Icons.upload_rounded, color: Colors.white, size: 40,),
+                                                    ),
+                                                  )
+                                          ),
+
+                                          Material(
+                                            shape: const CircleBorder(),
+                                            clipBehavior: Clip.hardEdge,
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              onTap: () async {
+                                                final ImagePicker _picker = ImagePicker();
+
+                                                final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+
+                                                if(_image == null) return;
+
+                                                CroppedFile? croppedFile = await ImageCropper().cropImage(
+                                                  sourcePath: _image.path,
+                                                  aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+                                                  maxHeight: 1080,
+                                                  maxWidth: 1080
+
+                                                );
+
+                                                if(croppedFile == null) return;
+
+                                                await uploadFile(croppedFile);
+
+                                                setState(() {
+                                                  isLoading = true;
+                                                });
+
+                                                await Future.delayed(const Duration(milliseconds: 500));
+
+                                                _lastFile = await File(croppedFile.path).readAsBytes();
+
+                                                setState(() {
+
+                                                  isLoading = false;
+
+
+                                                });
+
+
+
+                                              },
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    )
+                                  ),
+                                ]
+                              ),
+                              DataRow(
+                                cells: [
+                                  DataCell(Padding(
+                                    padding: EdgeInsets.symmetric(vertical: device.height * .02),
+                                    child: Center(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Navigator.push(context, PageRouteBuilder(
+                                            transitionDuration: const Duration(milliseconds: 500),
+                                            reverseTransitionDuration: const Duration(milliseconds: 500),
+                                            pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
+                                            transitionsBuilder: (context, a1, a2, child) =>
+                                                SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
+                                          ));
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                          child: Center(
                                             child: Text(
-                                              email!,
+                                              'Change your password',
                                               style: TextStyle(
-                                                color: Colors.white24.withOpacity(0.5),
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.normal
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      constraints: BoxConstraints(
-                                        minWidth: 100,
-                                        maxWidth: device.width * 0.45,
-                                      ),
-                                    ),
-                                  ),
-                                ))
-                              ]),
-                              DataRow(cells: [
-                                const DataCell(Text(
-                                  'Full Name:',
-                                  style: TextStyle(
-                                      color: ColorsB.yellow500,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 20
-                                  ),
-                                )),
-                                DataCell(Center(
-                                  child: Text(
-                                    ln! + ' ' + fn!,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ))
-                              ]),
-                              DataRow(cells: [
-                                const DataCell(Text(
-                                  'Password:',
-                                  style: TextStyle(
-                                      color: ColorsB.yellow500,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 20
-                                  ),
-                                )),
-                                DataCell(Padding(
-                                  padding: EdgeInsets.symmetric(vertical: device.height * .02),
-                                  child: Center(
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.push(context, PageRouteBuilder(
-                                          transitionDuration: const Duration(milliseconds: 500),
-                                          reverseTransitionDuration: const Duration(milliseconds: 500),
-                                          pageBuilder: (context, a1, a2) => ChangePassword(email: email,),
-                                          transitionsBuilder: (context, a1, a2, child) =>
-                                              SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.gray900,),
-                                        ));
-                                      },
-                                      child: const Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        child: Center(
-                                          child: Text(
-                                            'Change your password',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.normal
-                                            ),
-                                          ),
+                                        style: TextButton.styleFrom(
+                                          maximumSize: Size(double.infinity, 50),
+                                            backgroundColor: ColorsB.gray800,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(50),
+                                            )
                                         ),
                                       ),
-                                      style: TextButton.styleFrom(
-                                          backgroundColor: ColorsB.gray800,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(50),
-                                          )
-                                      ),
                                     ),
-                                  ),
-                                ))
-                              ]),
-                              DataRow(cells: [
-                                const DataCell(Text(
-                                  'Type: ',
-                                  style: TextStyle(
-                                      color: ColorsB.yellow500,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 20
-                                  ),
-                                )),
-                                DataCell(Center(
-                                  child: Text(
-                                    widget.type + ' account',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ))
-                              ]),
-                              const DataRow(cells: [
-                                DataCell.empty,
-                                DataCell.empty
-                              ]),
+                                  )),
+                                  DataCell.empty
+                                ]
+                              ),
+
                               DataRow(
                                 cells: [
                                   DataCell(

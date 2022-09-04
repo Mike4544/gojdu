@@ -75,13 +75,16 @@ class Event extends StatelessWidget {
                         flex: 1,
                         child: Row(
                           children: [
-                            Text(
-                              title,
-                              overflow: TextOverflow.fade,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: title.length > 10 ? 20 : 25,
-                                  fontWeight: FontWeight.bold
+                            SizedBox(
+                              width: screenWidth * .3,
+                              child: Text(
+                                title,
+                                overflow: TextOverflow.fade,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: title.length > 10 ? 20 : 25,
+                                    fontWeight: FontWeight.bold
+                                ),
                               ),
                             ),
                             const SizedBox(width: 25,),
@@ -129,6 +132,23 @@ class Event extends StatelessWidget {
                 ),
 
               ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link,)
+                        )
+                    );
+
+                  },
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+
+
               Visibility(
                 visible: gMap['account'] == 'Admin' || gMap['first_name'] + ' ' + gMap['last_name'] == owner,
                 child: Positioned(
@@ -220,21 +240,7 @@ class Event extends StatelessWidget {
                   ),
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
 
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link,)
-                      )
-                    );
-
-                  },
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              )
             ],
           )
         ),
@@ -253,10 +259,9 @@ class BigNewsContainer extends StatefulWidget {
   final String date;
   final String location;
   final String? imageString;
-  final String? avatarImg;
 
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location, this.avatarImg}) : super(key: key);
+  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -269,6 +274,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return _controller.position.pixels >= screenHeight * .65 && _controller.hasClients;
   }
 
+  var avatarImg;
+
   final ScrollController _controller = ScrollController();
 
   bool visible = false;
@@ -276,6 +283,9 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   @override
   void initState() {
     // TODO: implement initState
+
+    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
+    print(avatarImg);
 
     _controller.addListener(() {
 
@@ -304,12 +314,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     //print(imageLink);
 
 
-    if(widget.imageString == 'null' || widget.imageString == null){
+    if(widget.imageString == 'null' || widget.imageString == ''){
       return Hero(
         tag: 'title-rectangle',
         child: Container(
           width: screenWidth,
-          height: screenHeight * 0.5,
           color: widget.color,
           child: Align(
             alignment: Alignment.bottomLeft,
@@ -325,25 +334,27 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.title,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold
+                              ),
                             ),
                           ),
                           Chip(
                             backgroundColor: ColorsB.gray200,
-                            avatar: widget.avatarImg != null
-                                ? CircleAvatar(
-                              backgroundImage: Image.network(widget.avatarImg!).image,
-                            )
-                                : CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                  widget.author[0]
-                              ),
+                            avatar: CircleAvatar(
+                              backgroundImage: Image.network(
+                                avatarImg,
+                                errorBuilder: (c, ex, sT) => Text(
+                                    widget.author[0]
+                                ),
+                              ).image,
                             ),
                             label: Text(
                                 widget.author
@@ -471,25 +482,27 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  widget.title,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    widget.title,
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold
+                                    ),
                                   ),
                                 ),
                                 Chip(
                                   backgroundColor: ColorsB.gray200,
-                                  avatar: widget.avatarImg != null
-                                      ? CircleAvatar(
-                                    backgroundImage: Image.network(widget.avatarImg!).image,
-                                  )
-                                      : CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    child: Text(
-                                        widget.author[0]
-                                    ),
+                                  avatar: CircleAvatar(
+                                    backgroundImage: Image.network(
+                                      avatarImg,
+                                      errorBuilder: (c, ex, sT) => Text(
+                                          widget.author[0]
+                                      ),
+                                    ).image,
                                   ),
                                   label: Text(
                                       widget.author
@@ -569,7 +582,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
               child: Row(
                 children: [
                   Text(
-                    widget.title,
+                    widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
                     style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold
@@ -578,15 +591,13 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                   const SizedBox(width: 25,),
                   Chip(
                     backgroundColor: ColorsB.gray200,
-                    avatar: widget.avatarImg != null
-                      ? CircleAvatar(
-                        backgroundImage: Image.network(widget.avatarImg!).image,
-                    )
-                      : CircleAvatar(
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        widget.author[0]
-                      ),
+                    avatar: CircleAvatar(
+                      backgroundImage: Image.network(
+                        avatarImg,
+                        errorBuilder: (c, ex, sT) => Text(
+                            widget.author[0]
+                        ),
+                      ).image,
                     ),
                     label: Text(
                         widget.author

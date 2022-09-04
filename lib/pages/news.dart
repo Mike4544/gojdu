@@ -2295,7 +2295,6 @@ class BigNewsContainer extends StatefulWidget {
   final String author;
   final String? imageLink;
   final File? file;
-  final String? avatarImg;
   int? likes, ids;
   bool? likesBool, dislikes;
   StreamController<int?>? contrL;
@@ -2303,7 +2302,7 @@ class BigNewsContainer extends StatefulWidget {
   StreamController<bool?>? contrDB;
 
 
-  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB, this.avatarImg}) : super(key: key);
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -2530,18 +2529,29 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return _controller.position.pixels >= screenHeight * .65 && _controller.hasClients;
   }
 
+  Future<bool> _is404() async {
+    var response = await http.get(Uri.parse(avatarImg));
+
+    return response.statusCode != 200;
+  }
+
   final ScrollController _controller = ScrollController();
 
   bool visible = false;
+  var avatarImg;
 
   @override
   void initState() {
+    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
+    print(avatarImg);
+
 
     _controller.addListener(() {
 
       _isCollapsed ? visible = true : visible = false;
 
       //  print(_controller.position.pixels);
+
 
       setState(() {
 
@@ -2589,25 +2599,26 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 curve: Curves.easeInOut,
                 child: Row(
                   children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
+                    FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                          widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        ),
                       ),
                     ),
                     const SizedBox(width: 25,),
                     Chip(
                       backgroundColor: ColorsB.gray200,
-                      avatar: widget.avatarImg != null
-                          ? CircleAvatar(
-                        backgroundImage: Image.network(widget.avatarImg!).image,
-                      )
-                          : CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: Text(
-                            widget.author[0]
-                        ),
+                      avatar: CircleAvatar(
+                        backgroundImage: Image.network(
+                          avatarImg,
+                          errorBuilder: (c, ex, sT) => Text(
+                              widget.author[0]
+                          ),
+                        ).image,
                       ),
                       label: Text(
                           widget.author
@@ -2661,45 +2672,85 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 padding: const EdgeInsets.all(15.0),
                 child: Row(
                   children: [
-                    SizedBox(
-                      height: screenHeight * .3,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.title,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold
-                                ),
-                              ),
-                              Chip(
-                                backgroundColor: ColorsB.gray200,
-                                avatar: widget.avatarImg != null
-                                    ? CircleAvatar(
-                                  backgroundImage: Image.network(widget.avatarImg!).image,
-                                )
-                                    : CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  child: Text(
-                                      widget.author[0]
+                    Expanded(
+                      child: SizedBox(
+                          height: screenHeight * .3,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold
                                   ),
                                 ),
-                                label: Text(
-                                    widget.author
-                                ),
-                              )
-                            ],
-                          ),
-
-                        ],
+                                Chip(
+                                  backgroundColor: ColorsB.gray200,
+                                  avatar: CircleAvatar(
+                                    backgroundImage: Image.network(
+                                      avatarImg,
+                                      errorBuilder: (c, ex, sT) => Text(
+                                          widget.author[0]
+                                      ),
+                                    ).image,
+                                  ),
+                                  label: Text(
+                                      widget.author
+                                  ),
+                                )
+                              ],
+                            ),
+                          )
                       ),
+                    ),
+                    Expanded(
+                      child: globalMap['verification'] != 'Pending' && widget.likes != null
+                          ? Row(
+                          children: [
+                            //   Like and dislike
+                            IconButton(
+                              splashRadius: 20,
+                              icon: Icon(
+                                Icons.thumb_up,
+                                color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                size: 25,
+                              ),
+                              onPressed: () {
+                                widget.likesBool == true ?
+                                unlike(widget.ids!, globalMap['id'])
+                                    : like(widget.ids!, globalMap['id']);
+                              },
+                            ),
+                            Text(
+                              widget.likes.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                            ),
+                            IconButton(
+                              splashRadius: 20,
+                              icon: Icon(
+                                Icons.thumb_down,
+                                color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                size: 25,
+                              ),
+                              onPressed: () {
+
+                                widget.dislikes == true ?
+                                undislike(widget.ids!, globalMap['id'])
+                                    : dislike(widget.ids!, globalMap['id']);
+                                //
+                              },
+                            ),
+                          ]
+                      )
+                          : const SizedBox(),
                     )
                   ]
                 )
@@ -2759,22 +2810,55 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 ),
                 Positioned(
                   bottom: 0,
-                  child: Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.25,
-                    decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [
-                              Colors.black,
-                              Colors.transparent
-                            ],
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            stops: [
-                              0,
-                              0.9
-                            ]
-                        )
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) =>
+                              Material(
+                                  color: Colors.transparent,
+                                  child: Stack(
+                                      children: [
+                                        Center(
+                                          child: InteractiveViewer(
+                                              clipBehavior: Clip.none,
+                                              child: Image.network(widget.imageLink!)
+                                          ),
+                                        ),
+                                        Positioned(
+                                            top: 10,
+                                            right: 10,
+                                            child: IconButton(
+                                                tooltip: 'Close',
+                                                splashRadius: 25,
+                                                icon: const Icon(Icons.close, color: Colors.white),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                }
+                                            )
+                                        )
+                                      ]
+                                  )
+                              )
+                      );
+                    },
+                    child: Container(
+                      width: screenWidth,
+                      height: screenHeight * 0.5,
+                      decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                              colors: [
+                                Colors.black,
+                                Colors.transparent
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              stops: [
+                                0,
+                                0.9
+                              ]
+                          )
+                      ),
                     ),
                   ),
                 ),
@@ -2783,43 +2867,92 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                   child: Padding(
                       padding: const EdgeInsets.all(15.0),
                       child: SizedBox(
-                        height: screenHeight * .3,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.title,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold
-                                  ),
+                        width: screenWidth,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                    height: screenHeight * .3,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold
+                                            ),
+                                          ),
+                                          Chip(
+                                            backgroundColor: ColorsB.gray200,
+                                            avatar: CircleAvatar(
+                                              backgroundImage: Image.network(
+                                                avatarImg,
+                                                errorBuilder: (c, ex, sT) => Text(
+                                                    widget.author[0]
+                                                ),
+                                              ).image,
+                                            ),
+                                            label: Text(
+                                                widget.author
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    )
                                 ),
-                                Chip(
-                                  backgroundColor: ColorsB.gray200,
-                                  avatar: widget.avatarImg != null
-                                      ? CircleAvatar(
-                                    backgroundImage: Image.network(widget.avatarImg!).image,
-                                  )
-                                      : CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    child: Text(
-                                        widget.author[0]
-                                    ),
-                                  ),
-                                  label: Text(
-                                      widget.author
-                                  ),
-                                )
-                              ],
-                            ),
+                              ),
+                              Expanded(
+                                child: globalMap['verification'] != 'Pending' && widget.likes != null
+                                    ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      //   Like and dislike
+                                      IconButton(
+                                        splashRadius: 20,
+                                        icon: Icon(
+                                          Icons.thumb_up,
+                                          color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                          size: 25,
+                                        ),
+                                        onPressed: () {
+                                          widget.likesBool == true ?
+                                          unlike(widget.ids!, globalMap['id'])
+                                              : like(widget.ids!, globalMap['id']);
+                                        },
+                                      ),
+                                      Text(
+                                        widget.likes.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        splashRadius: 20,
+                                        icon: Icon(
+                                          Icons.thumb_down,
+                                          color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
+                                          size: 25,
+                                        ),
+                                        onPressed: () {
 
-                          ],
+                                          widget.dislikes == true ?
+                                          undislike(widget.ids!, globalMap['id'])
+                                              : dislike(widget.ids!, globalMap['id']);
+                                          //
+                                        },
+                                      ),
+                                    ]
+                                )
+                                    : const SizedBox(),
+                              )
+                            ]
                         ),
                       )
                   ),
