@@ -84,111 +84,114 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: SizedBox(
-        child: SizedBox(
-          height: 50,
-          width: width * .5,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
-                flex:_anim1.value,
-                child: GestureDetector(
-                  onTap: () {
-                    anim(0);
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: SizedBox(
+            height: 50,
+            width: width * .5,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  flex:_anim1.value,
+                  child: GestureDetector(
+                    onTap: () {
+                      anim(0);
 
-                    _c1.reverse();
-                     _c2.reverse();
-
-
-                  },
-                  child: AnimatedContainer(
-                    clipBehavior: Clip.hardEdge,
-                    curve: Curves.ease,
-                    duration: const Duration(milliseconds: 500),
-                    decoration: widget.index == 0
-                    ? cActive
-                    : cInactive,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        child: Row(
-                           mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,),
-                            const SizedBox(width: 5,),
-                            SizedBox(
-                              height: height * .025,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
-                                child: Text(
-                                  'Announcements',
-                                  overflow: TextOverflow.fade,
-                                  style: widget.index == 0
-                                    ? activeStyle
-                                    : inactiveStyle,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: _anim2.value,
-                child: GestureDetector(
-                  onTap: () {
-                    anim(1);
-
-                     _c1.forward();
-                     _c2.forward();
+                      _c1.reverse();
+                       _c2.reverse();
 
 
-                  },
-                  child: AnimatedContainer(
-                    clipBehavior: Clip.hardEdge,
-                    curve: Curves.ease,
-                    duration: const Duration(milliseconds: 500),
-                    decoration: widget.index == 1
-                        ? cActive
-                        : cInactive,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
-                            const SizedBox(width: 5,),
-                            SizedBox(
-                              height: height * .025,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
-                                child: Text(
-                                  'Events',
-                                  overflow: TextOverflow.fade,
-                                  style: widget.index == 1
+                    },
+                    child: AnimatedContainer(
+                      clipBehavior: Clip.hardEdge,
+                      curve: Curves.ease,
+                      duration: const Duration(milliseconds: 500),
+                      decoration: widget.index == 0
+                      ? cActive
+                      : cInactive,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,),
+                              const SizedBox(width: 5,),
+                              SizedBox(
+                                height: height * .025,
+                                child: FittedBox(
+                                  fit: BoxFit.contain,
+                                  child: Text(
+                                    'Announcements',
+                                    overflow: TextOverflow.fade,
+                                    style: widget.index == 0
                                       ? activeStyle
                                       : inactiveStyle,
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: _anim2.value,
+                  child: GestureDetector(
+                    onTap: () {
+                      anim(1);
+
+                       _c1.forward();
+                       _c2.forward();
 
 
-            ],
+                    },
+                    child: AnimatedContainer(
+                      clipBehavior: Clip.hardEdge,
+                      curve: Curves.ease,
+                      duration: const Duration(milliseconds: 500),
+                      decoration: widget.index == 1
+                          ? cActive
+                          : cInactive,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
+                              const SizedBox(width: 5,),
+                              SizedBox(
+                                height: height * .025,
+                                child: FittedBox(
+                                  fit: BoxFit.contain,
+                                  child: Text(
+                                    'Events',
+                                    overflow: TextOverflow.fade,
+                                    style: widget.index == 1
+                                        ? activeStyle
+                                        : inactiveStyle,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
+
+              ],
+
+            ),
           ),
         ),
       ),

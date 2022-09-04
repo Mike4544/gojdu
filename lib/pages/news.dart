@@ -12,7 +12,6 @@ import 'package:gojdu/others/colors.dart';
 //import 'package:gojdu/widgets/class_selector.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/widgets/input_fields.dart';
-import 'package:rive/rive.dart';
 //import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:gojdu/widgets/floor_selector.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
@@ -1400,8 +1399,8 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
                                 },
                                 child: ListView.builder(
-                                    physics: const BouncingScrollPhysics(),
-                                    shrinkWrap: true,
+                                    physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                                    shrinkWrap: false,
                                     itemCount: events.isNotEmpty ? events.length : 1,
                                     itemBuilder: (context, index) {
                                       if(events.isNotEmpty) {
@@ -1504,7 +1503,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
           ],
         ),
-      )
+      ),
     );
   }
 
@@ -1720,8 +1719,8 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
             },
             child: ListView.builder(
                 controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                shrinkWrap: false,
                 itemCount: maxScrollCount < posts.length ? maxScrollCount + 1 : posts.length,
                 itemBuilder: (_, index) {
 
@@ -2296,6 +2295,7 @@ class BigNewsContainer extends StatefulWidget {
   final String author;
   final String? imageLink;
   final File? file;
+  final String? avatarImg;
   int? likes, ids;
   bool? likesBool, dislikes;
   StreamController<int?>? contrL;
@@ -2303,7 +2303,7 @@ class BigNewsContainer extends StatefulWidget {
   StreamController<bool?>? contrDB;
 
 
-  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB, this.avatarImg}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -2526,6 +2526,39 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
 
+  bool get _isCollapsed {
+    return _controller.position.pixels >= screenHeight * .65 && _controller.hasClients;
+  }
+
+  final ScrollController _controller = ScrollController();
+
+  bool visible = false;
+
+  @override
+  void initState() {
+
+    _controller.addListener(() {
+
+      _isCollapsed ? visible = true : visible = false;
+
+      //  print(_controller.position.pixels);
+
+      setState(() {
+
+      });
+
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -2535,279 +2568,150 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
       bottomNavigationBar: const BackNavbar(),
       backgroundColor: ColorsB.gray900,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          topPage(),
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Linkify(
-                linkStyle: const TextStyle(color: ColorsB.yellow500),
-                text: widget.description,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17.5,
-                    fontWeight: FontWeight.normal
-                ),
-                onOpen: (link) async {
-                  if (await canLaunch(link.url)) {
-                    await launch(link.url);
-                  } else {
-                    throw 'Could not launch $link';
-                  }
-                },
-              )
+      body: CustomScrollView(
+        controller: _controller,
+        slivers: [
+          SliverAppBar(
+            backgroundColor: widget.color,
+            automaticallyImplyLeading: false,
+            expandedHeight: screenHeight * .75,
+            pinned: true,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: [
+                StretchMode.blurBackground,
+              ],
+              background: topPage(),
+            ),
+            title: AnimatedOpacity(
+                opacity: visible ? 1 : 0,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: Row(
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    const SizedBox(width: 25,),
+                    Chip(
+                      backgroundColor: ColorsB.gray200,
+                      avatar: widget.avatarImg != null
+                          ? CircleAvatar(
+                        backgroundImage: Image.network(widget.avatarImg!).image,
+                      )
+                          : CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: Text(
+                            widget.author[0]
+                        ),
+                      ),
+                      label: Text(
+                          widget.author
+                      ),
+                    )
+                  ],
+                )
+            ),
+
+          ),
+          SliverFillRemaining(
+            child: SizedBox(
+              child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Linkify(
+                    linkStyle: const TextStyle(color: ColorsB.yellow500),
+                    text: widget.description,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.5,
+                        fontWeight: FontWeight.normal
+                    ),
+                    onOpen: (link) async {
+                      if (await canLaunch(link.url)) {
+                        await launch(link.url);
+                      } else {
+                        throw 'Could not launch $link';
+                      }
+                    },
+                  )
+              ),
             ),
           )
-
         ],
       ),
     ) ;
   }
 
   Widget topPage() {
-    //print(widget.imageLink);
-    if(widget.file == null){
-      if(widget.imageLink == null || widget.imageLink == ''){
-        return Hero(
-          tag: 'title-rectangle',
-          child: Container(
-            width: screenWidth,
-            height: screenHeight * 0.5,
-            color: widget.color,
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
+    //print(imageLink);
+
+
+    if(widget.imageLink == 'null'){
+      return Hero(
+        tag: 'title-rectangle',
+        child: Container(
+          color: widget.color,
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        Text(
-                            "by " + widget.author,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            )
-                        )
-                      ],
-                    ),
-                    globalMap['verification'] != 'Pending' && widget.likes != null
-                        ? Row(
-                          children: [
-                          //   Like and dislike
-                          IconButton(
-                            splashRadius: 20,
-                            icon: Icon(
-                              Icons.thumb_up,
-                              color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
-                              size: 25,
-                            ),
-                            onPressed: () {
-                              widget.likesBool == true ?
-                              unlike(widget.ids!, globalMap['id'])
-                                  : like(widget.ids!, globalMap['id']);
-                            },
-                          ),
-                          Text(
-                            widget.likes.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            ),
-                          ),
-                          IconButton(
-                            splashRadius: 20,
-                            icon: Icon(
-                              Icons.thumb_down,
-                              color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
-                              size: 25,
-                            ),
-                            onPressed: () {
-
-                              widget.dislikes == true ?
-                              undislike(widget.ids!, globalMap['id'])
-                                  : dislike(widget.ids!, globalMap['id']);
-                              //
-                            },
-                          ),
-                        ]
-                    )
-                        : const SizedBox(),
-                  ],
-                )
-              ),
-            ),
-          ),
-        );
-      }
-      else {
-        return Hero(
-            tag: 'title-rectangle',
-            child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) =>
-                              Material(
-                                  color: Colors.transparent,
-                                  child: Stack(
-                                      children: [
-                                        Center(
-                                          child: InteractiveViewer(
-                                              clipBehavior: Clip.none,
-                                              child: Image(image: NetworkImage(widget.imageLink!))
-                                          ),
-                                        ),
-                                        Positioned(
-                                            top: 10,
-                                            right: 10,
-                                            child: IconButton(
-                                                tooltip: 'Close',
-                                                splashRadius: 25,
-                                                icon: const Icon(Icons.close, color: Colors.white),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                }
-                                            )
-                                        )
-                                      ]
-                                  )
-                              )
-                      );
-                    },
-                    child: Container(
-                      width: screenWidth,
-                      height: screenHeight * 0.5,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: NetworkImage(widget.imageLink!),
-                            fit: BoxFit.cover
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    child: Container(
-                      width: screenWidth,
-                      height: screenHeight * 0.25,
-                      decoration: BoxDecoration(
-                          gradient: material.LinearGradient(
-                              colors: [
-                                Colors.black,
-                                Colors.transparent
-                              ],
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              stops: [
-                                0,
-                                0.9
-                              ]
-                          )
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    child: SizedBox(
-                      width: screenWidth,
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.title,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold
+                    SizedBox(
+                      height: screenHeight * .3,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              Chip(
+                                backgroundColor: ColorsB.gray200,
+                                avatar: widget.avatarImg != null
+                                    ? CircleAvatar(
+                                  backgroundImage: Image.network(widget.avatarImg!).image,
+                                )
+                                    : CircleAvatar(
+                                  backgroundColor: Colors.white,
+                                  child: Text(
+                                      widget.author[0]
                                   ),
                                 ),
-                                Text(
-                                    "by " + widget.author,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                    )
-                                )
-                              ],
-                            ),
+                                label: Text(
+                                    widget.author
+                                ),
+                              )
+                            ],
+                          ),
 
-                            globalMap['verification'] != 'Pending' && widget.likes != null
-                                ? Row(
-                                  children: [
-                                  //   Like and dislike
-                                  IconButton(
-                                    splashRadius: 20,
-                                    icon: Icon(
-                                      Icons.thumb_up,
-                                      color: widget.likesBool == true ? Colors.white : Colors.white.withOpacity(0.5),
-                                      size: 25,
-                                    ),
-                                    onPressed: () {
-                                      widget.likesBool == true ?
-                                      unlike(widget.ids!, globalMap['id'])
-                                          : like(widget.ids!, globalMap['id']);
-                                    },
-                                  ),
-                                  Text(
-                                    widget.likes.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    splashRadius: 20,
-                                    icon: Icon(
-                                      Icons.thumb_down,
-                                      color: widget.dislikes == true ? Colors.white : Colors.white.withOpacity(0.5),
-                                      size: 25,
-                                    ),
-                                    onPressed: () {
-
-                                      widget.dislikes == true ?
-                                      undislike(widget.ids!, globalMap['id'])
-                                          : dislike(widget.ids!, globalMap['id']);
-                                      //
-                                    },
-                                  ),
-                                ]
-                            )
-                                : const SizedBox(),
-                          ]
-                        )
+                        ],
                       ),
-                    ),
-                  ),
-                ]
-            )
-        );
-      }
+                    )
+                  ]
+                )
+            ),
+          ),
+        ),
+      );
     }
     else {
+
+      // Uint8List imagBytes = base64Decode(imageString!);
+
       return Hero(
           tag: 'title-rectangle',
           child: Stack(
@@ -2824,7 +2728,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                       Center(
                                         child: InteractiveViewer(
                                             clipBehavior: Clip.none,
-                                            child: Image(image: FileImage(widget.file!))
+                                            child: Image.network(widget.imageLink!)
                                         ),
                                       ),
                                       Positioned(
@@ -2845,11 +2749,9 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                     );
                   },
                   child: Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.5,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                          image: FileImage(widget.file!),
+                          image: Image.network(widget.imageLink!).image,
                           fit: BoxFit.cover
                       ),
                     ),
@@ -2860,8 +2762,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                   child: Container(
                     width: screenWidth,
                     height: screenHeight * 0.25,
-                    decoration: BoxDecoration(
-                        gradient: material.LinearGradient(
+                    decoration: const BoxDecoration(
+                        gradient: LinearGradient(
                             colors: [
                               Colors.black,
                               Colors.transparent
@@ -2879,30 +2781,47 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 Positioned(
                   bottom: 0,
                   child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            widget.title,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold
+                      padding: const EdgeInsets.all(15.0),
+                      child: SizedBox(
+                        height: screenHeight * .3,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                                Chip(
+                                  backgroundColor: ColorsB.gray200,
+                                  avatar: widget.avatarImg != null
+                                      ? CircleAvatar(
+                                    backgroundImage: Image.network(widget.avatarImg!).image,
+                                  )
+                                      : CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    child: Text(
+                                        widget.author[0]
+                                    ),
+                                  ),
+                                  label: Text(
+                                      widget.author
+                                  ),
+                                )
+                              ],
                             ),
-                          ),
+
+                          ],
                         ),
-                        Text(
-                            "by " + widget.author,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            )
-                        )
-                      ],
-                    ),
+                      )
                   ),
                 ),
               ]

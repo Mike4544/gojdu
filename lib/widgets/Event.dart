@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 
 import 'package:http/http.dart' as http;
+
+import 'back_navbar.dart';
 
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
@@ -220,7 +224,13 @@ class Event extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link,)
+                      )
+                    );
+
                   },
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -230,6 +240,391 @@ class Event extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+
+class BigNewsContainer extends StatefulWidget {
+
+  final String title;
+  final String description;
+  final Color? color;
+  final String author;
+  final String date;
+  final String location;
+  final String? imageString;
+  final String? avatarImg;
+
+
+  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location, this.avatarImg}) : super(key: key);
+
+  @override
+  State<BigNewsContainer> createState() => _BigNewsContainerState();
+}
+
+class _BigNewsContainerState extends State<BigNewsContainer> {
+
+
+  bool get _isCollapsed {
+    return _controller.position.pixels >= screenHeight * .65 && _controller.hasClients;
+  }
+
+  final ScrollController _controller = ScrollController();
+
+  bool visible = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    _controller.addListener(() {
+
+      _isCollapsed ? visible = true : visible = false;
+
+      //  print(_controller.position.pixels);
+
+      setState(() {
+
+      });
+
+    });
+
+    super.initState();
+  }
+
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget topPage() {
+    //print(imageLink);
+
+
+    if(widget.imageString == 'null' || widget.imageString == null){
+      return Hero(
+        tag: 'title-rectangle',
+        child: Container(
+          width: screenWidth,
+          height: screenHeight * 0.5,
+          color: widget.color,
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: SizedBox(
+                  height: screenHeight * .3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Chip(
+                            backgroundColor: ColorsB.gray200,
+                            avatar: widget.avatarImg != null
+                                ? CircleAvatar(
+                              backgroundImage: Image.network(widget.avatarImg!).image,
+                            )
+                                : CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                  widget.author[0]
+                              ),
+                            ),
+                            label: Text(
+                                widget.author
+                            ),
+                          )
+                        ],
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Chip(
+                              backgroundColor: ColorsB.gray200,
+                              avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
+                              label: Text(
+                                widget.location,
+                                style: TextStyle(
+                                  color: ColorsB.gray900,
+                                ),
+                              )
+                          ),
+                          Chip(
+                              backgroundColor: ColorsB.gray200,
+                              avatar: const Icon(Icons.calendar_today_outlined, color: ColorsB.gray900,),
+                              label: Text(
+                                widget.date,
+                                style: TextStyle(
+                                  color: ColorsB.gray900,
+                                ),
+                              )
+                          )
+
+                        ],
+                      )
+
+                    ],
+                  ),
+                )
+            ),
+          ),
+        ),
+      );
+    }
+    else {
+
+      // Uint8List imagBytes = base64Decode(imageString!);
+
+      return Hero(
+          tag: 'title-rectangle',
+          child: Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) =>
+                            Material(
+                                color: Colors.transparent,
+                                child: Stack(
+                                    children: [
+                                      Center(
+                                        child: InteractiveViewer(
+                                            clipBehavior: Clip.none,
+                                            child: Image.network(widget.imageString!)
+                                        ),
+                                      ),
+                                      Positioned(
+                                          top: 10,
+                                          right: 10,
+                                          child: IconButton(
+                                              tooltip: 'Close',
+                                              splashRadius: 25,
+                                              icon: const Icon(Icons.close, color: Colors.white),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              }
+                                          )
+                                      )
+                                    ]
+                                )
+                            )
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: Image.network(widget.imageString!).image,
+                          fit: BoxFit.cover
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: screenWidth,
+                    height: screenHeight * 0.25,
+                    decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                            colors: [
+                              Colors.black,
+                              Colors.transparent
+                            ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            stops: [
+                              0,
+                              0.9
+                            ]
+                        )
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: SizedBox(
+                        height: screenHeight * .3,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.title,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                                Chip(
+                                  backgroundColor: ColorsB.gray200,
+                                  avatar: widget.avatarImg != null
+                                      ? CircleAvatar(
+                                    backgroundImage: Image.network(widget.avatarImg!).image,
+                                  )
+                                      : CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    child: Text(
+                                        widget.author[0]
+                                    ),
+                                  ),
+                                  label: Text(
+                                      widget.author
+                                  ),
+                                )
+                              ],
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Chip(
+                                    backgroundColor: ColorsB.gray200,
+                                    avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
+                                    label: Text(
+                                      widget.location,
+                                      style: TextStyle(
+                                        color: ColorsB.gray900,
+                                      ),
+                                    )
+                                ),
+                                Chip(
+                                    backgroundColor: ColorsB.gray200,
+                                    avatar: const Icon(Icons.calendar_today_outlined, color: ColorsB.gray900,),
+                                    label: Text(
+                                      widget.date,
+                                      style: TextStyle(
+                                        color: ColorsB.gray900,
+                                      ),
+                                    )
+                                )
+
+                              ],
+                            )
+
+                          ],
+                        ),
+                      )
+                  ),
+                ),
+              ]
+          )
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+
+
+    var device = MediaQuery.of(context);
+
+
+    return Scaffold(
+      bottomNavigationBar: const BackNavbar(),
+      backgroundColor: ColorsB.gray900,
+      body: CustomScrollView(
+        controller: _controller,
+        slivers: [
+          SliverAppBar(
+            backgroundColor: widget.color,
+            automaticallyImplyLeading: false,
+            expandedHeight: screenHeight * .75,
+            pinned: true,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: [
+                StretchMode.blurBackground,
+              ],
+              background: topPage(),
+            ),
+            title: AnimatedOpacity(
+              opacity: visible ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: Row(
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  const SizedBox(width: 25,),
+                  Chip(
+                    backgroundColor: ColorsB.gray200,
+                    avatar: widget.avatarImg != null
+                      ? CircleAvatar(
+                        backgroundImage: Image.network(widget.avatarImg!).image,
+                    )
+                      : CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        widget.author[0]
+                      ),
+                    ),
+                    label: Text(
+                        widget.author
+                    ),
+                  )
+                ],
+              )
+            ),
+
+          ),
+          SliverFillRemaining(
+            child: SizedBox(
+              child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Linkify(
+                    linkStyle: const TextStyle(color: ColorsB.yellow500),
+                    text: widget.description,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.5,
+                        fontWeight: FontWeight.normal
+                    ),
+                    onOpen: (link) async {
+                      if (await canLaunch(link.url)) {
+                        await launch(link.url);
+                      } else {
+                        throw 'Could not launch $link';
+                      }
+                    },
+                  )
+              ),
+            ),
+          )
+        ],
+      )
+    );
+
+
   }
 }
 
