@@ -2540,6 +2540,79 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   bool visible = false;
   var avatarImg;
 
+  late bool _isnt404;
+
+  Future<int> _getImgStatus() async {
+    var response = await http.get(Uri.parse(avatarImg));
+
+    _isnt404 = response.statusCode != 404;
+
+    return response.statusCode;
+  }
+
+  Widget _CircleAvatar() {
+
+    late var _sCode = _getImgStatus();
+
+    return FutureBuilder(
+      future: _sCode,
+      builder: (context, snapshot){
+        if(snapshot.hasData){
+
+          if(_isnt404){
+            return CircleAvatar(
+              backgroundImage: Image.network(
+                avatarImg,
+              ).image,
+            );
+
+          }
+          else {
+            return CircleAvatar(
+              child: Text(
+                  widget.author[0]
+              ),
+            );
+
+          }
+
+
+        }
+        else if(snapshot.hasError){
+          return CircleAvatar(
+            child: Text(
+                widget.author[0]
+            ),
+          );
+        }
+        else {
+          return const CircleAvatar(
+            backgroundColor: Colors.white,
+          );
+        }
+      },
+
+    );
+
+
+    // try {
+    //   return CircleAvatar(
+    //     backgroundImage: Image.network(
+    //       avatarImg,
+    //     ).image,
+    //   );
+    // }
+    // catch(e) {
+    //   return CircleAvatar(
+    //     child: Text(
+    //         widget.author[0]
+    //     ),
+    //   );
+    // }
+  }
+
+
+
   @override
   void initState() {
     avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
@@ -2612,14 +2685,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                     const SizedBox(width: 25,),
                     Chip(
                       backgroundColor: ColorsB.gray200,
-                      avatar: CircleAvatar(
-                        backgroundImage: Image.network(
-                          avatarImg,
-                          errorBuilder: (c, ex, sT) => Text(
-                              widget.author[0]
-                          ),
-                        ).image,
-                      ),
+                      avatar: _CircleAvatar(),
                       label: Text(
                           widget.author
                       ),
@@ -2691,14 +2757,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                 ),
                                 Chip(
                                   backgroundColor: ColorsB.gray200,
-                                  avatar: CircleAvatar(
-                                    backgroundImage: Image.network(
-                                      avatarImg,
-                                      errorBuilder: (c, ex, sT) => Text(
-                                          widget.author[0]
-                                      ),
-                                    ).image,
-                                  ),
+                                  avatar: _CircleAvatar(),
                                   label: Text(
                                       widget.author
                                   ),
@@ -2890,14 +2949,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                           ),
                                           Chip(
                                             backgroundColor: ColorsB.gray200,
-                                            avatar: CircleAvatar(
-                                              backgroundImage: Image.network(
-                                                avatarImg,
-                                                errorBuilder: (c, ex, sT) => Text(
-                                                    widget.author[0]
-                                                ),
-                                              ).image,
-                                            ),
+                                            avatar: _CircleAvatar(),
                                             label: Text(
                                                 widget.author
                                             ),
