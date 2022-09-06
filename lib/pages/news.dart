@@ -133,7 +133,7 @@ Future getFloors() async {
     _scaffoldKey.currentState!.showSnackBar(
         const SnackBar(
             backgroundColor: Colors.red,
-            content: const Text(
+            content: Text(
                 'Request has timed out. Some features might be missing.',
                 style: TextStyle(
                   color: Colors.white,
