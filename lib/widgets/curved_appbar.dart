@@ -204,13 +204,19 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
 
   Widget nameText() {
 
-    return Text(
-      widget.names[widget.nameIndex],
+    return SizedBox(
+      width: screenWidth * .4,
       key: ValueKey(widget.nameIndex),
-      style: const TextStyle(
-          fontSize: 22.5,
-          fontWeight: FontWeight.bold,
-          color: ColorsB.gray900
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          widget.names[widget.nameIndex],
+          style: const TextStyle(
+              fontSize: 22.5,
+              fontWeight: FontWeight.bold,
+              color: ColorsB.gray900
+          ),
+        ),
       ),
     );
 
@@ -225,7 +231,7 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
         PageTransitionSwitcher(
           duration: const Duration(milliseconds: 500),
           child: nameText(),
-          transitionBuilder: (child, a1, a2) => SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: ColorsB.yellow500,),
+          transitionBuilder: (child, a1, a2) => SharedAxisTransition(animation: a1, secondaryAnimation: a2, transitionType: SharedAxisTransitionType.vertical, child: child, fillColor: Colors.transparent,),
         ),
         const SizedBox(width: 10),
         Container(

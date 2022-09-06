@@ -79,26 +79,17 @@ late bool loaded;
 
 late Map globalMap;
 
+final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 List<Floor> floors = [
   // Floor(floor: 'parter', file: 'parter.png'),
   // Floor(floor: 'parter', file: 'parter.png'),
   // Floor(floor: 'parter', file: 'parter.png'),
 ];
 
+bool mapErrored = false;
 
-List<String> titles = [];
-List<String> sizes = [];
-
-List<Alert>? alerts;
-bool haveNew = false;
-
-final bar1Key = GlobalKey();
-final bar2Key = GlobalKey();
-
-
-
-
-Future<int> getFloors() async {
+Future getFloors() async {
   try{
     var url = Uri.parse('https://cnegojdu.ro/GojduApp/getfloors.php');
 
@@ -107,7 +98,7 @@ Future<int> getFloors() async {
 
 
     final response = await http.post(url, body: {
-    });
+    }).timeout(const Duration(seconds: 15));
 
     print(response.statusCode);
 
@@ -129,22 +120,54 @@ Future<int> getFloors() async {
       }
     } else {
       print("Upload failed");
+      mapErrored = true;
+      return throw Exception("Couldn't connect");
 
     }
 
   }
-  catch(e){
+  on TimeoutException catch(e){
     //print("Error during converting to Base64");
+    mapErrored = true;
+
+    _scaffoldKey.currentState!.showSnackBar(
+        const SnackBar(
+            backgroundColor: Colors.red,
+            content: const Text(
+                'Request has timed out. Some features might be missing.',
+                style: TextStyle(
+                  color: Colors.white,
+                )
+            )
+        )
+    );
 
 
+    return throw Exception("Timeout");
+
+
+  } finally {
+    return 1;
   }
-
-  return 1;
 
 
 
 
 }
+
+
+List<String> titles = [];
+List<String> sizes = [];
+
+List<Alert>? alerts;
+bool haveNew = false;
+
+final bar1Key = GlobalKey();
+final bar2Key = GlobalKey();
+
+
+
+
 
 
 // <---------- Height and width outside of context -------------->
@@ -168,6 +191,8 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
+
+
   late final accType;
 
 
@@ -175,7 +200,6 @@ class _NewsPageState extends State<NewsPage>{
   ConnectivityResult? connectionStatus, lastConnectionStatus;
   late StreamSubscription subscription;
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
 
@@ -319,8 +343,10 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
+
+
   //  Testing smthing
-  late final Future? gFloors = getFloors();
+  late Future? gFloors = getFloors();
 
   Future setBall(bool state) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -627,13 +653,14 @@ class _NewsPageState extends State<NewsPage>{
     }
   }
 
-  Future<void> _verifyUser(String? token, String? email, String status, int index) async {
+  Future _verifyUser(String? token, String? email, String status, int index) async {
+
     try {
       var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/verify_accounts.php');
       final response2 = await http.post(ulr2, body: {
         "email": email,
         "status": status,
-      });
+      }).timeout(const Duration(seconds: 15));
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
@@ -645,11 +672,16 @@ class _NewsPageState extends State<NewsPage>{
         }
       }
       else {
-        //print(response2.statusCode);
+        return throw Exception('Couldn\'t connect');
       }
-    } catch (e) {
+
+
+    } on TimeoutException catch (e) {
+
+      return throw Exception('Timeout');
       //print(e);
     }
+
   }
 
 
@@ -673,7 +705,79 @@ class _NewsPageState extends State<NewsPage>{
         future: gFloors,
         builder: (context, snapshot) {
           if(!snapshot.hasData){
-            return const SizedBox();
+            return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                      CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500)),
+                      SizedBox(height: 15),
+                      Text(
+                        'Getting data...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5
+                        )
+                      )
+                  ]
+                )
+            );
+          }
+          else if(snapshot.hasError){
+            return Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please retry.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                    TextButton.icon(
+                        icon: Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                        onPressed: () {
+
+                          gFloors = getFloors();
+
+                          setState(() {
+
+                          });
+
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorsB.yellow500,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                        )
+                    ),
+                  ],
+                )
+            );
           }
           else {
             return PageView(
@@ -734,6 +838,7 @@ class _NewsPageState extends State<NewsPage>{
                       child: const Icon(Icons.verified_user_outlined, color: Colors.white),
                       onTap: () {
 
+                        late var _getUsers = _loadUsers();
                         // Verification page for the admin
                         showDialog(
                           barrierDismissible: false,
@@ -742,128 +847,206 @@ class _NewsPageState extends State<NewsPage>{
                             final ScrollController _scrollController = ScrollController();
 
                             return StatefulBuilder(
-                                builder: (_, StateSetter setState1) =>
-                                    AlertDialog(
+                                builder: (_, StateSetter setState1) {
 
-                                      title: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children : [
-                                            Row(
-                                              children: const [
-                                                Icon(Icons.verified_user_outlined, color: Colors.white, size: 30,),
-                                                SizedBox(width: 10,),
-                                                Text('Verify Users', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
-                                              ],
-                                            ),
-                                            const Divider(color: Colors.white, thickness: 0.5, height: 20,),
-                                          ]
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      backgroundColor: ColorsB.gray900,
-                                      content: SizedBox(
+
+                                  return AlertDialog(
+
+                                    title: Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          Row(
+                                            children: const [
+                                              Icon(Icons.verified_user_outlined,
+                                                color: Colors.white, size: 30,),
+                                              SizedBox(width: 10,),
+                                              Text('Verify Users',
+                                                style: TextStyle(fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white),),
+                                            ],
+                                          ),
+                                          const Divider(color: Colors.white,
+                                            thickness: 0.5,
+                                            height: 20,),
+                                        ]
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    backgroundColor: ColorsB.gray900,
+                                    content: SizedBox(
                                         height: screenHeight * 0.75,
                                         width: screenWidth * 0.8,
                                         child: FutureBuilder(
-                                          future: _loadUsers(),
-                                          builder: (c, sn) {
-                                            if(sn.hasData && (_names.isNotEmpty || _emails.isNotEmpty || _types.isNotEmpty)) {
-                                              return Scrollbar(
-                                                controller: _scrollController,
-                                                child: ListView.builder(
+                                            future: _getUsers,
+                                            builder: (c, sn) {
+                                              if (sn.hasData &&
+                                                  (_names.isNotEmpty ||
+                                                      _emails.isNotEmpty ||
+                                                      _types.isNotEmpty)) {
+                                                return Scrollbar(
                                                   controller: _scrollController,
-                                                  physics: const BouncingScrollPhysics(),
-                                                  itemCount: _names.length > 0 ? _names.length : 1,
-                                                  itemBuilder: (context, index) {
-                                                    if(_names.length > 0){
-                                                      return Padding(
-                                                        padding: const EdgeInsets.all(20.0),
-                                                        child: Row(
-                                                          children: [
-                                                            Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-
+                                                  child: ListView.builder(
+                                                    controller: _scrollController,
+                                                    physics: const BouncingScrollPhysics(),
+                                                    itemCount: _names.isNotEmpty
+                                                        ? _names.length
+                                                        : 1,
+                                                    itemBuilder: (context,
+                                                        index) {
+                                                      if (_names.isNotEmpty) {
+                                                        return Padding(
+                                                            padding: const EdgeInsets
+                                                                .all(10.0),
+                                                            child: Row(
                                                               children: [
-                                                                Text(
-                                                                  _names[index],
-                                                                  style: const TextStyle(fontSize: 15, color: Colors.white),
+                                                                Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment
+                                                                      .start,
+
+                                                                  children: [
+                                                                    Text(
+                                                                      _names[index],
+                                                                      style: const TextStyle(
+                                                                          fontSize: 15,
+                                                                          color: Colors
+                                                                              .white),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      height: 5,),
+                                                                    Text(
+                                                                      'Type: ${_types[index]}',
+                                                                      style: const TextStyle(
+                                                                          fontSize: 10,
+                                                                          color: ColorsB
+                                                                              .yellow500),
+                                                                    ),
+                                                                    Text(
+                                                                      'Email: ${_emails[index]}',
+                                                                      style: const TextStyle(
+                                                                          fontSize: 10,
+                                                                          color: ColorsB
+                                                                              .yellow500),
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                                const SizedBox(height: 5,),
-                                                                Text(
-                                                                  'Type: ${_types[index]}',
-                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
-                                                                ),
-                                                                Text(
-                                                                  'Email: ${_emails[index]}',
-                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
-                                                                ),
+                                                                const Spacer(),
+                                                                Row(
+                                                                    mainAxisAlignment: MainAxisAlignment
+                                                                        .spaceAround,
+                                                                    children: [
+                                                                      GestureDetector(
+                                                                        child: const Icon(
+                                                                          Icons
+                                                                              .check_circle_outlined,
+                                                                          color: Colors
+                                                                              .green,
+                                                                          size: 30,),
+                                                                        onTap: () async {
+                                                                          //print('Checked');
+                                                                          await _verifyUser(
+                                                                              _tokens[index],
+                                                                              _emails[index],
+                                                                              'Verified',
+                                                                              index);
+                                                                          setState1(() {
+
+                                                                          });
+                                                                        },
+                                                                      ),
+                                                                      GestureDetector(
+                                                                        child: const Icon(
+                                                                          Icons
+                                                                              .cancel_outlined,
+                                                                          color: Colors
+                                                                              .red,
+                                                                          size: 30,),
+                                                                        onTap: () {
+                                                                          print(
+                                                                              'Canceled');
+
+                                                                          setState1(() {
+                                                                            _names
+                                                                                .removeAt(
+                                                                                index);
+                                                                            _tokens
+                                                                                .removeAt(
+                                                                                index);
+                                                                            _types
+                                                                                .removeAt(
+                                                                                index);
+                                                                            _emails
+                                                                                .removeAt(
+                                                                                index);
+                                                                          });
+
+
+                                                                          // TODO: Cancel feature + Check feature
+                                                                        },
+                                                                      ),
+                                                                    ]
+                                                                )
                                                               ],
-                                                            ),
-                                                            const Spacer(),
-                                                            GestureDetector(
-                                                              child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
-                                                              onTap: () async {
-                                                                //print('Checked');
-                                                                await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
-                                                                setState1(() {
-
-                                                                });
-                                                              },
-                                                            ),
-                                                            const SizedBox(width: 10,),
-                                                            GestureDetector(
-                                                              child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
-                                                              onTap: () {
-                                                                //print('Canceled');
-
-
-
-
-                                                                // TODO: Cancel feature + Check feature
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-                                                    else {
-                                                      return const Center(
-                                                        child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              );
+                                                            )
+                                                        );
+                                                      }
+                                                      else {
+                                                        return const Center(
+                                                          child: Text(
+                                                            'No accounts pending approval. Nice!',
+                                                            style: TextStyle(
+                                                                fontSize: 20,
+                                                                color: ColorsB
+                                                                    .gray700),),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                );
+                                              }
+                                              else if (sn.hasData &&
+                                                  (_names.isEmpty ||
+                                                      _emails.isEmpty ||
+                                                      _types.isEmpty)) {
+                                                return const Center(
+                                                  child: Text(
+                                                    'No accounts pending approval. Nice!',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        color: ColorsB
+                                                            .gray700),),
+                                                );
+                                              }
+                                              else {
+                                                return const Center(
+                                                    child: CircularProgressIndicator(
+                                                      valueColor: AlwaysStoppedAnimation(
+                                                          ColorsB.yellow500),)
+                                                );
+                                              }
                                             }
-                                            else if(sn.hasData && (_names.isEmpty || _emails.isEmpty || _types.isEmpty)){
-                                              return const Center(
-                                                child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
-                                              );
-                                            }
-                                            else {
-                                              return const Center(
-                                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),)
-                                              );
-                                            }
-                                          }
                                         )
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          _names.clear();
+                                          _emails.clear();
+                                          _types.clear();
+                                          _tokens.clear();
+
+
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Close',
+                                            style: TextStyle(
+                                                color: Colors.white)),
                                       ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            _names.clear();
-                                            _emails.clear();
-                                            _types.clear();
-                                            _tokens.clear();
-
-
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close', style: TextStyle(color: Colors.white)),
-                                        ),
-                                      ],
-                                    )
+                                    ],
+                                  );
+                                }
                             );
                           }
 
@@ -1364,13 +1547,16 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                             ),
                           ),
                           const SizedBox(width: 10,),
-                          GestureDetector(
-                            onTap: _showWritableEvent,
-                            child: const Icon(
-                              Icons.add_circle_outline,
-                              size: 40,
-                              color: ColorsB.gray800,
+                          Visibility(
+                            visible: globalMap['verification'] == 'Verified',
+                            child: GestureDetector(
+                              onTap: _showWritableEvent,
+                              child: const Icon(
+                                Icons.add_circle_outline,
+                                size: 40,
+                                color: ColorsB.gray800,
 
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -3187,44 +3373,16 @@ class _MapPageState extends State<MapPage>{
 
   }
 
-
-  @override
-  Widget build(BuildContext context) {
+  bool isLoading = false;
 
 
+  Widget mapBody() {
+    if(!isLoading){
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      if(!mapErrored){
+        if(floors.isNotEmpty){
+          return Stack(
             children: [
-              const Text(
-                'Select floor',
-                style: TextStyle(
-                    color: ColorsB.yellow500,
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600
-                ),
-              ),
-              const SizedBox(width: 10,),
-              Expanded(
-                child: Container(
-                  color: ColorsB.gray800,
-                  height: 2,
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: 50,),
-
-          //Widgetul pt select floor
-
-          floors.isNotEmpty
-              ? Stack(
-              children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -3280,40 +3438,143 @@ class _MapPageState extends State<MapPage>{
               //TODO: Add the images (at least a placeholder one and do the thingy)
 
             ],
-          )
-              : Center(
-              child: Column(
-                children: [
-                  const Text(
-                    'No maps to display :(',
-                    style: TextStyle(color: ColorsB.gray800, fontSize: 30),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(context, PageRouteBuilder(
-                            pageBuilder: (context, a1, a2) =>
-                                SlideTransition(
-                                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                                  child: EditFloors(floors: floors, update: updateThis),
-                                )
-                        )
-                        );
-                      },
-                      icon: Icon(Icons.edit, size: 20, color: Colors.white),
-                      label: const Text(
-                        "Add floors",
-                        style: TextStyle(
-                            color: Colors.white
+          );
+        }
+
+        return Center(
+            child: Column(
+              children: [
+                const Text(
+                  'No maps to display :(',
+                  style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+                ),
+                const SizedBox(height: 20),
+                Visibility(
+                    visible: globalMap['account'] == "Admin" || globalMap['account'] == "Teacher",
+                    child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(context, PageRouteBuilder(
+                              pageBuilder: (context, a1, a2) =>
+                                  SlideTransition(
+                                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                    child: EditFloors(floors: floors, update: updateThis),
+                                  )
+                          )
+                          );
+                        },
+                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        label: const Text(
+                          "Add floors",
+                          style: TextStyle(
+                              color: Colors.white
+                          ),
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: ColorsB.gray800,
-                      )
-                  )
-                ],
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorsB.gray800,
+                        )
+                    )
+                )
+              ],
+            )
+        );
+      }
+
+      return Center(
+          child: Column(
+            children: [
+              const Text(
+                'Request has timed out. Please try again.',
+                style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+              ),
+              const SizedBox(height: 10),
+
+              TextButton.icon(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text(
+                      'Refresh',
+                    style: TextStyle(
+                      color: Colors.white
+                    )
+                  ),
+                  onPressed: () async {
+                    floors.clear();
+
+                    setState(() {
+                      isLoading = true;
+                      mapErrored = false;
+                    });
+
+                    await getFloors();
+
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
               )
+            ],
+          )
+      );
+
+
+    }
+
+    return Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500)),
+              SizedBox(height: 15),
+              Text(
+                  'Getting data...',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5
+                  )
+              )
+            ]
+        )
+    );
+
+
+
+
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Select floor',
+                style: TextStyle(
+                    color: ColorsB.yellow500,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600
+                ),
+              ),
+              const SizedBox(width: 10,),
+              Expanded(
+                child: Container(
+                  color: ColorsB.gray800,
+                  height: 2,
+                ),
+              ),
+            ],
           ),
+
+          SizedBox(height: 50,),
+
+          //Widgetul pt select floor
+          mapBody(),
 
           // DropdownSelector(update: _mapUpdate,),
           // //TODO: Add the images (at least a placeholder one and do the thingy)

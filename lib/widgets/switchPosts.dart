@@ -117,10 +117,17 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
                           child: Row(
                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,),
+                              SizedBox(
+                                  width: height * .03,
+                                  height: height * .03,
+                                  child: FittedBox(
+                                      child: Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,)
+                                  )
+                              ),
                               const SizedBox(width: 5,),
                               SizedBox(
                                 height: height * .025,
+                                width:  width * .25,
                                 child: FittedBox(
                                   fit: BoxFit.contain,
                                   child: Text(
@@ -165,7 +172,13 @@ class _PostsSwitcherState extends State<PostsSwitcher> with TickerProviderStateM
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
+                              SizedBox(
+                                  width: height * .03,
+                                  height: height * .03,
+                                  child: FittedBox(
+                                      child: Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
+                                  )
+                              ),
                               const SizedBox(width: 5,),
                               SizedBox(
                                 height: height * .025,

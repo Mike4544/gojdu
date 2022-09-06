@@ -355,7 +355,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   DataCell(Center(
                                     child: CupertinoSwitch(
-                                      value: notifActive ?? false,
+                                      value: notifActive ?? true,
                                       onChanged: (value) async {
 
                                         notifActive = value;
