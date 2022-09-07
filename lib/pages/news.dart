@@ -814,7 +814,7 @@ class _NewsPageState extends State<NewsPage>{
 
       return Container(
         width: screenWidth,
-        height: screenHeight * .1 >= 50 ? 50 : screenHeight * .1,
+        height: screenHeight * .1 >= 60 ? 60 : screenHeight * .1,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
@@ -1115,7 +1115,7 @@ class _NewsPageState extends State<NewsPage>{
     else {
       return Container(
         width: screenWidth,
-        height: screenHeight * .075 >= 125 ? 125 : screenHeight * .075,
+        height: screenHeight * .075 >= 60 ? 60 : screenHeight * .075,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,

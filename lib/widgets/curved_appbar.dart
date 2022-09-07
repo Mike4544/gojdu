@@ -49,7 +49,7 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
 
   late var loadBall = getBall();
 
-  final double size = 30;
+  final double size = screenHeight * .05 > 40 ? 40 : screenHeight * .05 ;
 
 
 
@@ -93,8 +93,8 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
                   visible: isActive == true && isActive != null,
                   child: Positioned(
                     child: Container(
-                      width: size / 2.5,
-                      height: size / 2.5,
+                      width: size / 2.5 > 10 ? 10 : size / 2.5,
+                      height: size / 2.5 > 10 ? 10 : size / 2.5,
                       decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle
