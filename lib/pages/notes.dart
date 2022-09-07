@@ -139,7 +139,7 @@ class NoteContainer extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    data!.title,
+                    data!.title.length > 30 ? data!.title.substring(0, 30) + '...' : data!.title,
                     style: titleStyle,
                   ),
                 ),

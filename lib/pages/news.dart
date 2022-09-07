@@ -283,34 +283,37 @@ class _NewsPageState extends State<NewsPage>{
               ],
               content: SizedBox(
                 height: screenHeight * 0.5,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: SvgPicture.asset(
-                        'assets/svgs/screen_new.svg',
-                        fit: BoxFit.contain,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 200,
+                        child: SvgPicture.asset(
+                          'assets/svgs/screen_new.svg',
+                          fit: BoxFit.contain,
+                        ),
                       ),
-                    ),
-                    const Text(
-                      'Welcome! One more thing before you can start using the app.',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 17.5,
-                        color: ColorsB.yellow500,
-                        fontWeight: FontWeight.bold,
+                      const Text(
+                        'Welcome! One more thing before you can start using the app.',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 17.5,
+                          color: ColorsB.yellow500,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 25),
-                    Text(
-                      'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.5),
+                      const SizedBox(height: 25),
+                      Text(
+                        'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             )
@@ -811,7 +814,7 @@ class _NewsPageState extends State<NewsPage>{
 
       return Container(
         width: screenWidth,
-        height: screenHeight * .075,
+        height: screenHeight * .1 >= 50 ? 50 : screenHeight * .1,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
@@ -1112,7 +1115,7 @@ class _NewsPageState extends State<NewsPage>{
     else {
       return Container(
         width: screenWidth,
-        height: 75,
+        height: screenHeight * .075 >= 125 ? 125 : screenHeight * .075,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
@@ -1799,7 +1802,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Container(
-          height: 75,
+          height: device.height * .075 > 75 ? 75 : device.height * .075,
           width: device.width * 0.90,
           decoration: BoxDecoration(
               color: Colors.black12,

@@ -132,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
     return SizedBox(
-      height: device.height ,
+      height: device.height * 1.25,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -235,11 +235,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                                   )
                                                   : Image.memory(
                                                     _lastFile,
-                                                    errorBuilder: (_, __, ___) => const Padding(
-                                                      padding: EdgeInsets.all(40),
+                                                    errorBuilder: (_, __, ___) => const Center(
                                                       child: Icon(Icons.upload_rounded, color: Colors.white, size: 40,),
+                                                      )
                                                     ),
-                                                  )
                                           ),
 
                                           Material(

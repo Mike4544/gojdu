@@ -199,12 +199,12 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               //save the data returned from server
                               //and navigate to home page
                               String? user = jsondata["username"];
-                              String? email = jsondata["email"];
-                              String first_name = jsondata["first_name"];
-                              String last_name = jsondata["last_name"];
+                              String? email =  _mail.value.text;
+                              String first_name = _username.value.text;
+                              String last_name = _lastname.value.text;
                               String? acc_type = jsondata["account"];
 
-                              _prefs.setString('email', email!);
+                              _prefs.setString('email', email);
                               _prefs.setString('first_name', first_name);
                               _prefs.setString('password', _password.value.text);
                               _prefs.setString('last_name', last_name);
