@@ -130,7 +130,7 @@ Future getFloors() async {
     //print("Error during converting to Base64");
     mapErrored = true;
 
-    _scaffoldKey.currentState!.showSnackBar(
+    ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
         const SnackBar(
             backgroundColor: Colors.red,
             content: Text(
@@ -267,7 +267,7 @@ class _NewsPageState extends State<NewsPage>{
                 TextButton(
                   onPressed: () async {
                     await Future.delayed(const Duration(milliseconds: 100));
-                    _scaffoldKey.currentState!.showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
                       content: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           child: const Text("Unverified account. Some features might be unavailable to you.", style: TextStyle(fontFamily: 'Nunito', fontSize: 12, color: Colors.white),)),
@@ -411,10 +411,10 @@ class _NewsPageState extends State<NewsPage>{
 
       if(_scaffoldKey.currentState != null){
 
-        _scaffoldKey.currentState?.hideCurrentSnackBar();
+        ScaffoldMessenger.of(_scaffoldKey.currentContext!).hideCurrentSnackBar();
 
         if(message.data['type'] == 'Post'){
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.notifications, color: Colors.white, size: 17,),
@@ -433,7 +433,7 @@ class _NewsPageState extends State<NewsPage>{
           setState(() {
             globalMap['verification'] = 'Verified';
           });
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.check, color: Colors.white, size: 17,),
@@ -459,7 +459,7 @@ class _NewsPageState extends State<NewsPage>{
 
           //  refreshAlerts();
 
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.check, color: Colors.white, size: 17,),

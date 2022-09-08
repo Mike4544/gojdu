@@ -46,7 +46,7 @@ class _EditFloorsState extends State<EditFloors> {
         if(jsondata["error"]){
           print(jsondata["message"]);
 
-          _scaffoldKey.currentState!.showSnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
               SnackBar(
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: Colors.red,
@@ -72,7 +72,7 @@ class _EditFloorsState extends State<EditFloors> {
           //  widget.floors = temporary;
           //  print(widget.floors);
 
-          _scaffoldKey.currentState!.showSnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.green,
@@ -97,7 +97,7 @@ class _EditFloorsState extends State<EditFloors> {
         }
       } else {
         print("Upload failed");
-        _scaffoldKey.currentState!.showSnackBar(
+        ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.red,
@@ -123,7 +123,7 @@ class _EditFloorsState extends State<EditFloors> {
     }
     catch(e){
       //print("Error during converting to Base64");
-      _scaffoldKey.currentState!.showSnackBar(
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red,
