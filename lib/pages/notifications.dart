@@ -273,7 +273,8 @@ class AlertContainer extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          title.length < 45 ? title : '$title...',
+                          title.length < 31 ? title : '$title...',
+                          overflow: TextOverflow.fade,
                           style: TextStyle(
                               color: !read ? Colors.white : Colors.white30,
                               fontWeight: FontWeight.bold,

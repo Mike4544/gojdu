@@ -23,6 +23,7 @@ class Event extends StatelessWidget {
   final String date;
   final String link;
   final Function delete;
+  final String maps_link;
   final BuildContext Context;
 
 
@@ -37,7 +38,8 @@ class Event extends StatelessWidget {
     required this.date,
     required this.link,
     required this.delete,
-    required this.Context
+    required this.Context,
+    required this.maps_link,
   }) : super(key: key);
 
   @override
@@ -139,7 +141,7 @@ class Event extends StatelessWidget {
 
                     Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link,)
+                            builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link, mapsLink: maps_link)
                         )
                     );
 
@@ -249,6 +251,111 @@ class Event extends StatelessWidget {
   }
 }
 
+class BetterChip extends StatelessWidget {
+  final double height;
+  final double width;
+  final Color bgColor;
+  final String label;
+  final bool isGlass;
+  final IconData icon;
+  final IconData? secIcon;
+
+  const BetterChip({
+    Key? key,
+    this.height = 35.0,
+    this.width = 100.0,
+    this.bgColor = Colors.grey,
+    this.isGlass = false,
+    required this.icon,
+    required this.label,
+    this.secIcon
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    var normalDecoration = BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(360)
+    );
+
+    var glassDecoration = BoxDecoration(
+        borderRadius: BorderRadius.circular(360),
+        gradient: LinearGradient(
+            colors: [
+              bgColor.withOpacity(.75),
+              bgColor.withOpacity(.1)
+            ],
+            stops: const [
+              0, .75
+            ],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight
+        ),
+        border: Border.all(color: Color.alphaBlend(bgColor, Colors.white).withOpacity(.25))
+    );
+
+
+
+
+    return Container(
+      height: height,
+      constraints: BoxConstraints(maxWidth: width),
+      decoration: isGlass ? glassDecoration : normalDecoration,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: SizedBox(
+                child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Icon(icon, color: ThemeData.estimateBrightnessForColor(bgColor) == Brightness.light ? ColorsB.gray900 : Colors.white,)
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: SizedBox(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                            color: ThemeData.estimateBrightnessForColor(bgColor) == Brightness.light ? ColorsB.gray900 : Colors.white
+                        ),
+                      ),
+                    ),
+                    if(secIcon != null) Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: GestureDetector(
+                          onTap: () {
+
+                            //  Make the google maps stuff
+                            //  TODO:GMAPS
+
+                          },
+                          child: Icon(secIcon!, color: ThemeData.estimateBrightnessForColor(bgColor) == Brightness.light ? ColorsB.gray900 : Colors.white,),
+                        ),
+                      ),
+                    )
+
+                  ],
+
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class BigNewsContainer extends StatefulWidget {
 
@@ -259,9 +366,10 @@ class BigNewsContainer extends StatefulWidget {
   final String date;
   final String location;
   final String? imageString;
+  final String mapsLink;
 
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location}) : super(key: key);
+  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location, required this.mapsLink}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -431,26 +539,34 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Chip(
-                              backgroundColor: ColorsB.gray200,
-                              avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
-                              label: Text(
-                                widget.location,
-                                style: TextStyle(
-                                  color: ColorsB.gray900,
-                                ),
-                              )
+                          GestureDetector(
+                                  onTap: () async {
+                                    if(await canLaunchUrl(Uri.parse(widget.mapsLink))){
+                                      await launchUrl(Uri.parse(widget.mapsLink));
+                                    } else {
+                                      print('Can\'t do it chief');
+                                    }
+                                  },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: BetterChip(
+                                  width: 150,
+                                  bgColor: ColorsB.gray200,
+                                  icon: Icons.location_on_outlined,
+                                  label: widget.location,
+                                  secIcon: Icons.view_in_ar,
+                              ),
+                            ),
                           ),
-                          Chip(
-                              backgroundColor: ColorsB.gray200,
-                              avatar: const Icon(Icons.calendar_today_outlined, color: ColorsB.gray900,),
-                              label: Text(
-                                widget.date,
-                                style: TextStyle(
-                                  color: ColorsB.gray900,
-                                ),
-                              )
-                          )
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: BetterChip(
+                              width: 150,
+                              bgColor: ColorsB.gray200,
+                              icon: Icons.calendar_today_outlined,
+                              label: widget.date,
+                            ),
+                          ),
 
                         ],
                       )
@@ -572,15 +688,24 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Chip(
-                                    backgroundColor: ColorsB.gray200,
-                                    avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
-                                    label: Text(
-                                      widget.location,
-                                      style: TextStyle(
-                                        color: ColorsB.gray900,
-                                      ),
-                                    )
+                                GestureDetector(
+                                  onTap: () async {
+                                    if(await canLaunchUrl(Uri.parse(widget.mapsLink))){
+                                      await launchUrl(Uri.parse(widget.mapsLink));
+                                    } else {
+                                      print('Can\'t do it chief');
+                                    }
+                                  },
+                                  child: Chip(
+                                      backgroundColor: ColorsB.gray200,
+                                      avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
+                                      label: Text(
+                                        widget.location,
+                                        style: TextStyle(
+                                          color: ColorsB.gray900,
+                                        ),
+                                      )
+                                  ),
                                 ),
                                 Chip(
                                     backgroundColor: ColorsB.gray200,
@@ -670,7 +795,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
             child: SizedBox(
               child: Padding(
                   padding: const EdgeInsets.all(15.0),
-                  child: Linkify(
+                  child: SelectableLinkify(
                     linkStyle: const TextStyle(color: ColorsB.yellow500),
                     text: widget.description,
                     style: const TextStyle(

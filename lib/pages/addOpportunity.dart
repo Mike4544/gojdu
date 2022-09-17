@@ -5,13 +5,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:geocode/geocode.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import 'package:http/http.dart' as http;
@@ -19,17 +15,25 @@ import 'package:http/http.dart' as http;
 import '../widgets/back_navbar.dart';
 import '../widgets/input_fields.dart';
 
-class PostEvent extends StatefulWidget {
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geocode/geocode.dart';
+
+import 'package:location/location.dart';
+
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
+class AddOpportunity extends StatefulWidget {
   final Map gMap;
 
 
-  const PostEvent({Key? key, required this.gMap}) : super(key: key);
+  const AddOpportunity({Key? key, required this.gMap}) : super(key: key);
 
   @override
-  State<PostEvent> createState() => _PostEventState();
+  State<AddOpportunity> createState() => _AddOpportunityState();
 }
 
-class _PostEventState extends State<PostEvent> {
+class _AddOpportunityState extends State<AddOpportunity> {
 
   //  <---------------  Post controller ---------------->
   late TextEditingController _postController;
@@ -83,6 +87,20 @@ class _PostEventState extends State<PostEvent> {
   DateTime pickedDate = DateTime.now();
   bool choosen = false;
 
+  String locationButton = 'Please select a location';
+
+  late String? tag;
+  final List<String> _availableTags = [
+    'IT',
+    'Design',
+    'Fashion',
+    'Other'
+  ];
+  int? checkedIndex;
+  late LatLng coordsForLink;
+
+  Color? choosenColor;
+
 
   String generateString(){
     String generated = '';
@@ -135,8 +153,6 @@ class _PostEventState extends State<PostEvent> {
   }
 
 
-  String locationButton = 'Please select a location';
-  late LatLng coordsForLink;
 
 
 
@@ -160,10 +176,10 @@ class _PostEventState extends State<PostEvent> {
               padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
               child: Row(
                 children: const [
-                  Icon(Icons.event, color: ColorsB.yellow500, size: 40,),
+                  Icon(Icons.apartment_rounded, color: ColorsB.yellow500, size: 40,),
                   SizedBox(width: 20,),
                   Text(
-                    'Create an event',
+                    'Create an opportunity',
                     style: TextStyle(
                         fontSize: 25,
                         color: Colors.white,
@@ -187,7 +203,7 @@ class _PostEventState extends State<PostEvent> {
                   InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
                   const SizedBox(height: 50,),
                   const Text(
-                    'Event details',
+                    'Opportunity details',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       color: ColorsB.yellow500,
@@ -225,6 +241,9 @@ class _PostEventState extends State<PostEvent> {
                       if(locationButton == 'Please select a location'){
                         return 'Please select a location.';
                       }
+                      if(tag == null){
+                        return 'Please select the tag for the opportunity.';
+                      }
                     },
                   ),
                   const SizedBox(height: 50),
@@ -250,23 +269,23 @@ class _PostEventState extends State<PostEvent> {
                     ),
                     onPressed: () async {
 
-                      final result = await Navigator.of(context).push(
+                        final result = await Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const FullScreenMap())
-                      );
+                        );
 
-                      if(!mounted) return;
+                        if(!mounted) return;
 
-                      if(result == null) return;
+                        if(result == null) return;
 
-                      locationButton = result['location'];
-                      coordsForLink = result['coords'];
+                        locationButton = result['location'];
+                        coordsForLink = result['coords'];
 
-                      setState(() {
+                        setState(() {
 
-                      });
+                        });
 
-                      print(locationButton);
-                      print(coordsForLink);
+                        print(locationButton);
+                        print(coordsForLink);
 
                     },
                   ),
@@ -282,15 +301,15 @@ class _PostEventState extends State<PostEvent> {
                   const SizedBox(height: 10,),
                   TextButton.icon(
                     icon: Icon(Icons.calendar_today_outlined, color: choosen
-                      ? ColorsB.yellow500
-                      : Colors.white,),
+                        ? ColorsB.yellow500
+                        : Colors.white,),
                     label: Text(
                       choosen
                           ? DateFormat('dd/MM/yyyy').format(pickedDate)
                           : 'Choose a date',
                       style: TextStyle(
-                        color: choosen ? ColorsB.yellow500 : Colors.white,
-                        fontSize: 15
+                          color: choosen ? ColorsB.yellow500 : Colors.white,
+                          fontSize: 15
                       ),
                     ),
                     onPressed: () async {
@@ -320,6 +339,94 @@ class _PostEventState extends State<PostEvent> {
                       fontSize: 12,
                     ),
 
+                  ),
+
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Choose a topic',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Column(
+                    children: _availableTags.map((e) =>
+                      Row(
+                        children: [
+                          Checkbox(
+                            shape: const CircleBorder(side: BorderSide(color: Colors.white)),
+                            fillColor: MaterialStateProperty.all(ColorsB.yellow500),
+                            checkColor: Colors.white,
+                            value: checkedIndex == _availableTags.indexOf(e),
+                            onChanged: (_){
+                              setState(() {
+                                checkedIndex = _availableTags.indexOf(e);
+                                tag = e;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 10,),
+                          Text(
+                            e,
+                            style: const TextStyle(
+                              color: Colors.white
+                            )
+                          )
+                        ],
+                      )
+                    ).toList(),
+                  ),
+
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Choose a color',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton.icon(
+                    icon: Icon(Icons.format_paint_rounded, color: choosenColor ?? Colors.white),
+                    label: Text(
+                      choosenColor == null ? 'Please choose a color.' : choosenColor.toString(),
+                      style: const TextStyle(
+                        color: Colors.white
+                      ),
+                    ),
+                    onPressed: () {
+
+                      var pickerColor = Colors.white;
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Pick a color!'),
+                          content: SingleChildScrollView(
+                            child: ColorPicker(
+                              pickerColor: pickerColor,
+                              onColorChanged: (nColor){
+                                setState(() {
+                                  pickerColor = nColor;
+                                });
+                              },
+                            ),
+                          ),
+                          actions: <Widget>[
+                            ElevatedButton(
+                              child: const Text('Got it'),
+                              onPressed: () {
+                                setState(() => choosenColor = pickerColor);
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 25),
@@ -405,7 +512,7 @@ class _PostEventState extends State<PostEvent> {
 
                               //print(_file);
 
-                              var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertEvent.php');
+                              var url = Uri.parse('https://cnegojdu.ro/GojduApp/postOpportunity.php');
                               final response;
                               if(_file != null){
                                 response = await http.post(url, body: {
@@ -415,6 +522,8 @@ class _PostEventState extends State<PostEvent> {
                                   "body": _postController.value.text,
                                   "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
                                   "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format",
+                                  "color": choosenColor.toString(),
+                                  "topic": tag,
                                   "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
                                 });
                               }
@@ -426,9 +535,12 @@ class _PostEventState extends State<PostEvent> {
                                   "body": _postController.value.text,
                                   "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
                                   "link": "",
+                                  "color": choosenColor.toString(),
+                                  "topic": tag,
                                   "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
                                 });
                               }
+                              print(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
                                 print(jsondata);
@@ -601,188 +713,189 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
     return Scaffold(
       appBar: AppBar(title: Text(
-          'Select a location'
+        'Select a location'
       ),
-        elevation: 0,),
+      elevation: 0,),
       body: Column(
         children: [
           Flexible(
-            child: FutureBuilder(
-                future: _getPos,
-                builder: (context, snapshot){
+              child: FutureBuilder(
+                  future: _getPos,
+                  builder: (context, snapshot){
 
-                  if(!snapshot.hasData && !snapshot.hasError){
-                    return const Center(
-                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
-                    );
-                  }
-                  else if(snapshot.hasError){
-                    return Text(
+                    if(!snapshot.hasData && !snapshot.hasError){
+                      return const Center(
+                        child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
+                      );
+                    }
+                    else if(snapshot.hasError){
+                      return Text(
                         snapshot.error.toString()
-                    );
-                  }
-                  else {
-                    return Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        FlutterMap(
-                          options: MapOptions(
-                              center: currentPosition,
-                              onTap: (_, coords) async {
-                                _markers.clear();
-                                //  print(coords);
-                                _markers.insert(0, Marker(point: coords, rotate: true, builder: (context) => const Icon(
-                                  Icons.pin_drop, size: 40, color: ColorsB.yellow500,
-                                )));
+                      );
+                    }
+                    else {
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          FlutterMap(
+                            options: MapOptions(
+                                center: currentPosition,
+                                onTap: (_, coords) async {
+                                  _markers.clear();
+                                  //  print(coords);
+                                  _markers.insert(0, Marker(point: coords, rotate: true, builder: (context) => const Icon(
+                                    Icons.pin_drop, size: 40, color: ColorsB.yellow500,
+                                  )));
 
-                                selectedPosition = coords;
-                                selected = true;
-                                print(coords);
+                                  selectedPosition = coords;
+                                  selected = true;
+                                  print(coords);
 
-                                var geoCode = GeoCode();
+                                  var geoCode = GeoCode();
 
-                                address = await geoCode.reverseGeocoding(latitude: selectedPosition.latitude, longitude: selectedPosition.longitude);
-                                // road = address!.streetAddress!;
-                                // city = address!.city!;
-                                print(address);
+                                  address = await geoCode.reverseGeocoding(latitude: selectedPosition.latitude, longitude: selectedPosition.longitude);
+                                  // road = address!.streetAddress!;
+                                  // city = address!.city!;
+                                  print(address);
 
-                                setState(() {
+                                  setState(() {
 
-                                });
-                              }
-                          ),
-                          children: [
-                            TileLayer(
-                              minZoom: 1,
-                              maxZoom: 18,
-                              backgroundColor: ColorsB.gray900,
-                              urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              subdomains: ['a', 'b', 'c'],
+                                  });
+                                }
                             ),
-                            MarkerLayer(
-                              markers: _markers,
-                            )
-                          ],
+                            children: [
+                              TileLayer(
+                                minZoom: 1,
+                                maxZoom: 18,
+                                backgroundColor: ColorsB.gray900,
+                                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                subdomains: ['a', 'b', 'c'],
+                              ),
+                              MarkerLayer(
+                                markers: _markers,
+                              )
+                            ],
 
-                        ),
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.ease,
-                          bottom: !selected ? -1 * height * .5 : putDown ? -1 * height * .25 : 0,
-                          left: 0,
-                          right: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.all(25.0),
-                            child: ClipRect(
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaY: 7,
-                                  sigmaX: 7,
-                                ),
-                                child: Container(
-                                    height: height * .25,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(30),
-                                      border: Border.all(color: Colors.white24),
-                                      color: Colors.white12,
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            putDown = !putDown;
-                                            setState(() {
+                          ),
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.ease,
+                            bottom: !selected ? -1 * height * .5 : putDown ? -1 * height * .25 : 0,
+                            left: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(25.0),
+                              child: ClipRect(
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaY: 7,
+                                    sigmaX: 7,
+                                  ),
+                                  child: Container(
+                                      height: height * .25,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        border: Border.all(color: Colors.white24),
+                                        color: Colors.white12,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              putDown = !putDown;
+                                              setState(() {
 
-                                            });
-                                          },
-                                          child: Icon(!putDown ? Icons.arrow_drop_down : Icons.arrow_drop_up, color: ColorsB.gray900,),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(10.0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                            children: [
-                                              SizedBox(
-                                                child: Text(
-                                                  address != null ? '${address!.city!}, ${address!.streetAddress}' : '',
-                                                  style: const TextStyle(
-                                                      color: ColorsB.gray900,
-                                                      fontSize: 25,
-                                                      fontWeight: FontWeight.bold
+                                              });
+                                            },
+                                            child: Icon(!putDown ? Icons.arrow_drop_down : Icons.arrow_drop_up, color: ColorsB.gray900,),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              children: [
+                                                SizedBox(
+                                                  child: Text(
+                                                    address != null ? '${address!.city!}, ${address!.streetAddress}' : '',
+                                                    style: const TextStyle(
+                                                        color: ColorsB.gray900,
+                                                        fontSize: 25,
+                                                        fontWeight: FontWeight.bold
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                    children: [
-                                                      Text(
-                                                        selectedPosition != LatLng(0, 0) ? 'Lat: ${selectedPosition.latitude.toString().substring(0, 6)}' : '',
-                                                        style: const TextStyle(
-                                                            color: ColorsB.gray900,
-                                                            fontSize: 20
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                      children: [
+                                                        Text(
+                                                          selectedPosition != LatLng(0, 0) ? 'Lat: ${selectedPosition.latitude.toString().substring(0, 6)}' : '',
+                                                          style: const TextStyle(
+                                                              color: ColorsB.gray900,
+                                                              fontSize: 20
+                                                          ),
                                                         ),
-                                                      ),
-                                                      Text(
-                                                        selectedPosition != LatLng(0, 0) ? 'Long: ${selectedPosition.longitude.toString().substring(0, 6)}' : '',
-                                                        style: const TextStyle(
-                                                            color: ColorsB.gray900,
-                                                            fontSize: 20
-                                                        ),
-                                                      )
-                                                    ],
-
-                                                  ),
-                                                  TextButton.icon(
-                                                    onPressed: () {
-
-                                                      Navigator.pop(context, {'location': '${address!.city!}, ${address!.streetAddress}', 'coords': selectedPosition});
-
-                                                    },
-                                                    label: const Text(
-                                                      'Select Location',
-                                                      style: TextStyle(
-                                                        color: ColorsB.gray900,
-                                                      ),
-                                                    ),
-                                                    icon: const Icon(Icons.location_on_outlined, color: ColorsB.gray900),
-                                                    style: TextButton.styleFrom(
-                                                        backgroundColor: ColorsB.yellow500,
-                                                        shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(360)
+                                                        Text(
+                                                          selectedPosition != LatLng(0, 0) ? 'Long: ${selectedPosition.longitude.toString().substring(0, 6)}' : '',
+                                                          style: const TextStyle(
+                                                              color: ColorsB.gray900,
+                                                              fontSize: 20
+                                                          ),
                                                         )
-                                                    ),
-                                                  )
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    )
+                                                      ],
 
+                                                    ),
+                                                    TextButton.icon(
+                                                      onPressed: () {
+
+                                                        Navigator.pop(context, {'location': '${address!.city!}, ${address!.streetAddress}', 'coords': selectedPosition});
+
+                                                      },
+                                                      label: const Text(
+                                                        'Select Location',
+                                                        style: TextStyle(
+                                                          color: ColorsB.gray900,
+                                                        ),
+                                                      ),
+                                                      icon: const Icon(Icons.location_on_outlined, color: ColorsB.gray900),
+                                                      style: TextButton.styleFrom(
+                                                          backgroundColor: ColorsB.yellow500,
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(360)
+                                                          )
+                                                      ),
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
+
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
+                          )
 
-                      ],
-                    );
+                        ],
+                      );
+                    }
+
+
                   }
-
-
-                }
-            ),
+              ),
           )
         ],
       ),
     );
   }
 }
+
 

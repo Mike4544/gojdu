@@ -80,11 +80,19 @@ class _MenuTabsState extends State<MenuTabs> {
         update: update,
       ),
       Tab(
-        color: ColorsB.gray800,
+        color: Colors.amber[700],
         image: "assets/images/Alert.png",
         description: "The place to notify a teacher about any trouble.",
         title: "Notify a Teacher",
         index: 5,
+        update: update,
+      ),
+      Tab(
+        color: Colors.teal[200],
+        image: "assets/images/orar.png",
+        description: "Access your own timetable with a single tap!",
+        title: "Your Timetable",
+        index: 6,
         update: update,
       ),
     ];

@@ -59,6 +59,11 @@ import '../widgets/switchPosts.dart';
 
 import 'EventPage.dart';
 
+import './myTimetable.dart';
+
+import './opportunities.dart';
+
+
 
 
 
@@ -147,6 +152,7 @@ Future getFloors() async {
 
 
   } finally {
+
     return 1;
   }
 
@@ -328,6 +334,7 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage('assets/images/Carnet.png'), context);
     precacheImage(const AssetImage('assets/images/Map.png'), context);
     precacheImage(const AssetImage('assets/images/Settings.png'), context);
+    precacheImage(const AssetImage("assets/images/orar.png"), context);
     precachePicture(ExactAssetPicture(
         SvgPicture.svgStringDecoderBuilder,
         'assets/svgs/no_posts.svg'
@@ -500,6 +507,8 @@ class _NewsPageState extends State<NewsPage>{
 
     });
 
+    _loaded = false;
+
 
     super.initState();
 
@@ -524,6 +533,8 @@ class _NewsPageState extends State<NewsPage>{
 
 
   }
+
+  late bool _loaded;
 
   @override
   void didChangeDependencies() {
@@ -700,10 +711,10 @@ class _NewsPageState extends State<NewsPage>{
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: CurvedAppbar(names: const ['Announcements', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
+      appBar: CurvedAppbar(names: const ['News', 'Opportunities', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
       backgroundColor: ColorsB.gray900,
       extendBody: true,
-      bottomNavigationBar: _bottomNavBar(),
+      bottomNavigationBar: _loaded ? _bottomNavBar() : null,
       body: FutureBuilder(
         future: gFloors,
         builder: (context, snapshot) {
@@ -783,17 +794,27 @@ class _NewsPageState extends State<NewsPage>{
             );
           }
           else {
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _loaded = true;
+              });
+            });
+
+
             return PageView(
               physics: const NeverScrollableScrollPhysics(),
               controller: _pageController,
               children: [
                 Announcements( key: _announcementsKey,),
+                OpportunitiesList(globalMap: globalMap),
                 MenuTabs(pages: [
                   SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
                   const Calendar(key: ValueKey(3)),
                   const Notes(),
-                  AlertPage(gMap: globalMap)
+                  AlertPage(gMap: globalMap),
+                  const MyTimetable()
                 ], map: globalMap, notif: haveNew, update: () {
                   setState(() {
 
@@ -810,7 +831,357 @@ class _NewsPageState extends State<NewsPage>{
 
 
   Widget _bottomNavBar() {
+
+    List<Widget> _buttons = [
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'News',
+                            style: TextStyle(
+                                color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        ),
+                      ]
+                  ),
+                  onTap: () {
+                    //  _mapExpandAnim(_announcementsInput);
+                    setState(() {
+                      _currentIndex = 0;
+                      //  changeColors(_currentIndex);
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.apartment_rounded, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Opportunities',
+                            style: TextStyle(
+                                color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 1;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.apps, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Menus',
+                            style: TextStyle(
+                                color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 2;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+
+    ];
+
+
     if(globalMap['account'] == 'Admin') {
+
+      _buttons.insert(0, Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              child: GestureDetector(
+                child: SizedBox(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Icon(Icons.verified_user_outlined, color: Colors.white),
+                        Text(
+                            'Verify Users',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                ),
+                onTap: () {
+
+                  late var _getUsers = _loadUsers();
+                  // Verification page for the admin
+                  showDialog(
+                      barrierDismissible: false,
+                      context: context,
+                      builder: (context) {
+                        final ScrollController _scrollController = ScrollController();
+
+                        return StatefulBuilder(
+                            builder: (_, StateSetter setState1) {
+
+
+                              return AlertDialog(
+
+                                title: Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: [
+                                      Row(
+                                        children: const [
+                                          Icon(Icons.verified_user_outlined,
+                                            color: Colors.white, size: 30,),
+                                          SizedBox(width: 10,),
+                                          Text('Verify Users',
+                                            style: TextStyle(fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),),
+                                        ],
+                                      ),
+                                      const Divider(color: Colors.white,
+                                        thickness: 0.5,
+                                        height: 20,),
+                                    ]
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                backgroundColor: ColorsB.gray900,
+                                content: SizedBox(
+                                    height: screenHeight * 0.75,
+                                    width: screenWidth * 0.8,
+                                    child: FutureBuilder(
+                                        future: _getUsers,
+                                        builder: (c, sn) {
+                                          if (sn.hasData &&
+                                              (_names.isNotEmpty ||
+                                                  _emails.isNotEmpty ||
+                                                  _types.isNotEmpty)) {
+                                            return Scrollbar(
+                                              controller: _scrollController,
+                                              child: ListView.builder(
+                                                controller: _scrollController,
+                                                physics: const BouncingScrollPhysics(),
+                                                itemCount: _names.isNotEmpty
+                                                    ? _names.length
+                                                    : 1,
+                                                itemBuilder: (context,
+                                                    index) {
+                                                  if (_names.isNotEmpty) {
+                                                    return Padding(
+                                                        padding: const EdgeInsets
+                                                            .all(10.0),
+                                                        child: Row(
+                                                          children: [
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment
+                                                                  .start,
+
+                                                              children: [
+                                                                Text(
+                                                                  _names[index],
+                                                                  style: const TextStyle(
+                                                                      fontSize: 15,
+                                                                      color: Colors
+                                                                          .white),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 5,),
+                                                                Text(
+                                                                  'Type: ${_types[index]}',
+                                                                  style: const TextStyle(
+                                                                      fontSize: 10,
+                                                                      color: ColorsB
+                                                                          .yellow500),
+                                                                ),
+                                                                Text(
+                                                                  'Email: ${_emails[index]}',
+                                                                  style: const TextStyle(
+                                                                      fontSize: 10,
+                                                                      color: ColorsB
+                                                                          .yellow500),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const Spacer(),
+                                                            Row(
+                                                                mainAxisAlignment: MainAxisAlignment
+                                                                    .spaceAround,
+                                                                children: [
+                                                                  GestureDetector(
+                                                                    child: const Icon(
+                                                                      Icons
+                                                                          .check_circle_outlined,
+                                                                      color: Colors
+                                                                          .green,
+                                                                      size: 30,),
+                                                                    onTap: () async {
+                                                                      //print('Checked');
+                                                                      await _verifyUser(
+                                                                          _tokens[index],
+                                                                          _emails[index],
+                                                                          'Verified',
+                                                                          index);
+                                                                      setState1(() {
+
+                                                                      });
+                                                                    },
+                                                                  ),
+                                                                  GestureDetector(
+                                                                    child: const Icon(
+                                                                      Icons
+                                                                          .cancel_outlined,
+                                                                      color: Colors
+                                                                          .red,
+                                                                      size: 30,),
+                                                                    onTap: () {
+                                                                      print(
+                                                                          'Canceled');
+
+                                                                      setState1(() {
+                                                                        _names
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _tokens
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _types
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _emails
+                                                                            .removeAt(
+                                                                            index);
+                                                                      });
+
+
+                                                                      // TODO: Cancel feature + Check feature
+                                                                    },
+                                                                  ),
+                                                                ]
+                                                            )
+                                                          ],
+                                                        )
+                                                    );
+                                                  }
+                                                  else {
+                                                    return const Center(
+                                                      child: Text(
+                                                        'No accounts pending approval. Nice!',
+                                                        style: TextStyle(
+                                                            fontSize: 20,
+                                                            color: ColorsB
+                                                                .gray700),),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            );
+                                          }
+                                          else if (sn.hasData &&
+                                              (_names.isEmpty ||
+                                                  _emails.isEmpty ||
+                                                  _types.isEmpty)) {
+                                            return const Center(
+                                              child: Text(
+                                                'No accounts pending approval. Nice!',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: ColorsB
+                                                        .gray700),),
+                                            );
+                                          }
+                                          else {
+                                            return const Center(
+                                                child: CircularProgressIndicator(
+                                                  valueColor: AlwaysStoppedAnimation(
+                                                      ColorsB.yellow500),)
+                                            );
+                                          }
+                                        }
+                                    )
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      _names.clear();
+                                      _emails.clear();
+                                      _types.clear();
+                                      _tokens.clear();
+
+
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Close',
+                                        style: TextStyle(
+                                            color: Colors.white)),
+                                  ),
+                                ],
+                              );
+                            }
+                        );
+                      }
+
+                  );
+
+                },
+              ),
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ));
 
       return Container(
         width: screenWidth,
@@ -830,285 +1201,7 @@ class _NewsPageState extends State<NewsPage>{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    child: GestureDetector(
-                      child: const Icon(Icons.verified_user_outlined, color: Colors.white),
-                      onTap: () {
-
-                        late var _getUsers = _loadUsers();
-                        // Verification page for the admin
-                        showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            final ScrollController _scrollController = ScrollController();
-
-                            return StatefulBuilder(
-                                builder: (_, StateSetter setState1) {
-
-
-                                  return AlertDialog(
-
-                                    title: Column(
-                                        crossAxisAlignment: CrossAxisAlignment
-                                            .start,
-                                        children: [
-                                          Row(
-                                            children: const [
-                                              Icon(Icons.verified_user_outlined,
-                                                color: Colors.white, size: 30,),
-                                              SizedBox(width: 10,),
-                                              Text('Verify Users',
-                                                style: TextStyle(fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white),),
-                                            ],
-                                          ),
-                                          const Divider(color: Colors.white,
-                                            thickness: 0.5,
-                                            height: 20,),
-                                        ]
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    backgroundColor: ColorsB.gray900,
-                                    content: SizedBox(
-                                        height: screenHeight * 0.75,
-                                        width: screenWidth * 0.8,
-                                        child: FutureBuilder(
-                                            future: _getUsers,
-                                            builder: (c, sn) {
-                                              if (sn.hasData &&
-                                                  (_names.isNotEmpty ||
-                                                      _emails.isNotEmpty ||
-                                                      _types.isNotEmpty)) {
-                                                return Scrollbar(
-                                                  controller: _scrollController,
-                                                  child: ListView.builder(
-                                                    controller: _scrollController,
-                                                    physics: const BouncingScrollPhysics(),
-                                                    itemCount: _names.isNotEmpty
-                                                        ? _names.length
-                                                        : 1,
-                                                    itemBuilder: (context,
-                                                        index) {
-                                                      if (_names.isNotEmpty) {
-                                                        return Padding(
-                                                            padding: const EdgeInsets
-                                                                .all(10.0),
-                                                            child: Row(
-                                                              children: [
-                                                                Column(
-                                                                  crossAxisAlignment: CrossAxisAlignment
-                                                                      .start,
-
-                                                                  children: [
-                                                                    Text(
-                                                                      _names[index],
-                                                                      style: const TextStyle(
-                                                                          fontSize: 15,
-                                                                          color: Colors
-                                                                              .white),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      height: 5,),
-                                                                    Text(
-                                                                      'Type: ${_types[index]}',
-                                                                      style: const TextStyle(
-                                                                          fontSize: 10,
-                                                                          color: ColorsB
-                                                                              .yellow500),
-                                                                    ),
-                                                                    Text(
-                                                                      'Email: ${_emails[index]}',
-                                                                      style: const TextStyle(
-                                                                          fontSize: 10,
-                                                                          color: ColorsB
-                                                                              .yellow500),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                const Spacer(),
-                                                                Row(
-                                                                    mainAxisAlignment: MainAxisAlignment
-                                                                        .spaceAround,
-                                                                    children: [
-                                                                      GestureDetector(
-                                                                        child: const Icon(
-                                                                          Icons
-                                                                              .check_circle_outlined,
-                                                                          color: Colors
-                                                                              .green,
-                                                                          size: 30,),
-                                                                        onTap: () async {
-                                                                          //print('Checked');
-                                                                          await _verifyUser(
-                                                                              _tokens[index],
-                                                                              _emails[index],
-                                                                              'Verified',
-                                                                              index);
-                                                                          setState1(() {
-
-                                                                          });
-                                                                        },
-                                                                      ),
-                                                                      GestureDetector(
-                                                                        child: const Icon(
-                                                                          Icons
-                                                                              .cancel_outlined,
-                                                                          color: Colors
-                                                                              .red,
-                                                                          size: 30,),
-                                                                        onTap: () {
-                                                                          print(
-                                                                              'Canceled');
-
-                                                                          setState1(() {
-                                                                            _names
-                                                                                .removeAt(
-                                                                                index);
-                                                                            _tokens
-                                                                                .removeAt(
-                                                                                index);
-                                                                            _types
-                                                                                .removeAt(
-                                                                                index);
-                                                                            _emails
-                                                                                .removeAt(
-                                                                                index);
-                                                                          });
-
-
-                                                                          // TODO: Cancel feature + Check feature
-                                                                        },
-                                                                      ),
-                                                                    ]
-                                                                )
-                                                              ],
-                                                            )
-                                                        );
-                                                      }
-                                                      else {
-                                                        return const Center(
-                                                          child: Text(
-                                                            'No accounts pending approval. Nice!',
-                                                            style: TextStyle(
-                                                                fontSize: 20,
-                                                                color: ColorsB
-                                                                    .gray700),),
-                                                        );
-                                                      }
-                                                    },
-                                                  ),
-                                                );
-                                              }
-                                              else if (sn.hasData &&
-                                                  (_names.isEmpty ||
-                                                      _emails.isEmpty ||
-                                                      _types.isEmpty)) {
-                                                return const Center(
-                                                  child: Text(
-                                                    'No accounts pending approval. Nice!',
-                                                    style: TextStyle(
-                                                        fontSize: 20,
-                                                        color: ColorsB
-                                                            .gray700),),
-                                                );
-                                              }
-                                              else {
-                                                return const Center(
-                                                    child: CircularProgressIndicator(
-                                                      valueColor: AlwaysStoppedAnimation(
-                                                          ColorsB.yellow500),)
-                                                );
-                                              }
-                                            }
-                                        )
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          _names.clear();
-                                          _emails.clear();
-                                          _types.clear();
-                                          _tokens.clear();
-
-
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('Close',
-                                            style: TextStyle(
-                                                color: Colors.white)),
-                                      ),
-                                    ],
-                                  );
-                                }
-                            );
-                          }
-
-                        );
-
-                      },
-                    ),
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          //  _mapExpandAnim(_announcementsInput);
-                          setState(() {
-                            _currentIndex = 0;
-                            //  changeColors(_currentIndex);
-                          });
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                        }
-                    ),
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                      child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                      onTap: () {
-                        setState(() {
-                          _currentIndex = 1;
-                          //  changeColors(_currentIndex);
-                        });
-
-                        _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-
-                      }
-                    ),
-                  ),
-                ),
-              )
-            ]
+            children: _buttons,
         ),
       );
     }
@@ -1131,54 +1224,7 @@ class _NewsPageState extends State<NewsPage>{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          //  _mapExpandAnim(_announcementsInput);
-                          setState(() {
-                            _currentIndex = 0;
-                            //  changeColors(_currentIndex);
-                          });
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                        }
-                    ),
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          setState(() {
-                            _currentIndex = 1;
-                            //  changeColors(_currentIndex);
-                          });
-
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-
-                        }
-                    ),
-                  ),
-                ),
-              )
-            ]
+            children: _buttons,
         ),
       );
     }
@@ -1483,7 +1529,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                           ),
                           const SizedBox(width: 10,),
                           Visibility(
-                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
+                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin', // cHANGE IT,
                             child: GestureDetector(
                               onTap: _showWritable,
                               child: const Icon(
@@ -1551,7 +1597,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                           ),
                           const SizedBox(width: 10,),
                           Visibility(
-                            visible: globalMap['verification'] == 'Verified',
+                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin',
                             child: GestureDetector(
                               onTap: _showWritableEvent,
                               child: const Icon(
@@ -1728,6 +1774,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               String location = jsondata[i.toString()]["location"].toString();
               String date = jsondata[i.toString()]["date"].toString();
               String link = jsondata[i.toString()]["link"].toString();
+              String mapsLink = jsondata[i.toString()]["glink"].toString();
 
 
               int? id = jsondata[i.toString()]["id"];
@@ -1749,6 +1796,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                   date: date,
                   location: location,
                   gMap: globalMap,
+                  maps_link: mapsLink,
                   Context: context,
                   delete: () async {
                     await deleteEvent(id!, i - 2);
@@ -5242,7 +5290,7 @@ class _PostItPageState extends State<PostItPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false,),
+                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
                   const SizedBox(height: 50,),
                   const Text(
                     'Post contents',

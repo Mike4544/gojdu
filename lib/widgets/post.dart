@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:gojdu/pages/news.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:gojdu/others/colors.dart';
@@ -392,7 +393,7 @@ class _PostState extends State<Post> {
                       : const SizedBox(),
                 ),
                 Visibility(
-                  visible: widget.admin == 'Admin',
+                  visible: widget.admin == 'Admin' || globalMap['first_name'] + globalMap['last_name'] == widget.owners,
                   child: Positioned(
                     top: 25,
                     right: 25,
