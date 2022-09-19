@@ -63,6 +63,8 @@ import './myTimetable.dart';
 
 import './opportunities.dart';
 
+import './offersPage.dart';
+
 
 
 
@@ -335,6 +337,11 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage('assets/images/Map.png'), context);
     precacheImage(const AssetImage('assets/images/Settings.png'), context);
     precacheImage(const AssetImage("assets/images/orar.png"), context);
+    precacheImage(const AssetImage("assets/images/IT.png"), context);
+    precacheImage(const AssetImage("assets/images/Other.png"), context);
+    precacheImage(const AssetImage("assets/images/Design.png"), context);
+    precacheImage(const AssetImage("assets/images/Fashion.png"), context);
+    precacheImage(const AssetImage("assets/images/abstractFire.png"), context);
     precachePicture(ExactAssetPicture(
         SvgPicture.svgStringDecoderBuilder,
         'assets/svgs/no_posts.svg'
@@ -710,8 +717,9 @@ class _NewsPageState extends State<NewsPage>{
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       key: _scaffoldKey,
-      appBar: CurvedAppbar(names: const ['News', 'Opportunities', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
+      appBar: CurvedAppbar(names: const ['News', 'Opportunities', 'Offers', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
       backgroundColor: ColorsB.gray900,
       extendBody: true,
       bottomNavigationBar: _loaded ? _bottomNavBar() : null,
@@ -808,6 +816,7 @@ class _NewsPageState extends State<NewsPage>{
               children: [
                 Announcements( key: _announcementsKey,),
                 OpportunitiesList(globalMap: globalMap),
+                OffersPage(globalMap: globalMap,),
                 MenuTabs(pages: [
                   SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
@@ -908,9 +917,9 @@ class _NewsPageState extends State<NewsPage>{
               child: GestureDetector(
                   child: Column(
                       children: [
-                        Icon(Icons.apps, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white),
+                        Icon(Icons.local_activity_rounded, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white),
                         Text(
-                            'Menus',
+                            'Offers',
                             style: TextStyle(
                                 color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white,
                                 fontSize: 7.5
@@ -921,6 +930,39 @@ class _NewsPageState extends State<NewsPage>{
                   onTap: () {
                     setState(() {
                       _currentIndex = 2;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Menus',
+                            style: TextStyle(
+                                color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 3;
                       //  changeColors(_currentIndex);
                     });
 

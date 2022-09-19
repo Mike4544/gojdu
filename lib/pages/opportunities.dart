@@ -13,6 +13,8 @@ import 'addOpportunity.dart';
 
 import 'package:http/http.dart' as http;
 
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 class OpportunitiesList extends StatefulWidget {
    final Map globalMap;
 
@@ -227,7 +229,7 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
                   headerImageLink: link,
                   description: post,
                   title: title,
-                  city: location,
+                  city: location.split(',').first,
                   date: date,
                   delete: () async {
                     await deleteEvent(id, i - 2);
@@ -237,9 +239,6 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
                   },
                     globalMap: globalMap,
                 ));
-
-                searchTerms.add(title);
-                searchTerms.add(topic);
 
                 print(opportunities.length);
 
@@ -277,7 +276,6 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
   }
 
   late List<OpportunityCard> opportunities;
-  late List<String> searchTerms;
 
   final searchEditor = TextEditingController();
 
@@ -285,7 +283,6 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
   @override
   void initState() {
     opportunities = [];
-    searchTerms = [];
     super.initState();
   }
 
@@ -293,7 +290,6 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
   void dispose() {
     // TODO: implement dispose
     opportunities.clear();
-    searchTerms.clear();
     searchEditor.dispose();
     super.dispose();
   }
@@ -307,9 +303,6 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
 
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
-
-    final listKey = GlobalKey();
-    final barKey = GlobalKey<_SearchButtonBarState>();
 
 
     Widget opportunityList() {
@@ -404,58 +397,56 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
 
     return GestureDetector(
       onTap: () {
-        FocusScope.of(context).unfocus();
+        //  FocusScope.of(context).unfocus();
       },
-      child: SizedBox(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: FutureBuilder(
-            future: _getOpportunities,
-            builder: (context, snapshot){
-              if(!snapshot.hasData){
-                return const Center(
-                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
-                );
-              }
-              else {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin', searchController: searchEditor,),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Visibility(
-                            visible: widget.globalMap['account'] == 'Admin',
-                            child: FloatingActionButton(
-                              elevation: 0,
-                              backgroundColor: ColorsB.gray800,
-                              onPressed: () {
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: FutureBuilder(
+          future: _getOpportunities,
+          builder: (context, snapshot){
+            if(!snapshot.hasData){
+              return const Center(
+                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
+              );
+            }
+            else {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin', searchController: searchEditor,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Visibility(
+                          visible: widget.globalMap['account'] == 'Admin',
+                          child: FloatingActionButton(
+                            elevation: 0,
+                            backgroundColor: ColorsB.gray800,
+                            onPressed: () {
 
-                                Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (context) => AddOpportunity(gMap: globalMap)
-                                    )
-                                );
+                              Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (context) => AddOpportunity(gMap: globalMap)
+                                  )
+                              );
 
-                              },
-                              mini: true,
-                              child: const Icon(Icons.add, color: Colors.white,),
-                            ),
+                            },
+                            mini: true,
+                            child: const Icon(Icons.add, color: Colors.white,),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10,),
-                    Expanded(child: opportunityList()),
-                  ],
-                );
-              }
-            },
-          )
-        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  Expanded(child: opportunityList()),
+                ],
+              );
+            }
+          },
+        )
       ),
     );
   }
@@ -536,7 +527,8 @@ class BetterChip extends StatelessWidget {
                       child: Text(
                         label,
                         style: TextStyle(
-                            color: ThemeData.estimateBrightnessForColor(bgColor) == Brightness.light ? ColorsB.gray900 : Colors.white
+                            color: ThemeData.estimateBrightnessForColor(bgColor) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                            fontSize: 12.5.sp
                         ),
                       ),
                     ),
@@ -608,6 +600,7 @@ class OpportunityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+
     final Map<String, dynamic> _iconsForTags = {
       'IT': Icons.computer,
       'Design': Icons.edit,
@@ -628,17 +621,17 @@ class OpportunityCard extends StatelessWidget {
     int value = int.parse(tempcolor, radix: 16);
     Color color = Color(value);
 
-    const titleText = TextStyle(
+    final titleText = TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.bold,
-        fontSize: 25
+        fontSize: 25.sp
     );
 
-    const subtitleText = TextStyle(
+
+    final subtitleText = TextStyle(
       color: Colors.white,
-      fontSize: 12.5,
+      fontSize: 12.5.sp,
     );
-
     // String dummyText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras accumsan blandit ullamcorper. Phasellus porta eu eros eu rutrum. In hac habitasse platea dictumst.                                  Donec interdum ligula purus, id posuere felis ornare ac. Duis id mattis risus. Cras vitae sapien nec mauris semper sodales id ut odio. Nunc elementum, purus                                      vulputate congue tincidunt, elit dolor dignissim sapien';
 
 
@@ -704,8 +697,8 @@ class OpportunityCard extends StatelessWidget {
                                     ),
                                   ),
                                   Expanded(
-                                    flex: 1,
-                                    child: Image.asset('assets/images/$category.png')
+                                      flex: 1,
+                                      child: Image.asset('assets/images/$category.png')
                                   )
                                 ],
 
@@ -719,13 +712,13 @@ class OpportunityCard extends StatelessWidget {
                                     SizedBox(
                                       child: FittedBox(
                                           fit: BoxFit.scaleDown,
-                                          child: BetterChip(icon: Icons.location_on_outlined, label: city != null ? city! : 'Oradea', isGlass: true, bgColor: Colors.white, width: 125,)
+                                          child: BetterChip(icon: Icons.location_on_outlined, label: city != null ? city! : 'Oradea', isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
                                       ),
                                     ),
                                     SizedBox(
                                       child: FittedBox(
                                           fit: BoxFit.scaleDown,
-                                          child: BetterChip(icon: Icons.calendar_today_outlined, label: date, isGlass: true, bgColor: Colors.white, width: 125,)
+                                          child: BetterChip(icon: Icons.calendar_today_outlined, label: date, isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
                                       ),
                                     )
                                   ],
@@ -742,10 +735,16 @@ class OpportunityCard extends StatelessWidget {
                 child: ClipPath(
                   clipper: Ribbon(),
                   child: Container(
-                    width: 40,
-                    height: 55,
-                    child: Center(
-                      child: Icon(_iconsForTags[category]!, color: ColorsB.gray900,),
+                    width: dev_height * 0.05,
+                    height: dev_height * 0.05 + 25,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Center(
+                          child: Icon(_iconsForTags[category]!, color: ColorsB.gray900,),
+                        ),
+                      ),
                     ),
                     decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -764,9 +763,9 @@ class OpportunityCard extends StatelessWidget {
                   onTap: () {
 
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BigNewsContainer(title: title!, description: description!, color: color, date: DateTime.now().toString(), location: city!, imageString: headerImageLink, gMapsLink: gmaps_link,)
-                      )
+                        MaterialPageRoute(
+                            builder: (context) => BigNewsContainer(title: title!, description: description!, color: color, date: date, location: city!, imageString: headerImageLink, gMapsLink: gmaps_link,)
+                        )
                     );
 
 
@@ -776,7 +775,7 @@ class OpportunityCard extends StatelessWidget {
               Visibility(
                 visible: globalMap['account'] == 'Admin' || globalMap['first_name'] + ' ' + globalMap['last_name'] == owner,
                 child: Positioned(
-                  bottom: 50,
+                  bottom: dev_height * .05,
                   right: 25,
                   child: IconButton(
                     icon: Icon(Icons.delete, color: Colors.white, size: dev_height * .05,),
@@ -983,20 +982,34 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                   print('Can\'t do it chief');
                                 }
                               },
-                              child: BetterChip(
-                                width: 150,
-                                bgColor: ColorsB.gray200,
-                                icon: Icons.location_on_outlined,
-                                label: widget.location,
-                                isGlass: true,
-                                secIcon: Icons.view_in_ar,
-                              ),
+                              child: Row(
+                                children: [
+                                  BetterChip(
+                                    width: screenWidth * .5,
+                                    height: screenHeight * .05,
+                                    bgColor: ColorsB.gray200,
+                                    icon: Icons.location_on_outlined,
+                                    label: widget.location,
+                                    isGlass: true,
+                                    secIcon: Icons.view_in_ar,
+                                  ),
+                                  const SizedBox(width: 10,),
+                                  Text(
+                                    'Open in Google Maps',
+                                    style: TextStyle(
+                                      color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                                      fontSize: 12.5.sp
+                                    ),
+                                  )
+                                ],
+                              )
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: BetterChip(
-                              width: 150,
+                                width: screenWidth * .33,
+                                height: screenHeight * .05,
                                 bgColor: ColorsB.gray200,
                                 icon: Icons.calendar_today_outlined,
                                 label: widget.date,
@@ -1120,27 +1133,41 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: GestureDetector(
-                                    onTap: () async {
-                                      if(await canLaunchUrl(Uri.parse(widget.gMapsLink!))){
-                                        await launchUrl(Uri.parse(widget.gMapsLink!));
-                                      } else {
-                                        print('Can\'t do it chief');
-                                      }
-                                    },
-                                    child: BetterChip(
-                                      width: 150,
-                                      bgColor: ColorsB.gray200,
-                                      icon: Icons.location_on_outlined,
-                                      label: widget.location,
-                                      isGlass: true,
-                                      secIcon: Icons.view_in_ar,
-                                    ),
+                                      onTap: () async {
+                                        if(await canLaunchUrl(Uri.parse(widget.gMapsLink!))){
+                                          await launchUrl(Uri.parse(widget.gMapsLink!));
+                                        } else {
+                                          print('Can\'t do it chief');
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          BetterChip(
+                                            width: screenWidth * .5,
+                                            height: screenHeight * .05,
+                                            bgColor: ColorsB.gray200,
+                                            icon: Icons.location_on_outlined,
+                                            label: widget.location,
+                                            isGlass: true,
+                                            secIcon: Icons.view_in_ar,
+                                          ),
+                                          const SizedBox(width: 10,),
+                                          Text(
+                                            'Open in Google Maps',
+                                            style: TextStyle(
+                                                color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                                                fontSize: 12.5.sp
+                                            ),
+                                          )
+                                        ],
+                                      )
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: BetterChip(
-                                      width: 150,
+                                      width: screenWidth * .33,
+                                      height: screenHeight * .05,
                                       bgColor: ColorsB.gray200,
                                       icon: Icons.calendar_today_outlined,
                                       label: widget.date,
@@ -1350,6 +1377,7 @@ class _SearchButtonBarState extends State<SearchButtonBar> with TickerProviderSt
                           contentPadding: EdgeInsets.zero,
                           hintStyle: TextStyle(
                             color: open ? Colors.white.withOpacity(.5) : Colors.white,
+                            fontSize: 15.sp
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(360),

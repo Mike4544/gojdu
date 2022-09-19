@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 
@@ -549,13 +550,26 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                   },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: BetterChip(
-                                  width: 150,
-                                  bgColor: ColorsB.gray200,
-                                  icon: Icons.location_on_outlined,
-                                  label: widget.location,
-                                  secIcon: Icons.view_in_ar,
-                              ),
+                              child: Row(
+                                children: [
+                                  BetterChip(
+                                    width: screenWidth * .5,
+                                    height: screenHeight * .05,
+                                    bgColor: ColorsB.gray200,
+                                    icon: Icons.location_on_outlined,
+                                    label: widget.location,
+                                    secIcon: Icons.view_in_ar,
+                                  ),
+                                  const SizedBox(width: 10,),
+                                  Text(
+                                    'Open in Google Maps',
+                                    style: TextStyle(
+                                        color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                                        fontSize: 12.5.sp
+                                    ),
+                                  )
+                                ],
+                              )
                             ),
                           ),
                           Padding(
@@ -696,27 +710,39 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                       print('Can\'t do it chief');
                                     }
                                   },
-                                  child: Chip(
-                                      backgroundColor: ColorsB.gray200,
-                                      avatar: const Icon(Icons.location_on_outlined, color: ColorsB.gray900,),
-                                      label: Text(
-                                        widget.location,
-                                        style: TextStyle(
-                                          color: ColorsB.gray900,
-                                        ),
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: [
+                                          BetterChip(
+                                            width: screenWidth * .5,
+                                            height: screenHeight * .05,
+                                            bgColor: ColorsB.gray200,
+                                            icon: Icons.location_on_outlined,
+                                            label: widget.location,
+                                            secIcon: Icons.view_in_ar,
+                                          ),
+                                          const SizedBox(width: 10,),
+                                          Text(
+                                            'Open in Google Maps',
+                                            style: TextStyle(
+                                                color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                                                fontSize: 12.5.sp
+                                            ),
+                                          )
+                                        ],
                                       )
                                   ),
                                 ),
-                                Chip(
-                                    backgroundColor: ColorsB.gray200,
-                                    avatar: const Icon(Icons.calendar_today_outlined, color: ColorsB.gray900,),
-                                    label: Text(
-                                      widget.date,
-                                      style: TextStyle(
-                                        color: ColorsB.gray900,
-                                      ),
-                                    )
-                                )
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: BetterChip(
+                                    width: 150,
+                                    bgColor: ColorsB.gray200,
+                                    icon: Icons.calendar_today_outlined,
+                                    label: widget.date,
+                                  ),
+                                ),
 
                               ],
                             )

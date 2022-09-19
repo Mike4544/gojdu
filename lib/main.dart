@@ -35,6 +35,7 @@ import 'firebase_options.dart';
 import 'package:gojdu/pages/verified.dart';
 
 import 'package:gojdu/others/colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 String type = '';
 
@@ -58,21 +59,27 @@ Future<void> main() async {
   // SUBSCRIBING TO THE NOTIFICATIONS
   await messaging.subscribeToTopic(type + 's');
 
-  runApp(MaterialApp(
-    theme: ThemeData(
-      fontFamily: 'Nunito',
-    ),
+  runApp(ScreenUtilInit(
+    designSize: const Size(412, 732),
+    minTextAdapt: true,
+    builder: (context, child){
+      return MaterialApp(
+        theme: ThemeData(
+          fontFamily: 'Nunito',
+        ),
 
-    home: homeWidget,
-    routes: {
-      '/login': (context) => const Login(),
-      '/signup': (context) => const SignupSelect(),
-      '/signup/student': (context) => const StudentSignUp(),
-      '/signup/teachers': (context) => const TeacherSignUp(),
-      'signup/parents/1': (context) => const ParentsSignupPage1(),
+        home: homeWidget,
+        routes: {
+          '/login': (context) => const Login(),
+          '/signup': (context) => const SignupSelect(),
+          '/signup/student': (context) => const StudentSignUp(),
+          '/signup/teachers': (context) => const TeacherSignUp(),
+          'signup/parents/1': (context) => const ParentsSignupPage1(),
+        },
+
+        //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
+      );
     },
-
-    //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
   ));
 }
 
