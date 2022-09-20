@@ -936,13 +936,15 @@ class Background extends StatefulWidget{
 }
 
 class _BackgroundState extends State<Background>{
-
-  late double x, y;
   late double blur1, blur2, blur3;
 
   double lastBlur1 = 5, lastBlur2 = 3, lastBlur3 = 1;
 
   late AccelerometerEvent _parallaxValues;
+
+  static const double _backConstant = 1.5;
+  static const double _midConstant = 2.5;
+  static const double _frontConstant = 4;
 
   //  static const sensitivity = 4;
   late Timer _timer;
@@ -951,8 +953,6 @@ class _BackgroundState extends State<Background>{
   void initState() {
     super.initState();
 
-    x = 0;
-    y = 0;
 
     blur1 = 0;
     blur2 = 0;
@@ -975,19 +975,6 @@ class _BackgroundState extends State<Background>{
         //print(event);
 
         if(mounted){
-          if(x >= -10.0 && x <= 10.0){
-            x += .5 * _parallaxValues.x;
-          }
-          else {
-            x > 0 ? x = 10.0 : x = -10.0;
-          }
-
-          if(y >= -10 && y <= 10){
-            y += .5 * (_parallaxValues.y - 3);
-          }
-          else {
-            y > 0 ? y = 10.0 : y = -10.0;
-          }
 
           setState(() {
 
@@ -1027,30 +1014,6 @@ class _BackgroundState extends State<Background>{
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        AnimatedPositioned(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.ease,
-            top: screenHeight * .025 + -y,
-            right: 25 + x,
-            child: Container(
-              width: screenWidth * .5,
-              height: screenWidth * .5,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                  color: Colors.red,
-                  gradient: const LinearGradient(
-                      colors: [
-                        Color(0xff8A2387),
-                        Color(0xffE94057),
-                        Color(0xffF27121)
-                      ],
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight
-                  ),
-                  borderRadius: BorderRadius.circular(360)
-              ),
-            )
-        ),
         TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: lastBlur1, end: blur1),
           duration: const Duration(seconds: 5),
@@ -1058,67 +1021,18 @@ class _BackgroundState extends State<Background>{
           builder: (_, value, ___) => AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.ease,
-              top: screenHeight * .3 + -y,
-              left: 25 + x,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
+              top: screenHeight * .025 + -(_parallaxValues.y * _backConstant),
+              right: 25 + -_parallaxValues.x * _backConstant,
+              child: ClipRRect(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: value,
                     sigmaY: value,
-                    sigmaX: value
-                ),
-                child: Container(
-                  width: screenWidth * .15,
-                  height: screenWidth * .15,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      gradient: const LinearGradient(
-                          colors: [
-                            Color(0xff8A2387),
-                            Color(0xffE94057),
-                            Color(0xffF27121)
-                          ],
-                          begin: Alignment.bottomLeft,
-                          end: Alignment.topRight
-                      ),
-                      borderRadius: BorderRadius.circular(360)
                   ),
-                ),
-              )
-          ),
-        ),
-        TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: lastBlur2, end: blur2),
-          duration: const Duration(seconds: 5),
-          curve: Curves.ease,
-          builder: (_, value, __) => BackdropFilter(
-            filter: ImageFilter.blur(
-                sigmaX: value,
-                sigmaY: value
-            ),
-            child: Center(
-              child: SizedBox(
-                height: screenHeight * .4,
-                child: Image.asset('assets/images/abstractFire.png'),
-              ),
-            ),
-          ),
-        ),
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.ease,
-          bottom: screenHeight * .025 + y,
-          left: x,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(360),
-            child: SizedBox(
-              width: screenWidth * .57,
-              height: screenWidth * .57,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
+                  child: Container(
                     width: screenWidth * .5,
                     height: screenWidth * .5,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                         color: Colors.red,
                         gradient: const LinearGradient(
@@ -1133,20 +1047,85 @@ class _BackgroundState extends State<Background>{
                         borderRadius: BorderRadius.circular(360)
                     ),
                   ),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: lastBlur3, end: blur3),
-                    duration: const Duration(seconds: 5),
-                    curve: Curves.ease,
-                    builder: (_, value, __) => BackdropFilter(filter: ImageFilter.blur(
-                        sigmaY: value,
-                        sigmaX: value
-                    ),
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
+                ),
+              )
+          ),
+        ),
+        TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: lastBlur2, end: blur2),
+          duration: const Duration(seconds: 5),
+          curve: Curves.ease,
+          builder: (_, value, ___) => AnimatedPositioned(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.ease,
+              top: screenHeight * .3 + -(_parallaxValues.y * _midConstant),
+              left: 25 + _parallaxValues.x * _midConstant,
+              child: ClipRRect(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                      sigmaY: value,
+                      sigmaX: value
+                  ),
+                  child: Container(
+                    width: screenWidth * .15,
+                    height: screenWidth * .15,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                        color: Colors.red,
+                        gradient: const LinearGradient(
+                            colors: [
+                              Color(0xff8A2387),
+                              Color(0xffE94057),
+                              Color(0xffF27121)
+                            ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight
+                        ),
+                        borderRadius: BorderRadius.circular(360)
                     ),
                   ),
-                ],
+                ),
+              )
+          ),
+        ),
+        Center(
+          child: SizedBox(
+            height: screenHeight * .4,
+            child: Image.asset('assets/images/abstractFire.png'),
+          ),
+        ),
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.ease,
+          bottom: screenHeight * .025 + _parallaxValues.y * _frontConstant,
+          left: _parallaxValues.x * _frontConstant,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: lastBlur3, end: blur3),
+            duration: const Duration(seconds: 5),
+            curve: Curves.ease,
+            builder: (_, value, __) => ClipRRect(
+              clipBehavior: Clip.antiAlias,
+              child: ImageFiltered(imageFilter: ImageFilter.blur(
+                  sigmaY: value,
+                  sigmaX: value
+              ),
+                child: Container(
+                  width: screenWidth * .5,
+                  height: screenWidth * .5,
+                  decoration: BoxDecoration(
+                      color: Colors.red,
+                      gradient: const LinearGradient(
+                          colors: [
+                            Color(0xff8A2387),
+                            Color(0xffE94057),
+                            Color(0xffF27121)
+                          ],
+                          begin: Alignment.bottomLeft,
+                          end: Alignment.topRight
+                      ),
+                      borderRadius: BorderRadius.circular(360)
+                  ),
+                ),
               ),
             ),
           )

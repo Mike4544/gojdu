@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -14,6 +15,8 @@ import 'addOpportunity.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'dart:math' as math;
 
 class OpportunitiesList extends StatefulWidget {
    final Map globalMap;
@@ -284,6 +287,7 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
   void initState() {
     opportunities = [];
     super.initState();
+
   }
 
   @override
@@ -399,58 +403,279 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
       onTap: () {
         //  FocusScope.of(context).unfocus();
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: FutureBuilder(
-          future: _getOpportunities,
-          builder: (context, snapshot){
-            if(!snapshot.hasData){
-              return const Center(
-                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
-              );
-            }
-            else {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin', searchController: searchEditor,),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Visibility(
-                          visible: widget.globalMap['account'] == 'Admin',
-                          child: FloatingActionButton(
-                            elevation: 0,
-                            backgroundColor: ColorsB.gray800,
-                            onPressed: () {
+      child: Stack(
+        children: [
+          const TriangleBackground(),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25),
+              child: FutureBuilder(
+                future: _getOpportunities,
+                builder: (context, snapshot){
+                  if(!snapshot.hasData){
+                    return const Center(
+                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),),
+                    );
+                  }
+                  else {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin', searchController: searchEditor,),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Visibility(
+                                visible: widget.globalMap['account'] == 'Admin',
+                                child: FloatingActionButton(
+                                  elevation: 0,
+                                  backgroundColor: ColorsB.gray800,
+                                  onPressed: () {
 
-                              Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (context) => AddOpportunity(gMap: globalMap)
-                                  )
-                              );
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) => AddOpportunity(gMap: globalMap)
+                                        )
+                                    );
 
-                            },
-                            mini: true,
-                            child: const Icon(Icons.add, color: Colors.white,),
-                          ),
+                                  },
+                                  mini: true,
+                                  child: const Icon(Icons.add, color: Colors.white,),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                  Expanded(child: opportunityList()),
-                ],
-              );
-            }
-          },
-        )
-      ),
+                        const SizedBox(height: 10,),
+                        Expanded(child: opportunityList()),
+                      ],
+                    );
+                  }
+                },
+              )
+          ),
+        ],
+      )
     );
   }
 }
+
+class TriangleBackground extends StatefulWidget {
+  const TriangleBackground({Key? key}) : super(key: key);
+
+  @override
+  State<TriangleBackground> createState() => _TriangleBackgroundState();
+}
+
+class _TriangleBackgroundState extends State<TriangleBackground> {
+
+  static const double _backConstant = 1.5;
+  static const double _midConstant = 2.5;
+  static const double _frontConstant = 4;
+
+  late var _acceleration;
+
+  late double _b1, _b2, _b3;
+  late Timer _timer;
+  double _lb1 = 8, _lb2 = 5, _lb3 = 3;
+
+
+
+  void _getNewVals(){
+    _lb1 = _b1;
+    _lb2 = _b2;
+    _lb3 = _b3;
+
+    _b1 = math.Random().nextDouble() * 9;
+    _b2 = math.Random().nextDouble() * 6;
+    _b3 = math.Random().nextDouble() * 4;
+
+    setState(() {
+
+    });
+
+
+
+  }
+
+
+  @override
+  void initState() {
+
+    super.initState();
+
+    _acceleration = AccelerometerEvent(0, 0, 0);
+    _b1 = _b2 = _b3 = 0;
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) async {
+
+      accelerometerEvents.listen((event) {
+
+        if(mounted){
+          setState(() {
+            _acceleration = event;
+          });
+        }
+
+      });
+
+
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+
+      _getNewVals();
+
+
+    });
+
+
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Stack(
+      children: [
+        TweenAnimationBuilder<double>(
+          duration: const Duration(seconds: 4),
+          curve: Curves.ease,
+          tween: Tween<double>(begin: _lb1, end: _b1),
+          builder: (_, value, __,) => AnimatedPositioned(
+            child: SizedBox(
+                height: screenHeight * .25,
+                width: screenHeight * .25,
+                child:  ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                      sigmaY: value,
+                      sigmaX: value
+                  ),
+                  child: Image.asset('assets/images/3.png', frameBuilder: (_, child, ___, sync) {
+                    if(sync) return child;
+
+                    return const SizedBox(
+                      height: 50,
+                      width: 50,
+                    );
+
+                  },),
+                )
+            ),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.ease,
+            top: 25.0 + (_acceleration.y * -_backConstant),
+            right: _acceleration.x * -_backConstant,
+          ),
+        ),
+        TweenAnimationBuilder<double>(
+          duration: const Duration(seconds: 4),
+          curve: Curves.ease,
+          tween: Tween<double>(begin: _lb2, end: _b2),
+            builder: (_, value, __,) => ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                  sigmaX: value,
+                  sigmaY: value
+              ),
+              child: Stack(
+                children: [
+                  AnimatedPositioned(
+                    child: SizedBox(
+                      height: screenHeight * .2,
+                      width: screenHeight * .2,
+                      child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (_, child, ___, sync) {
+                        if(sync) return child;
+
+                        return const SizedBox(
+                          height: 50,
+                          width: 50,
+                        );
+
+                      },),
+                    ),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.ease,
+                    top: screenHeight * .15 + (_acceleration.y * -_midConstant),
+                    left: _acceleration.x * _midConstant,
+                  ),
+                  AnimatedPositioned(
+                    child: Transform.rotate(
+                      angle: 0,
+                      child: SizedBox(
+                        height: screenHeight * .27,
+                        width: screenHeight * .27,
+                        child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (_, child, ___, sync) {
+                          if(sync) return child;
+
+                          return const SizedBox(
+                            height: 50,
+                            width: 50,
+                          );
+
+                        },),
+                      ),
+                    ),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.ease,
+                    bottom: screenHeight * .175 + (_acceleration.y * -_midConstant),
+                    right: -75.0 + _acceleration.x * -_midConstant,
+                  ),
+                ],
+              ),
+            ),
+        ),
+        Center(
+          child:  SizedBox(
+            height: screenHeight * .4,
+            child:  Image.asset('assets/images/Target.png'),
+          ),
+        ),
+        TweenAnimationBuilder<double>(
+          duration: const Duration(seconds: 4),
+          curve: Curves.ease,
+          tween: Tween<double>(begin: _lb3, end: _b3),
+          builder: (_, value, __) => AnimatedPositioned(
+            child: SizedBox(
+                height: screenHeight * .6,
+                width: screenHeight * .6,
+                child:  ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                      sigmaY: value,
+                      sigmaX: value
+                  ),
+                  child: Image.asset('assets/images/Triangle1.png', frameBuilder: (_, child, ___, sync) {
+                    if(sync) return child;
+
+                    return const SizedBox(
+                      height: 50,
+                      width: 50,
+                    );
+
+                  },),
+                )
+            ),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.ease,
+            bottom: -60.0 + (_acceleration.y * _frontConstant),
+            left: - 75.0 + _acceleration.x * _frontConstant,
+          ),
+        ),
+
+      ],
+    );
+  }
+}
+
 
 
 class BetterChip extends StatelessWidget {
@@ -639,232 +864,241 @@ class OpportunityCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 25),
         child: SizedBox(
           height: dev_height * .4,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [
-                          color.withOpacity(.5),
-                          color.withOpacity(.05),
-                        ],
-                        stops: const [
-                          0, .75
-                        ],
-                        begin: Alignment.bottomLeft,
-                        end: Alignment.topRight
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(dev_width * .075),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 7,
+                sigmaY: 7,
+              ),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            colors: [
+                              color.withOpacity(.5),
+                              color.withOpacity(.05),
+                            ],
+                            stops: const [
+                              0, .75
+                            ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight
+                        ),
+                        borderRadius: BorderRadius.circular(dev_width * .075),
+                        border: Border.all(color: Color.alphaBlend(color, Colors.white).withOpacity(.25))
                     ),
-                    borderRadius: BorderRadius.circular(dev_width * .075),
-                    border: Border.all(color: Color.alphaBlend(color, Colors.white).withOpacity(.25))
-                ),
-                child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: SizedBox(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Flexible(
-                              flex: 2,
-                              child: Row(
+                    child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: SizedBox(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Flexible(
+                                  flex: 2,
+                                  child: Row(
 
-                                children: [
-                                  Expanded(
-                                    flex: 2,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                          children: [
+                                            Flexible(
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(
+                                                  title ?? 'Opportunity Title',
+                                                  style: titleText,
+                                                ),
+                                              ),
+                                            ),
+
+                                            Flexible(
+                                              child: Text(
+                                                description!.length > 100 ? description!.substring(0, 100) + '...' : description!,
+                                                style: subtitleText,
+                                              ),
+                                            ),
+
+
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                          flex: 1,
+                                          child: Image.asset('assets/images/$category.png')
+                                      )
+                                    ],
+
+                                  ),
+                                ),
+                                Flexible(
+                                    flex: 1,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
-                                        Flexible(
+                                        SizedBox(
                                           child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              title ?? 'Opportunity Title',
-                                              style: titleText,
-                                            ),
+                                              fit: BoxFit.scaleDown,
+                                              child: BetterChip(icon: Icons.location_on_outlined, label: city != null ? city! : 'Oradea', isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
                                           ),
                                         ),
-
-                                        Flexible(
-                                          child: Text(
-                                            description!.length > 100 ? description!.substring(0, 100) + '...' : description!,
-                                            style: subtitleText,
+                                        SizedBox(
+                                          child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: BetterChip(icon: Icons.calendar_today_outlined, label: date, isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
                                           ),
-                                        ),
-
-
+                                        )
                                       ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Image.asset('assets/images/$category.png')
-                                  )
-                                ],
-
-                              ),
-                            ),
-                            Flexible(
-                                flex: 1,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    SizedBox(
-                                      child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: BetterChip(icon: Icons.location_on_outlined, label: city != null ? city! : 'Oradea', isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: BetterChip(icon: Icons.calendar_today_outlined, label: date, isGlass: true, bgColor: Colors.white, width: dev_width * .33, height: dev_height * .05,)
-                                      ),
                                     )
-                                  ],
                                 )
+                              ],
                             )
-                          ],
                         )
-                    )
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 25,
-                child: ClipPath(
-                  clipper: Ribbon(),
-                  child: Container(
-                    width: dev_height * 0.05,
-                    height: dev_height * 0.05 + 25,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: Center(
-                          child: Icon(_iconsForTags[category]!, color: ColorsB.gray900,),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 25,
+                    child: ClipPath(
+                      clipper: Ribbon(),
+                      child: Container(
+                        width: dev_height * 0.05,
+                        height: dev_height * 0.05 + 25,
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Center(
+                              child: Icon(_iconsForTags[category]!, color: ColorsB.gray900,),
+                            ),
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: _colorsForTags[category]!,
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight
+                            )
                         ),
                       ),
                     ),
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: _colorsForTags[category]!,
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight
-                        )
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(dev_width * .075),
+                      onTap: () {
+
+                        Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => BigNewsContainer(title: title!, description: description!, color: color, date: date, location: city!, imageString: headerImageLink, gMapsLink: gmaps_link,)
+                            )
+                        );
+
+
+                      },
                     ),
                   ),
-                ),
-              ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(dev_width * .075),
-                  onTap: () {
-
-                    Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => BigNewsContainer(title: title!, description: description!, color: color, date: date, location: city!, imageString: headerImageLink, gMapsLink: gmaps_link,)
-                        )
-                    );
-
-
-                  },
-                ),
-              ),
-              Visibility(
-                visible: globalMap['account'] == 'Admin' || globalMap['first_name'] + ' ' + globalMap['last_name'] == owner,
-                child: Positioned(
-                  bottom: dev_height * .05,
-                  right: 25,
-                  child: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.white, size: dev_height * .05,),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) =>
-                              AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  backgroundColor: ColorsB.gray900,
-                                  title: Column(
-                                    children: const [
-                                      Text(
-                                        'Are you sure you want delete this post?',
-                                        style: TextStyle(
-                                            color: ColorsB.yellow500,
-                                            fontSize: 15
-                                        ),
+                  Visibility(
+                    visible: globalMap['account'] == 'Admin' || globalMap['first_name'] + ' ' + globalMap['last_name'] == owner,
+                    child: Positioned(
+                      bottom: dev_height * .05,
+                      right: 25,
+                      child: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.white, size: dev_height * .05,),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) =>
+                                  AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
-                                      Divider(
-                                        color: ColorsB.yellow500,
-                                        thickness: 1,
-                                        height: 10,
-                                      )
-                                    ],
-                                  ),
-                                  content: SizedBox(
-                                    height: 75,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      backgroundColor: ColorsB.gray900,
+                                      title: Column(
+                                        children: const [
+                                          Text(
+                                            'Are you sure you want delete this post?',
+                                            style: TextStyle(
+                                                color: ColorsB.yellow500,
+                                                fontSize: 15
+                                            ),
+                                          ),
+                                          Divider(
+                                            color: ColorsB.yellow500,
+                                            thickness: 1,
+                                            height: 10,
+                                          )
+                                        ],
+                                      ),
+                                      content: SizedBox(
+                                        height: 75,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            InkWell(
-                                              onTap: () async {
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              children: [
+                                                InkWell(
+                                                  onTap: () async {
 
-                                                await delete();
+                                                    await delete();
 
-                                                Navigator.of(context).pop();
+                                                    Navigator.of(context).pop();
 
-                                                //  logoff(context);
-                                              },
-                                              borderRadius: BorderRadius.circular(30),
-                                              child: Ink(
-                                                decoration: BoxDecoration(
-                                                  color: ColorsB.yellow500,
+                                                    //  logoff(context);
+                                                  },
                                                   borderRadius: BorderRadius.circular(30),
+                                                  child: Ink(
+                                                    decoration: BoxDecoration(
+                                                      color: ColorsB.yellow500,
+                                                      borderRadius: BorderRadius.circular(30),
+                                                    ),
+                                                    height: 50,
+                                                    width: 75,
+                                                    child: Icon(
+                                                      Icons.check, color: Colors.white,
+                                                    ),
+                                                  ),
                                                 ),
-                                                height: 50,
-                                                width: 75,
-                                                child: Icon(
-                                                  Icons.check, color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                            InkWell(
-                                              onTap: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                              borderRadius: BorderRadius.circular(30),
-                                              child: Ink(
-                                                decoration: BoxDecoration(
-                                                  color: ColorsB.gray800,
+                                                InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).pop();
+                                                  },
                                                   borderRadius: BorderRadius.circular(30),
+                                                  child: Ink(
+                                                    decoration: BoxDecoration(
+                                                      color: ColorsB.gray800,
+                                                      borderRadius: BorderRadius.circular(30),
+                                                    ),
+                                                    height: 50,
+                                                    width: 75,
+                                                    child: Icon(
+                                                      Icons.close, color: Colors.white,
+                                                    ),
+                                                  ),
                                                 ),
-                                                height: 50,
-                                                width: 75,
-                                                child: Icon(
-                                                  Icons.close, color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
+                                              ],
+                                            )
                                           ],
-                                        )
-                                      ],
-                                    ),
+                                        ),
+                                      )
                                   )
-                              )
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          )
         )
     );
   }

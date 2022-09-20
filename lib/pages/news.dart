@@ -342,6 +342,9 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage("assets/images/Design.png"), context);
     precacheImage(const AssetImage("assets/images/Fashion.png"), context);
     precacheImage(const AssetImage("assets/images/abstractFire.png"), context);
+    precacheImage(const AssetImage('assets/images/3.png'), context);
+    precacheImage(const AssetImage('assets/images/Triangle1.png'), context);
+    precacheImage(const AssetImage('assets/images/Untitled-1.png'), context);
     precachePicture(ExactAssetPicture(
         SvgPicture.svgStringDecoderBuilder,
         'assets/svgs/no_posts.svg'
@@ -408,6 +411,7 @@ class _NewsPageState extends State<NewsPage>{
   void initState() {
 
     //  refreshAlerts();
+
 
 
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
