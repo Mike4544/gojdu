@@ -429,7 +429,6 @@ class _AddOfferState extends State<AddOffer> {
 
                                 CroppedFile? croppedFile = await ImageCropper().cropImage(
                                     sourcePath: _image.path,
-                                    aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
                                   maxHeight: 1080,
                                   maxWidth: 1080,
                                   compressQuality: 75,

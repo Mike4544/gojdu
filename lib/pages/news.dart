@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:gojdu/pages/settings.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -64,6 +65,8 @@ import './myTimetable.dart';
 import './opportunities.dart';
 
 import './offersPage.dart';
+
+import 'dart:math' as math;
 
 
 
@@ -345,6 +348,7 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage('assets/images/3.png'), context);
     precacheImage(const AssetImage('assets/images/Triangle1.png'), context);
     precacheImage(const AssetImage('assets/images/Untitled-1.png'), context);
+    precacheImage(const AssetImage('assets/images/Target.png'), context);
     precachePicture(ExactAssetPicture(
         SvgPicture.svgStringDecoderBuilder,
         'assets/svgs/no_posts.svg'
@@ -353,6 +357,8 @@ class _NewsPageState extends State<NewsPage>{
     );
 
   }
+
+
 
 
   @override
@@ -549,10 +555,8 @@ class _NewsPageState extends State<NewsPage>{
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-
     loadRes(context);
+    super.didChangeDependencies();
   }
 
   @override
@@ -1288,6 +1292,8 @@ final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_Announcement
 
 
 
+
+
 class Announcements extends StatefulWidget {
 
   const Announcements({Key? key}) : super(key: key);
@@ -1562,55 +1568,44 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Latest news',
-                            style: TextStyle(
-                                color: ColorsB.yellow500,
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600
-                            ),
-                          ),
-                          const SizedBox(width: 10,),
-                          Visibility(
-                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin', // cHANGE IT,
-                            child: GestureDetector(
-                              onTap: _showWritable,
-                              child: const Icon(
-                                Icons.add_circle_outline,
-                                size: 40,
-                                color: ColorsB.gray800,
-
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Latest news',
+                              style: TextStyle(
+                                  color: ColorsB.yellow500,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w600
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              height: 2,
-                              color: ColorsB.gray800,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 25,),
+                            const SizedBox(width: 10,),
+                            Visibility(
+                              visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin', // cHANGE IT,
+                              child: GestureDetector(
+                                onTap: _showWritable,
+                                child: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 40,
+                                  color: ColorsB.gray800,
 
-                      teachersBar(),
-                      SizedBox(
-                          height: 450,
-                          child: ShaderMask(
-                            shaderCallback: (Rect bounds) =>
-                                const material.LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    stops: [
-                                      0, 0.25
-                                    ],
-                                    colors: [Colors.transparent, ColorsB.gray900]
-                                ).createShader(bounds),
-                            blendMode: BlendMode.dstIn,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: ColorsB.gray800,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 25,),
+
+                        teachersBar(),
+                        SizedBox(
+                            height: 450,
                             child: TabBarView(
                               physics: const NeverScrollableScrollPhysics(),
                               controller: _tabController,
@@ -1623,160 +1618,159 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
 
                               ],
-                            ),
-                          )
-                      )
-                    ]
+                            )
+                        )
+                      ]
                   ),
                   Column(
-                    children: [
+                      children: [
 
-                      Row(
-                        children: [
-                          const Text(
-                            'Events',
-                            style: TextStyle(
-                                color: ColorsB.yellow500,
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600
-                            ),
-                          ),
-                          const SizedBox(width: 10,),
-                          Visibility(
-                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin',
-                            child: GestureDetector(
-                              onTap: _showWritableEvent,
-                              child: const Icon(
-                                Icons.add_circle_outline,
-                                size: 40,
-                                color: ColorsB.gray800,
-
+                        Row(
+                          children: [
+                            const Text(
+                              'Events',
+                              style: TextStyle(
+                                  color: ColorsB.yellow500,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w600
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              height: 2,
-                              color: ColorsB.gray800,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 25,),
-                      Expanded(
-                        child: FutureBuilder(
-                          future: _loadEvents,
-                          builder: (context, snapshot){
-                            if(snapshot.hasData){
-                              return RefreshIndicator(
-                                onRefresh: () async {
-                                  events.clear();
+                            const SizedBox(width: 10,),
+                            Visibility(
+                              visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin',
+                              child: GestureDetector(
+                                onTap: _showWritableEvent,
+                                child: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 40,
+                                  color: ColorsB.gray800,
 
-
-                                  _loadEvents = loadEvents();
-
-                                  setState(() {});
-
-                                },
-                                child: ListView.builder(
-                                    physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
-                                    shrinkWrap: false,
-                                    itemCount: events.isNotEmpty ? events.length : 1,
-                                    itemBuilder: (context, index) {
-                                      if(events.isNotEmpty) {
-                                        return events[index];
-                                      }
-                                      else {
-                                        return Center(
-                                            child: Column(
-                                              children: [
-                                                SizedBox(
-                                                    height: screenHeight * 0.25,
-                                                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
-                                                ),
-                                                const Text(
-                                                  'Wow! Such empty. So class.',
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.white.withOpacity(0.25),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 20,),
-                                                TextButton.icon(
-                                                    icon: Icon(
-                                                      Icons.refresh,
-                                                      color: Colors.white,
-                                                    ),
-                                                    label: Text(
-                                                      'Refresh',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                    onPressed: () async {
-                                                      //  _refresh();
-                                                      events.clear();
-
-
-                                                      _loadEvents = loadEvents();
-
-                                                      setState(() {});
-
-                                                    },
-                                                    style: TextButton.styleFrom(
-                                                      backgroundColor: ColorsB.yellow500,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(
-                                                            50),
-                                                      ),
-                                                    )
-                                                ),
-                                              ],
-                                            )
-                                        );
-                                      }
-                                    }
                                 ),
-                              );
-                            }
-                            else {
-                              return ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: 5,
-                                itemBuilder: (_, index) =>
-                                    Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Shimmer.fromColors(
-                                        baseColor: ColorsB.gray800,
-                                        highlightColor: ColorsB.gray700,
-                                        child: Container(                         // Student containers. Maybe get rid of the hero
-                                          height: screenHeight * 3,
-                                          decoration: BoxDecoration(
-                                            color: ColorsB.gray800,
-                                            borderRadius: BorderRadius.circular(
-                                                50),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: ColorsB.gray800,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 25,),
+                        Expanded(
+                          child: FutureBuilder(
+                              future: _loadEvents,
+                              builder: (context, snapshot){
+                                if(snapshot.hasData){
+                                  return RefreshIndicator(
+                                    onRefresh: () async {
+                                      events.clear();
+
+
+                                      _loadEvents = loadEvents();
+
+                                      setState(() {});
+
+                                    },
+                                    child: ListView.builder(
+                                        physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                                        shrinkWrap: false,
+                                        itemCount: events.isNotEmpty ? events.length : 1,
+                                        itemBuilder: (context, index) {
+                                          if(events.isNotEmpty) {
+                                            return events[index];
+                                          }
+                                          else {
+                                            return Center(
+                                                child: Column(
+                                                  children: [
+                                                    SizedBox(
+                                                        height: screenHeight * 0.25,
+                                                        child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                                                    ),
+                                                    const Text(
+                                                      'Wow! Such empty. So class.',
+                                                      style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.white
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        color: Colors.white.withOpacity(0.25),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 20,),
+                                                    TextButton.icon(
+                                                        icon: Icon(
+                                                          Icons.refresh,
+                                                          color: Colors.white,
+                                                        ),
+                                                        label: Text(
+                                                          'Refresh',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 15,
+                                                          ),
+                                                        ),
+                                                        onPressed: () async {
+                                                          //  _refresh();
+                                                          events.clear();
+
+
+                                                          _loadEvents = loadEvents();
+
+                                                          setState(() {});
+
+                                                        },
+                                                        style: TextButton.styleFrom(
+                                                          backgroundColor: ColorsB.yellow500,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(
+                                                                50),
+                                                          ),
+                                                        )
+                                                    ),
+                                                  ],
+                                                )
+                                            );
+                                          }
+                                        }
+                                    ),
+                                  );
+                                }
+                                else {
+                                  return ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: 5,
+                                    itemBuilder: (_, index) =>
+                                        Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Shimmer.fromColors(
+                                            baseColor: ColorsB.gray800,
+                                            highlightColor: ColorsB.gray700,
+                                            child: Container(                         // Student containers. Maybe get rid of the hero
+                                              height: screenHeight * 3,
+                                              decoration: BoxDecoration(
+                                                color: ColorsB.gray800,
+                                                borderRadius: BorderRadius.circular(
+                                                    50),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                              );
-                            }
-                          }
-                        ),
-                      )
+                                  );
+                                }
+                              }
+                          ),
+                        )
 
-                    ]
+                      ]
                   )
                 ],
               ),

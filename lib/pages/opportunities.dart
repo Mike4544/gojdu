@@ -471,8 +471,8 @@ class TriangleBackground extends StatefulWidget {
 class _TriangleBackgroundState extends State<TriangleBackground> {
 
   static const double _backConstant = 1.5;
-  static const double _midConstant = 2.5;
-  static const double _frontConstant = 4;
+  static const double _midConstant = 3.5;
+  static const double _frontConstant = 6;
 
   late var _acceleration;
 
@@ -561,14 +561,17 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
                       sigmaY: value,
                       sigmaX: value
                   ),
-                  child: Image.asset('assets/images/3.png', frameBuilder: (_, child, ___, sync) {
-                    if(sync) return child;
-
-                    return const SizedBox(
-                      height: 50,
-                      width: 50,
+                  child: Image.asset('assets/images/3.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                      bool wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded) {
+                      return child;
+                    }
+                    return AnimatedOpacity(
+                      opacity: frame == null ? 0 : 1,
+                      duration: const Duration(seconds: 1),
+                      curve: Curves.easeOut,
+                      child: child,
                     );
-
                   },),
                 )
             ),
@@ -593,14 +596,17 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
                     child: SizedBox(
                       height: screenHeight * .2,
                       width: screenHeight * .2,
-                      child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (_, child, ___, sync) {
-                        if(sync) return child;
-
-                        return const SizedBox(
-                          height: 50,
-                          width: 50,
+                      child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                          bool wasSynchronouslyLoaded) {
+                        if (wasSynchronouslyLoaded) {
+                          return child;
+                        }
+                        return AnimatedOpacity(
+                          opacity: frame == null ? 0 : 1,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeOut,
+                          child: child,
                         );
-
                       },),
                     ),
                     duration: const Duration(milliseconds: 500),
@@ -614,14 +620,17 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
                       child: SizedBox(
                         height: screenHeight * .27,
                         width: screenHeight * .27,
-                        child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (_, child, ___, sync) {
-                          if(sync) return child;
-
-                          return const SizedBox(
-                            height: 50,
-                            width: 50,
+                        child:  Image.asset('assets/images/Untitled-1.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                            bool wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) {
+                            return child;
+                          }
+                          return AnimatedOpacity(
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeOut,
+                            child: child,
                           );
-
                         },),
                       ),
                     ),
@@ -637,7 +646,18 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
         Center(
           child:  SizedBox(
             height: screenHeight * .4,
-            child:  Image.asset('assets/images/Target.png'),
+            child:  Image.asset('assets/images/Target.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                bool wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) {
+                return child;
+              }
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },),
           ),
         ),
         TweenAnimationBuilder<double>(
@@ -653,14 +673,17 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
                       sigmaY: value,
                       sigmaX: value
                   ),
-                  child: Image.asset('assets/images/Triangle1.png', frameBuilder: (_, child, ___, sync) {
-                    if(sync) return child;
-
-                    return const SizedBox(
-                      height: 50,
-                      width: 50,
+                  child: Image.asset('assets/images/Triangle1.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                      bool wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded) {
+                      return child;
+                    }
+                    return AnimatedOpacity(
+                      opacity: frame == null ? 0 : 1,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                      child: child,
                     );
-
                   },),
                 )
             ),

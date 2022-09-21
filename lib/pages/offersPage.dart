@@ -32,6 +32,8 @@ class OffersPage extends StatefulWidget {
   State<OffersPage> createState() => _OffersPageState();
 }
 
+
+
 class _OffersPageState extends State<OffersPage>{
 
   late List<OfferContainer> offers;
@@ -91,12 +93,18 @@ class _OffersPageState extends State<OffersPage>{
                   id: id,
                   compName: company,
                   date: DateTime(year, month, day),
-                  delete: () {},
+                  delete: () async {
+                    await deleteEvent(id, i - 2);
+                    setState(() {
+
+                    });
+                  },
                   discount: discount,
                   fullDescription: long,
                   smallDescription: short,
                   globalMap: globalMap,
                   gmaps_link: mapsLink,
+                  headerImageLink: Imlink,
                   logoLink: logo,
                   owner: owner,
                   s_color: color,
@@ -145,6 +153,127 @@ class _OffersPageState extends State<OffersPage>{
       setState(() {
 
       });
+  }
+
+  Future<void> deleteEvent(int Id, int index) async {
+
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/deleteOffer.php');
+      final response = await http.post(url, body: {
+        "id": Id.toString()
+      });
+
+      print(Id.toString());
+      print(response.statusCode);
+
+      if(response.statusCode == 200){
+        print(response.body);
+
+        var jsondata = json.decode(response.body);
+        //  print(jsondata);
+
+        if(jsondata['error']){
+
+          print('Errored');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                content: Row(
+                  children: const [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Uh-oh! Something went wrong!',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Row(
+                  children: const [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Hooray! The post was deleted.',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+          offers.removeAt(index);
+
+
+        }
+
+
+
+      }
+      else {
+        print("Deletion failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              content: Row(
+                children: const [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Uh-oh! Something went wrong!',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      }
+
+    } catch(e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            content: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 20,),
+                Text(
+                  'Uh-oh! Something went wrong!',
+                  style: TextStyle(
+                      color: Colors.white
+                  ),
+                )
+              ],
+            ),
+          )
+      );
+
+      print(e);
+
+    }
+
+
   }
 
 
@@ -428,7 +557,6 @@ class OfferContainer extends StatelessWidget {
                           children: [
                             SizedBox(
                               height: screenHeight * .05,
-                              width: screenHeight * .05,
                               child: ColorFiltered(
                                 colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcATop),
                                 child: Image.network(logoLink),
@@ -447,25 +575,39 @@ class OfferContainer extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Flexible(
+                            Expanded(
                               flex: 1,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: discount.length < 10
+                                    ? FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Text(
+                                        discount,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                    : Text(
                                   discount,
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 50.sp
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15.sp
                                   ),
                                 ),
                               ),
                             ),
-                            Flexible(
+                            Expanded(
                               flex: 2,
-                              child: Text(
-                                smallDescription,
-                                style: subtitleStyle,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(
+                                  smallDescription,
+                                  style: subtitleStyle,
+                                ),
                               ),
                             )
                           ],
@@ -497,6 +639,97 @@ class OfferContainer extends StatelessWidget {
                   
                   
                 },
+              ),
+            ),
+            Visibility(
+              visible: globalMap['account'] == 'Admin' || '${globalMap['first_name']} ${globalMap['last_name']}' == owner,
+              child: Positioned(
+                bottom: 10,
+                right: 10,
+                child: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) =>
+                            AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                backgroundColor: ColorsB.gray900,
+                                title: Column(
+                                  children: const [
+                                    Text(
+                                      'Are you sure you want delete this post?',
+                                      style: TextStyle(
+                                          color: ColorsB.yellow500,
+                                          fontSize: 15
+                                      ),
+                                    ),
+                                    Divider(
+                                      color: ColorsB.yellow500,
+                                      thickness: 1,
+                                      height: 10,
+                                    )
+                                  ],
+                                ),
+                                content: SizedBox(
+                                  height: 75,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: [
+                                          InkWell(
+                                            onTap: () async {
+
+                                              await delete();
+
+                                              Navigator.of(context).pop();
+
+                                              //  logoff(context);
+                                            },
+                                            borderRadius: BorderRadius.circular(30),
+                                            child: Ink(
+                                              decoration: BoxDecoration(
+                                                color: ColorsB.yellow500,
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              height: 50,
+                                              width: 75,
+                                              child: Icon(
+                                                Icons.check, color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                          InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            borderRadius: BorderRadius.circular(30),
+                                            child: Ink(
+                                              decoration: BoxDecoration(
+                                                color: ColorsB.gray800,
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              height: 50,
+                                              width: 75,
+                                              child: Icon(
+                                                Icons.close, color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                )
+                            )
+                    );
+                  },
+                ),
               ),
             )
           ],
@@ -568,6 +801,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   Widget topPage() {
     //print(imageLink);
+    print(widget.imageString);
 
 
     if(widget.imageString == 'null' || widget.imageString == ''){
@@ -942,9 +1176,9 @@ class _BackgroundState extends State<Background>{
 
   late AccelerometerEvent _parallaxValues;
 
-  static const double _backConstant = 1.5;
-  static const double _midConstant = 2.5;
-  static const double _frontConstant = 4;
+  static const double _backConstant = 2.5;
+  static const double _midConstant = 3.5;
+  static const double _frontConstant = 6;
 
   //  static const sensitivity = 4;
   late Timer _timer;
@@ -952,6 +1186,8 @@ class _BackgroundState extends State<Background>{
   @override
   void initState() {
     super.initState();
+
+    _parallaxValues = AccelerometerEvent(0, 0, 0);
 
 
     blur1 = 0;
@@ -1023,28 +1259,30 @@ class _BackgroundState extends State<Background>{
               curve: Curves.ease,
               top: screenHeight * .025 + -(_parallaxValues.y * _backConstant),
               right: 25 + -_parallaxValues.x * _backConstant,
-              child: ClipRRect(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(
-                    sigmaX: value,
-                    sigmaY: value,
-                  ),
-                  child: Container(
-                    width: screenWidth * .5,
-                    height: screenWidth * .5,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                        color: Colors.red,
-                        gradient: const LinearGradient(
-                            colors: [
-                              Color(0xff8A2387),
-                              Color(0xffE94057),
-                              Color(0xffF27121)
-                            ],
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight
-                        ),
-                        borderRadius: BorderRadius.circular(360)
+              child: ClipRect(
+                child: ClipOval(
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      sigmaX: value,
+                      sigmaY: value,
+                    ),
+                    child: Container(
+                      width: screenWidth * .5,
+                      height: screenWidth * .5,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                          color: Colors.red,
+                          gradient: LinearGradient(
+                              colors: [
+                                Color(0xff8A2387),
+                                Color(0xffE94057),
+                                Color(0xffF27121)
+                              ],
+                              begin: Alignment.bottomLeft,
+                              end: Alignment.topRight
+                          ),
+                      ),
                     ),
                   ),
                 ),
@@ -1060,28 +1298,31 @@ class _BackgroundState extends State<Background>{
               curve: Curves.ease,
               top: screenHeight * .3 + -(_parallaxValues.y * _midConstant),
               left: 25 + _parallaxValues.x * _midConstant,
-              child: ClipRRect(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(
-                      sigmaY: value,
-                      sigmaX: value
-                  ),
-                  child: Container(
-                    width: screenWidth * .15,
-                    height: screenWidth * .15,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                        color: Colors.red,
-                        gradient: const LinearGradient(
-                            colors: [
-                              Color(0xff8A2387),
-                              Color(0xffE94057),
-                              Color(0xffF27121)
-                            ],
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight
-                        ),
-                        borderRadius: BorderRadius.circular(360)
+              child: ClipRect(
+                child: ClipOval(
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                        sigmaY: value,
+                        sigmaX: value
+                    ),
+                    child: Container(
+                      width: screenWidth * .15,
+                      height: screenWidth * .15,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: const BoxDecoration(
+                          color: Colors.red,
+                          gradient: LinearGradient(
+                              colors: [
+                                Color(0xff8A2387),
+                                Color(0xffE94057),
+                                Color(0xffF27121)
+                              ],
+                              begin: Alignment.bottomLeft,
+                              end: Alignment.topRight
+                          ),
+                        shape: BoxShape.circle
+
+                      ),
                     ),
                   ),
                 ),
@@ -1091,7 +1332,18 @@ class _BackgroundState extends State<Background>{
         Center(
           child: SizedBox(
             height: screenHeight * .4,
-            child: Image.asset('assets/images/abstractFire.png'),
+            child: Image.asset('assets/images/abstractFire.png', frameBuilder: (BuildContext context, Widget child, int? frame,
+                bool wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) {
+                return child;
+              }
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.ease,
+                child: child,
+              );
+            },),
           ),
         ),
         AnimatedPositioned(
@@ -1103,27 +1355,28 @@ class _BackgroundState extends State<Background>{
             tween: Tween<double>(begin: lastBlur3, end: blur3),
             duration: const Duration(seconds: 5),
             curve: Curves.ease,
-            builder: (_, value, __) => ClipRRect(
-              clipBehavior: Clip.antiAlias,
-              child: ImageFiltered(imageFilter: ImageFilter.blur(
-                  sigmaY: value,
-                  sigmaX: value
-              ),
-                child: Container(
-                  width: screenWidth * .5,
-                  height: screenWidth * .5,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      gradient: const LinearGradient(
-                          colors: [
-                            Color(0xff8A2387),
-                            Color(0xffE94057),
-                            Color(0xffF27121)
-                          ],
-                          begin: Alignment.bottomLeft,
-                          end: Alignment.topRight
-                      ),
-                      borderRadius: BorderRadius.circular(360)
+            builder: (_, value, __) => ClipRect(
+              child: ClipOval(
+                child: ImageFiltered(imageFilter: ImageFilter.blur(
+                    sigmaY: value,
+                    sigmaX: value
+                ),
+                  child: Container(
+                    width: screenWidth * .5,
+                    height: screenWidth * .5,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                        color: Colors.red,
+                        gradient: LinearGradient(
+                            colors: [
+                              Color(0xff8A2387),
+                              Color(0xffE94057),
+                              Color(0xffF27121)
+                            ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight
+                        ),
+                    ),
                   ),
                 ),
               ),
