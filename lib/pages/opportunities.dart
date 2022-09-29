@@ -278,6 +278,18 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
 
   }
 
+  Future _refresh() async {
+    opportunities.clear();
+
+    _getOpportunities = loadOpportunities();
+
+    setState(() {
+
+    });
+
+
+  }
+
   late List<OpportunityCard> opportunities;
 
   final searchEditor = TextEditingController();
@@ -289,6 +301,8 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
     super.initState();
 
   }
+
+
 
   @override
   void dispose() {
@@ -324,74 +338,77 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
       }
 
 
-      return Scrollbar(
-        child: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: dummyList.isNotEmpty ? dummyList.length : 1,
-            shrinkWrap: true,
-            itemBuilder: (context, index){
-              if(dummyList.isNotEmpty){
-                return dummyList[index];
-              }
-              else {
-                return Center(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                            height: screenHeight * 0.25,
-                            child: SvgPicture.asset('assets/svgs/no_posts.svg')
-                        ),
-                        const Text(
-                          'Wow! Such empty. So class.',
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: Scrollbar(
+          child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: dummyList.isNotEmpty ? dummyList.length : 1,
+              shrinkWrap: true,
+              itemBuilder: (context, index){
+                if(dummyList.isNotEmpty){
+                  return dummyList[index];
+                }
+                else {
+                  return Center(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              height: screenHeight * 0.25,
+                              child: Image.asset('assets/images/no_posts.png'),
                           ),
-                        ),
-                        Text(
-                          "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white.withOpacity(0.25),
-                          ),
-                        ),
-                        const SizedBox(height: 20,),
-                        TextButton.icon(
-                            icon: const Icon(
-                              Icons.refresh,
-                              color: Colors.white,
+                          const Text(
+                            'Wow! Such empty. So class.',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white
                             ),
-                            label: const Text(
-                              'Refresh',
-                              style: TextStyle(
+                          ),
+                          Text(
+                            "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white.withOpacity(0.25),
+                            ),
+                          ),
+                          const SizedBox(height: 20,),
+                          TextButton.icon(
+                              icon: const Icon(
+                                Icons.refresh,
                                 color: Colors.white,
-                                fontSize: 15,
                               ),
-                            ),
-                            onPressed: () async {
-                              //  _refresh();
-                              opportunities.clear();
-
-
-                              _getOpportunities = loadOpportunities();
-
-                              setState(() {});
-
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: ColorsB.yellow500,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    50),
+                              label: const Text(
+                                'Refresh',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
                               ),
-                            )
-                        ),
-                      ],
-                    )
-                );
+                              onPressed: () async {
+                                //  _refresh();
+                                opportunities.clear();
+
+
+                                _getOpportunities = loadOpportunities();
+
+                                setState(() {});
+
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: ColorsB.yellow500,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      50),
+                                ),
+                              )
+                          ),
+                        ],
+                      )
+                  );
+                }
               }
-            }
+          ),
         ),
       );
 
@@ -660,39 +677,6 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
             },),
           ),
         ),
-        TweenAnimationBuilder<double>(
-          duration: const Duration(seconds: 4),
-          curve: Curves.ease,
-          tween: Tween<double>(begin: _lb3, end: _b3),
-          builder: (_, value, __) => AnimatedPositioned(
-            child: SizedBox(
-                height: screenHeight * .6,
-                width: screenHeight * .6,
-                child:  ImageFiltered(
-                  imageFilter: ImageFilter.blur(
-                      sigmaY: value,
-                      sigmaX: value
-                  ),
-                  child: Image.asset('assets/images/Triangle1.png', frameBuilder: (BuildContext context, Widget child, int? frame,
-                      bool wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded) {
-                      return child;
-                    }
-                    return AnimatedOpacity(
-                      opacity: frame == null ? 0 : 1,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.ease,
-                      child: child,
-                    );
-                  },),
-                )
-            ),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.ease,
-            bottom: -60.0 + (_acceleration.y * _frontConstant),
-            left: - 75.0 + _acceleration.x * _frontConstant,
-          ),
-        ),
 
       ],
     );
@@ -821,7 +805,7 @@ class OpportunityCard extends StatelessWidget {
   final String? headerImageLink;
   final String owner;
   final String date;
-  final Function delete;
+  final delete;
 
 
   const OpportunityCard({
@@ -1457,63 +1441,71 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
         bottomNavigationBar: const BackNavbar(),
         backgroundColor: ColorsB.gray900,
-        body: CustomScrollView(
-          controller: _controller,
-          slivers: [
-            SliverAppBar(
-              backgroundColor: widget.color,
-              automaticallyImplyLeading: false,
-              expandedHeight: screenHeight * .75,
-              pinned: true,
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: [
-                  StretchMode.blurBackground,
-                ],
-                background: topPage(),
-              ),
-              title: AnimatedOpacity(
-                  opacity: visible ? 1 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
-                        style: TextStyle(
-                            color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
-                            fontWeight: FontWeight.bold
+        body: Scrollbar(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            controller: _controller,
+            slivers: [
+              SliverAppBar(
+                backgroundColor: widget.color,
+                automaticallyImplyLeading: false,
+                expandedHeight: screenHeight * .75,
+                pinned: true,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: [
+                    StretchMode.blurBackground,
+                  ],
+                  background: topPage(),
+                ),
+                title: AnimatedOpacity(
+                    opacity: visible ? 1 : 0,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: Row(
+                      children: [
+                        Text(
+                          widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
+                          style: TextStyle(
+                              color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                              fontWeight: FontWeight.bold
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-              ),
-
-            ),
-            SliverFillRemaining(
-              child: SizedBox(
-                child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: SelectableLinkify(
-                      linkStyle: const TextStyle(color: ColorsB.yellow500),
-                      text: widget.description,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17.5,
-                          fontWeight: FontWeight.normal
-                      ),
-                      onOpen: (link) async {
-                        if (await canLaunch(link.url)) {
-                          await launch(link.url);
-                        } else {
-                          throw 'Could not launch $link';
-                        }
-                      },
+                      ],
                     )
                 ),
+
               ),
-            )
-          ],
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SelectableLinkify(
+                          linkStyle: const TextStyle(color: ColorsB.yellow500),
+                          text: widget.description,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 17.5,
+                              fontWeight: FontWeight.normal
+                          ),
+                          onOpen: (link) async {
+                            if (await canLaunch(link.url)) {
+                              await launch(link.url);
+                            } else {
+                              throw 'Could not launch $link';
+                            }
+                          },
+                        ),
+                        const Spacer()
+                      ],
+                    )
+                ),
+              )
+            ],
+          ),
         )
     );
 

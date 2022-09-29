@@ -142,42 +142,39 @@ class _CurvedAppbarState extends State<CurvedAppbar>{
                   clipBehavior: Clip.hardEdge,
                   child: SizedBox(
                     width: widget.map['account'] == 'Admin' || widget.map['account'] == 'Teacher' ? MediaQuery.of(context).size.width * .25 : MediaQuery.of(context).size.width * .35,
-                    child:  Visibility(
-                      visible: widget.map['verification'] == "Verified",
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: FittedBox(
-                              fit: BoxFit.fitHeight,
-                              child: Text(
-                                widget.map['account'] == 'Teacher' ? 'Prof. ${widget.map["first_name"]} ${widget.map["last_name"]}' : '${widget.map["first_name"]} ${widget.map["last_name"]}',
-                                style: const TextStyle(
-                                    color: ColorsB.gray900,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15
-                                ),
+                    child:  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 2,
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: Text(
+                              widget.map['account'] == 'Teacher' ? 'Prof. ${widget.map["first_name"]} ${widget.map["last_name"]}' : '${widget.map["first_name"]} ${widget.map["last_name"]}',
+                              style: const TextStyle(
+                                  color: ColorsB.gray900,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15
                               ),
                             ),
                           ),
-                          Flexible(
-                            flex: 1,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
-                              child: Text(
-                                scoala,
-                                style: const TextStyle(
-                                    color: ColorsB.gray900,
-                                    fontSize: 20
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: Text(
+                              scoala,
+                              style: const TextStyle(
+                                  color: ColorsB.gray900,
+                                  fontSize: 20
 
-                                ),
                               ),
                             ),
-                          )
-                        ],
-                      ),
+                          ),
+                        )
+                      ],
                     )
               ),
                 ),

@@ -309,7 +309,7 @@ class _OffersPageState extends State<OffersPage>{
                       children: [
                         SizedBox(
                             height: screenHeight * 0.25,
-                            child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                            child: Image.asset('assets/images/no_posts.png'),
                         ),
                         const Text(
                           'Wow! Such empty. So class.',

@@ -456,10 +456,12 @@ class _SecondPageState extends State<SecondPage> {
                               Navigator.of(context).pop('dialog');
 
                               final loginMap = {
-                                "username": user,
-                                "email": email,
-                                "account": acc_type,
-                                "kid": kid,
+                                'first_name': fntopass,
+                                'last_name': lntopass,
+                                'email': email,
+                                'account': acc_type,
+                                'verification': jsondata['verification'],
+                                'id': jsondata['id'],
                               };
 
                               Navigator.pushReplacement(context, MaterialPageRoute(

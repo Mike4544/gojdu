@@ -266,19 +266,22 @@ class AlertContainer extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          title.length < 31 ? title : '$title...',
-                          overflow: TextOverflow.fade,
-                          style: TextStyle(
-                              color: !read ? Colors.white : Colors.white30,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17.5
+                        Flexible(
+                          child: Text(
+                            title.length < 15 ? title : '${title.substring(0, 15)}...',
+                            overflow: TextOverflow.fade,
+                            style: TextStyle(
+                                color: !read ? Colors.white : Colors.white30,
+                                fontWeight: FontWeight.bold,
+                                overflow: TextOverflow.fade,
+                                fontSize: 17.5
+                            ),
                           ),
                         ),
                         const SizedBox(height: 15,),
@@ -292,11 +295,16 @@ class AlertContainer extends StatelessWidget {
                       ],
 
                     ),
-                    Text(
-                      'Alerted by $owner',
-                      style: TextStyle(
-                          color: read ? Colors.white30 : ColorsB.yellow500,
-                          fontSize: 15
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Text(
+                          owner.length < 12 ? 'Alerted by $owner' : 'Alerted by ${owner.substring(0, 15)}...',
+                          style: TextStyle(
+                              color: read ? Colors.white30 : ColorsB.yellow500,
+                              fontSize: 15
+                          ),
+                        ),
                       ),
                     ),
                   ],

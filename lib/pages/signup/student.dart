@@ -212,11 +212,14 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                               Navigator.of(context).pop('dialog');
 
+
                               final loginMap = {
-                                "username": user,
-                                "email": email,
-                                "account": acc_type,
-                                'verification': 'Pending',
+                                'first_name': _username.value.text,
+                                'last_name': _lastname.value.text,
+                                'email': email,
+                                'account': acc_type,
+                                'verification': jsondata['verification'],
+                                'id': jsondata['id'],
                               };
 
                               Navigator.pushReplacement(context, MaterialPageRoute(

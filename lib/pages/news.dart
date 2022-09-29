@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -294,37 +295,34 @@ class _NewsPageState extends State<NewsPage>{
               ],
               content: SizedBox(
                 height: screenHeight * 0.5,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: SvgPicture.asset(
-                          'assets/svgs/screen_new.svg',
-                          fit: BoxFit.contain,
-                        ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      child: SvgPicture.asset(
+                        'assets/svgs/screen_new.svg',
+                        fit: BoxFit.contain,
                       ),
-                      const Text(
-                        'Welcome! One more thing before you can start using the app.',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 17.5,
-                          color: ColorsB.yellow500,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      'Welcome! One more thing before you can start using the app.',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 17.5.sp,
+                        color: ColorsB.yellow500,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 25),
-                      Text(
-                        'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 13,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
+                    ),
+                    const SizedBox(height: 25),
+                    Text(
+                      'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 13.sp,
+                        color: Colors.white.withOpacity(0.5),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             )
@@ -349,12 +347,7 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage('assets/images/Triangle1.png'), context);
     precacheImage(const AssetImage('assets/images/Untitled-1.png'), context);
     precacheImage(const AssetImage('assets/images/Target.png'), context);
-    precachePicture(ExactAssetPicture(
-        SvgPicture.svgStringDecoderBuilder,
-        'assets/svgs/no_posts.svg'
-    ),
-      null,
-    );
+    precacheImage(const AssetImage('assets/images/no_posts.png'), context);
 
   }
 
@@ -1349,7 +1342,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
 
 
-  List<Post> posts = [];
+  List<Widget> posts = [];
 
 
   late int currSelect;
@@ -1676,7 +1669,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                                     child: ListView.builder(
                                         physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
                                         shrinkWrap: false,
-                                        itemCount: events.isNotEmpty ? events.length : 1,
+                                        itemCount: events.length > 1 ? events.length : 1,
                                         itemBuilder: (context, index) {
                                           if(events.isNotEmpty) {
                                             return events[index];
@@ -1687,7 +1680,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                                                   children: [
                                                     SizedBox(
                                                         height: screenHeight * 0.25,
-                                                        child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                                                        child: Image.asset('assets/images/no_posts.png'),
                                                     ),
                                                     const Text(
                                                       'Wow! Such empty. So class.',
@@ -1862,6 +1855,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               } */
 
             }
+            events.add(SizedBox(height: screenHeight * .1));
             //  print(events);
           }
           else
@@ -1878,7 +1872,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
   }
 
-  late List<Event> events;
+  late List<Widget> events;
 
 
 
@@ -1987,7 +1981,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
         );
       }
       else {
-        if(posts.isNotEmpty){
+        if(posts.length > 1){
           return RefreshIndicator(
             backgroundColor: ColorsB.gray900,
             color: _color,
@@ -2039,7 +2033,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                 children: [
                   SizedBox(
                     height: screenHeight * 0.25,
-                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                    child: Image.asset('assets/images/no_posts.png'),
                   ),
                   const Text(
                     'Wow! Such empty. So class.',
@@ -2443,11 +2437,6 @@ Future<int> load(String channel) async {
                 }
 
 
-
-                ////print(globalMap['id']);
-
-
-
                 if(post != "null" && post != null){
 
 
@@ -2486,24 +2475,12 @@ Future<int> load(String channel) async {
                   );
 
 
-
-                  //(link);
-
-                  // Prechaching the asset
-
-
-
                   ++maximumCount;
                 }
 
-                /* if(post != "null")
-              {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
-              } */
-
               }
+              posts.add(const SizedBox(height: 100));
+
               setState(() {
                 isLoading = false;
                 loaded = true;
@@ -2928,74 +2905,78 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
       bottomNavigationBar: const BackNavbar(),
       backgroundColor: ColorsB.gray900,
-      body: CustomScrollView(
-        controller: _controller,
-        slivers: [
-          SliverAppBar(
-            backgroundColor: widget.color,
-            automaticallyImplyLeading: false,
-            expandedHeight: screenHeight * .75,
-            pinned: true,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: [
-                StretchMode.blurBackground,
-              ],
-              background: topPage(),
-            ),
-            title: AnimatedOpacity(
-                opacity: visible ? 1 : 0,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: Row(
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.contain,
-                      child: Text(
-                          widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
+      body: Scrollbar(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: ClampingScrollPhysics()),
+          controller: _controller,
+          slivers: [
+            SliverAppBar(
+              backgroundColor: widget.color,
+              automaticallyImplyLeading: false,
+              expandedHeight: screenHeight * .75,
+              pinned: true,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: [
+                  StretchMode.blurBackground,
+                ],
+                background: topPage(),
+              ),
+              title: AnimatedOpacity(
+                  opacity: visible ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  child: Row(
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text(
+                            widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 25,),
-                    Chip(
-                      backgroundColor: ColorsB.gray200,
-                      avatar: _CircleAvatar(),
-                      label: Text(
-                          widget.author
-                      ),
-                    )
-                  ],
-                )
-            ),
-
-          ),
-          SliverFillRemaining(
-            child: SizedBox(
-              child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Linkify(
-                    linkStyle: const TextStyle(color: ColorsB.yellow500),
-                    text: widget.description,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.normal
-                    ),
-                    onOpen: (link) async {
-                      if (await canLaunch(link.url)) {
-                        await launch(link.url);
-                      } else {
-                        throw 'Could not launch $link';
-                      }
-                    },
+                      const SizedBox(width: 25,),
+                      Chip(
+                        backgroundColor: ColorsB.gray200,
+                        avatar: _CircleAvatar(),
+                        label: Text(
+                            widget.author
+                        ),
+                      )
+                    ],
                   )
               ),
+
             ),
-          )
-        ],
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: SizedBox(
+                child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Linkify(
+                      linkStyle: const TextStyle(color: ColorsB.yellow500),
+                      text: widget.description,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17.5,
+                          fontWeight: FontWeight.normal
+                      ),
+                      onOpen: (link) async {
+                        if (await canLaunch(link.url)) {
+                          await launch(link.url);
+                        } else {
+                          throw 'Could not launch $link';
+                        }
+                      },
+                    )
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     ) ;
   }
@@ -3004,43 +2985,44 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     //print(imageLink);
 
 
-    if(widget.imageLink == 'null'){
+    if(widget.imageLink == 'null' || widget.imageLink == ''){
       return Hero(
         tag: 'title-rectangle',
         child: Container(
           color: widget.color,
           child: Align(
-            alignment: Alignment.bottomLeft,
+            alignment: Alignment.bottomCenter,
             child: Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Expanded(
                       child: SizedBox(
                           height: screenHeight * .3,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold
                                   ),
                                 ),
-                                Chip(
-                                  backgroundColor: ColorsB.gray200,
-                                  avatar: _CircleAvatar(),
-                                  label: Text(
-                                      widget.author
-                                  ),
-                                )
-                              ],
-                            ),
+                              ),
+                              Chip(
+                                backgroundColor: ColorsB.gray200,
+                                avatar: _CircleAvatar(),
+                                label: Text(
+                                    widget.author
+                                ),
+                              )
+                            ],
                           )
                       ),
                     ),
@@ -3217,7 +3199,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                                            widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
                                             style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 30,
@@ -4027,10 +4009,7 @@ class _CalPag1State extends State<CalPag1> {
                               ),
                             ),
                             const SizedBox(height: 20,),
-                            SvgPicture.asset(
-                              'assets/svgs/no_posts.svg',
-                              height: 200,
-                            ),
+                            Image.asset('assets/images/no_posts.png', height: 200,),
                           ],
                         ),
                       );
@@ -4297,6 +4276,127 @@ class _CalPag1State extends State<CalPag1> {
     );
   }
 
+  Future<void> deleteEvent(int Id, int index) async {
+
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/deleteHall.php');
+      final response = await http.post(url, body: {
+        "id": Id.toString()
+      });
+
+      print(Id.toString());
+      print(response.statusCode);
+
+      if(response.statusCode == 200){
+        print(response.body);
+
+        var jsondata = json.decode(response.body);
+        //  print(jsondata);
+
+        if(jsondata['error']){
+
+          print('Errored');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                content: Row(
+                  children: const [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Uh-oh! Something went wrong!',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Row(
+                  children: const [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Hooray! The post was deleted.',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+          halls.removeAt(index);
+
+
+        }
+
+
+
+      }
+      else {
+        print("Deletion failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              content: Row(
+                children: const [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Uh-oh! Something went wrong!',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      }
+
+    } catch(e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            content: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 20,),
+                Text(
+                  'Uh-oh! Something went wrong!',
+                  style: TextStyle(
+                      color: Colors.white
+                  ),
+                )
+              ],
+            ),
+          )
+      );
+
+      print(e);
+
+    }
+
+
+  }
+
   Future<int> _loadHalls() async {
     //await Future.delayed(const Duration(seconds: 1));
     //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
@@ -4320,7 +4420,19 @@ class _CalPag1State extends State<CalPag1> {
 
             if (title != null && size != null) {
 
-              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage, Id: jsondata[i.toString()]['id']);
+              Hall hall = Hall(
+                  index: i-2,
+                  title: title,
+                  size: size,
+                  changePage: changePage,
+                  Id: jsondata[i.toString()]['id'],
+                  delete: () async {
+                  await deleteEvent(jsondata[i.toString()]['id'], i - 2);
+                  setState(() {
+
+                  });
+                },
+              );
 
               halls.add(hall);
               //print(halls);
@@ -4368,8 +4480,9 @@ class Hall extends StatelessWidget {
   final String title;
   final String size;
   final int Id;
+  final Function delete;
   final Function(int) changePage;
-  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id}) : super(key: key);
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id, required this.delete}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -4379,84 +4492,179 @@ class Hall extends StatelessWidget {
         color: ColorsB.gray800,
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(30),
-          onTap: () {
-            _currentHall = Id;
-            changePage(1);
-          },
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: ShaderMask(
-                  shaderCallback: (rect) {
-                    return const material.LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      stops: [0, 1],
-                      colors: [
-                        Colors.transparent,
-                        Colors.black,
-                      ],
-                    ).createShader(rect);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: Icon(
-                    Icons.account_balance_sharp,
-                    color: ColorsB.gray700.withOpacity(0.25),
-                    size: 75,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.account_balance,
-                          color: ColorsB.yellow500,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10,),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.fitWidth,
-                            child: Text(
-                              title,
-                              style: const TextStyle(
-                                overflow: TextOverflow.ellipsis,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(
-                      color: Colors.white.withOpacity(0.1),
-                      thickness: 1,
-                    ),
-                    const SizedBox(height: 10,),
-                    Text(
-                      'Type: ${size}',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 10,
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
+                _currentHall = Id;
+                changePage(1);
+              },
+              child: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return const material.LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          stops: [0, 1],
+                          colors: [
+                            Colors.transparent,
+                            Colors.black,
+                          ],
+                        ).createShader(rect);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Icon(
+                        Icons.account_balance_sharp,
+                        color: ColorsB.gray700.withOpacity(0.25),
+                        size: 75,
                       ),
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.account_balance,
+                              color: ColorsB.yellow500,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10,),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.fitWidth,
+                                child: Text(
+                                  title,
+                                  style: const TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(
+                          color: Colors.white.withOpacity(0.1),
+                          thickness: 1,
+                        ),
+                        const SizedBox(height: 10,),
+                        Text(
+                          'Type: ${size}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 10,
+                          ),
+                        ),
 
-                  ],
-                ),
-              )
-            ],
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
+          Visibility(
+            visible: globalMap['account'] == 'Admin',
+            child: Positioned(
+              bottom: 10,
+              right: 10,
+              child: IconButton(
+                icon: Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) =>
+                          AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: ColorsB.gray900,
+                              title: Column(
+                                children: const [
+                                  Text(
+                                    'Are you sure you want delete this post?',
+                                    style: TextStyle(
+                                        color: ColorsB.yellow500,
+                                        fontSize: 15
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: ColorsB.yellow500,
+                                    thickness: 1,
+                                    height: 10,
+                                  )
+                                ],
+                              ),
+                              content: SizedBox(
+                                height: 75,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        InkWell(
+                                          onTap: () async {
+
+                                            await delete();
+
+                                            Navigator.of(context).pop();
+
+                                            //  logoff(context);
+                                          },
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              color: ColorsB.yellow500,
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            height: 50,
+                                            width: 75,
+                                            child: Icon(
+                                              Icons.check, color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              color: ColorsB.gray800,
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            height: 50,
+                                            width: 75,
+                                            child: Icon(
+                                              Icons.close, color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              )
+                          )
+                  );
+                },
+              ),
+            ),
+          ),
+        ]
       ),
     );
   }
@@ -4759,330 +4967,333 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                   ),
                                   SizedBox(
                                     height: 30,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          if(globalMap['verification'] != "Pending"){
-                                            showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  var timeText = TextEditingController();
-                                                  var timeText2 = TextEditingController();
+                                    child: Visibility(
+                                      visible: globalMap['account'] != 'Student',
+                                      child: TextButton(
+                                          onPressed: () {
+                                            if(globalMap['verification'] != "Pending"){
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    var timeText = TextEditingController();
+                                                    var timeText2 = TextEditingController();
 
-                                                  TimeOfDay? parsedTime1;
-                                                  TimeOfDay? parsedTime2;
+                                                    TimeOfDay? parsedTime1;
+                                                    TimeOfDay? parsedTime2;
 
-                                                  var _formKey = GlobalKey<FormState>();
-                                                  var errorText1, errorText2;
+                                                    var _formKey = GlobalKey<FormState>();
+                                                    var errorText1, errorText2;
 
-                                                  bool clicked = false;
+                                                    bool clicked = false;
 
 
 
-                                                  return StatefulBuilder(
-                                                      builder: (_, StateSetter setState) =>
-                                                          AlertDialog(
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(30),
-                                                              ),
-                                                              backgroundColor: ColorsB.gray900,
-                                                              content: SizedBox(
-                                                                height: 200,
-                                                                child: Center(
-                                                                  child: Form(
-                                                                    key: _formKey,
-                                                                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                                                                    child: Column(
-                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                      children: [
-                                                                        Row(
-                                                                          children: [
-                                                                            const Text(
-                                                                              'From: ',
-                                                                              style: TextStyle(
-                                                                                fontSize: 15,
-                                                                                fontWeight: FontWeight.bold,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              width: 200,
-                                                                              height: 50,
-                                                                              child: TextFormField(
-                                                                                controller: timeText,
-                                                                                style: const TextStyle(
+                                                    return StatefulBuilder(
+                                                        builder: (_, StateSetter setState) =>
+                                                            AlertDialog(
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(30),
+                                                                ),
+                                                                backgroundColor: ColorsB.gray900,
+                                                                content: SizedBox(
+                                                                  height: 200,
+                                                                  child: Center(
+                                                                    child: Form(
+                                                                      key: _formKey,
+                                                                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                                      child: Column(
+                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          Row(
+                                                                            children: [
+                                                                              const Text(
+                                                                                'From: ',
+                                                                                style: TextStyle(
                                                                                   fontSize: 15,
+                                                                                  fontWeight: FontWeight.bold,
                                                                                   color: Colors.white,
                                                                                 ),
-
-                                                                                readOnly: true,
-                                                                                decoration: InputDecoration(
-                                                                                  errorText: errorText1,
-                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                  labelText: "Enter Time", //label text of field
-                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                  focusedBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                width: 10,
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: 200,
+                                                                                height: 50,
+                                                                                child: TextFormField(
+                                                                                  controller: timeText,
+                                                                                  style: const TextStyle(
+                                                                                    fontSize: 15,
+                                                                                    color: Colors.white,
                                                                                   ),
-                                                                                  enabledBorder: UnderlineInputBorder(
-                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                                ),
 
-                                                                                onTap: () async {
-                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  //print(pickedTime.toString());
-                                                                                  if(pickedTime != null){
-                                                                                    parsedTime1 = pickedTime;
-                                                                                    //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  //print(formattedTime);
-                                                                                    setState(() {
-                                                                                      timeText.text = formattedTime;
-                                                                                      _time1 = formattedTime;
-                                                                                      //print(formattedTime);
-
-                                                                                    });
-                                                                                  }
-
-                                                                                },
-
-                                                                                validator: (value) {
-                                                                                  if(value == null || value.isEmpty){
-                                                                                    return "Please enter time";
-                                                                                  }
-                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                      return "Please enter valid time";
-                                                                                    }
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                        Row(
-                                                                          children: [
-                                                                            const Text(
-                                                                              'To: ',
-                                                                              style: TextStyle(
-                                                                                fontSize: 15,
-                                                                                fontWeight: FontWeight.bold,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              width: 200,
-                                                                              height: 50,
-                                                                              child: TextFormField(
-                                                                                controller: timeText2,
-                                                                                style: const TextStyle(
-                                                                                  fontSize: 15,
-                                                                                  color: Colors.white,
-                                                                                ),
-
-                                                                                readOnly: true,
-                                                                                decoration: InputDecoration(
-                                                                                  errorText: errorText2,
-                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                  labelText: "Enter Time", //label text of field
-                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                  focusedBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  readOnly: true,
+                                                                                  decoration: InputDecoration(
+                                                                                    errorText: errorText1,
+                                                                                    icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                    labelText: "Enter Time", //label text of field
+                                                                                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                    focusedBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                    ),
+                                                                                    enabledBorder: UnderlineInputBorder(
+                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
                                                                                   ),
-                                                                                  enabledBorder: UnderlineInputBorder(
-                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+
+                                                                                  onTap: () async {
+                                                                                    TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                    //print(pickedTime.toString());
+                                                                                    if(pickedTime != null){
+                                                                                      parsedTime1 = pickedTime;
+                                                                                      //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                      String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                      //  //print(formattedTime);
+                                                                                      setState(() {
+                                                                                        timeText.text = formattedTime;
+                                                                                        _time1 = formattedTime;
+                                                                                        //print(formattedTime);
+
+                                                                                      });
+                                                                                    }
+
+                                                                                  },
+
+                                                                                  validator: (value) {
+                                                                                    if(value == null || value.isEmpty){
+                                                                                      return "Please enter time";
+                                                                                    }
+                                                                                    else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                      if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                        return "Please enter valid time";
+                                                                                      }
+                                                                                    }
+                                                                                    return null;
+                                                                                  },
+
                                                                                 ),
-
-                                                                                onTap: () async {
-                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  parsedTime2 = pickedTime;
-                                                                                  if(pickedTime != null){
-
-                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  //print(formattedTime);
-                                                                                    setState(() {
-                                                                                      timeText2.text = formattedTime;
-                                                                                      _time2 = formattedTime;
-                                                                                    });
-                                                                                  }
-                                                                                },
-                                                                                validator: (value) {
-                                                                                  if(value == null || value.isEmpty){
-                                                                                    return "Please enter time";
-                                                                                  }
-                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                      return "Please enter valid time";
-                                                                                    }
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-
                                                                               ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                        TextButton.icon(
-                                                                          onPressed: () async {
-                                                                            if(_events[_selectedDay] != null){
-                                                                              if(!overlap(_time1, _time2)){
-                                                                                setState(() {
-                                                                                  errorText1 = errorText2 = 'Overlapping!';
-                                                                                });
-                                                                                return;
-                                                                              }
-                                                                            }
-
-                                                                            if(_formKey.currentState!.validate()){
-                                                                              try {
-                                                                                setState(() {
-                                                                                  clicked = true;
-                                                                                });
-                                                                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
-                                                                                final response = await http.post(url, body: {
-                                                                                  "day": _selectedDay.toString().split(' ').first,
-                                                                                  "start": _time1+":00",
-                                                                                  "end": _time2+":00",
-                                                                                  "hall": _currentHall.toString(),
-                                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                                });
-                                                                                //print(response.statusCode);
-                                                                                //print("does work");
-                                                                                if (response.statusCode == 200) {
-                                                                                  var jsondata = json.decode(response.body);
-                                                                                  //print(jsondata);
-                                                                                  if (jsondata["error"]) {
-                                                                                  } else {
-                                                                                    if (jsondata["success"]){
-                                                                                      Navigator.pop(context);
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                      //print(jsondata["message"]);
-                                                                                    }
-                                                                                  }
-                                                                                }
-                                                                                //print(_events);
-
-                                                                                widget.changePage(3);
-                                                                                setState(() {
-
-                                                                                });
-                                                                              } catch (e){
-                                                                                _events[_selectedDay] = ['Error! Please try again!'];
-                                                                              }
-                                                                            }
-                                                                          },
-                                                                          icon: !clicked ? const Icon(
-                                                                            Icons.add_circle,
-                                                                            color: Colors.white,
-                                                                          ) : const SizedBox(),
-                                                                          label: !clicked ? const Text(
-                                                                            'Reserve',
-                                                                            style: TextStyle(
-                                                                              color: Colors.white,
-                                                                            ),
-                                                                          ) : const CircularProgressIndicator(
-                                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                            ],
                                                                           ),
-                                                                        )
+                                                                          Row(
+                                                                            children: [
+                                                                              const Text(
+                                                                                'To: ',
+                                                                                style: TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  fontWeight: FontWeight.bold,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                width: 10,
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: 200,
+                                                                                height: 50,
+                                                                                child: TextFormField(
+                                                                                  controller: timeText2,
+                                                                                  style: const TextStyle(
+                                                                                    fontSize: 15,
+                                                                                    color: Colors.white,
+                                                                                  ),
 
-                                                                      ],
+                                                                                  readOnly: true,
+                                                                                  decoration: InputDecoration(
+                                                                                    errorText: errorText2,
+                                                                                    icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                    labelText: "Enter Time", //label text of field
+                                                                                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                    focusedBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                    ),
+                                                                                    enabledBorder: UnderlineInputBorder(
+                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                  ),
+
+                                                                                  onTap: () async {
+                                                                                    TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                    parsedTime2 = pickedTime;
+                                                                                    if(pickedTime != null){
+
+                                                                                      String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                      //  //print(formattedTime);
+                                                                                      setState(() {
+                                                                                        timeText2.text = formattedTime;
+                                                                                        _time2 = formattedTime;
+                                                                                      });
+                                                                                    }
+                                                                                  },
+                                                                                  validator: (value) {
+                                                                                    if(value == null || value.isEmpty){
+                                                                                      return "Please enter time";
+                                                                                    }
+                                                                                    else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                      if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                        return "Please enter valid time";
+                                                                                      }
+                                                                                    }
+                                                                                    return null;
+                                                                                  },
+
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                          TextButton.icon(
+                                                                            onPressed: () async {
+                                                                              if(_events[_selectedDay] != null){
+                                                                                if(!overlap(_time1, _time2)){
+                                                                                  setState(() {
+                                                                                    errorText1 = errorText2 = 'Overlapping!';
+                                                                                  });
+                                                                                  return;
+                                                                                }
+                                                                              }
+
+                                                                              if(_formKey.currentState!.validate()){
+                                                                                try {
+                                                                                  setState(() {
+                                                                                    clicked = true;
+                                                                                  });
+                                                                                  var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
+                                                                                  final response = await http.post(url, body: {
+                                                                                    "day": _selectedDay.toString().split(' ').first,
+                                                                                    "start": _time1+":00",
+                                                                                    "end": _time2+":00",
+                                                                                    "hall": _currentHall.toString(),
+                                                                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                                  });
+                                                                                  //print(response.statusCode);
+                                                                                  //print("does work");
+                                                                                  if (response.statusCode == 200) {
+                                                                                    var jsondata = json.decode(response.body);
+                                                                                    //print(jsondata);
+                                                                                    if (jsondata["error"]) {
+                                                                                    } else {
+                                                                                      if (jsondata["success"]){
+                                                                                        Navigator.pop(context);
+                                                                                      }
+                                                                                      else
+                                                                                      {
+                                                                                        //print(jsondata["message"]);
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                  //print(_events);
+
+                                                                                  widget.changePage(3);
+                                                                                  setState(() {
+
+                                                                                  });
+                                                                                } catch (e){
+                                                                                  _events[_selectedDay] = ['Error! Please try again!'];
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            icon: !clicked ? const Icon(
+                                                                              Icons.add_circle,
+                                                                              color: Colors.white,
+                                                                            ) : const SizedBox(),
+                                                                            label: !clicked ? const Text(
+                                                                              'Reserve',
+                                                                              style: TextStyle(
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ) : const CircularProgressIndicator(
+                                                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                            ),
+                                                                          )
+
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                ),
-                                                              )
-                                                          )
-                                                  );
-                                                }
+                                                                )
+                                                            )
+                                                    );
+                                                  }
 
-                                            );
-                                          }
-                                          else {
-                                            showDialog(
-                                                barrierDismissible: false,
-                                                context: context,
-                                                builder: (_) =>
-                                                AlertDialog(
-                                                  backgroundColor: ColorsB.gray900,
-                                                  clipBehavior: Clip.hardEdge,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(30),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
-                                                    ),
-                                                  ],
-                                                  content: SizedBox(
-                                                    height: screenHeight * 0.5,
-                                                    child: Column(
-                                                      children: [
-                                                        SizedBox(
-                                                          height: 200,
-                                                          child: SvgPicture.asset(
-                                                            'assets/svgs/locked.svg',
-                                                            fit: BoxFit.contain,
+                                              );
+                                            }
+                                            else {
+                                              showDialog(
+                                                  barrierDismissible: false,
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      AlertDialog(
+                                                        backgroundColor: ColorsB.gray900,
+                                                        clipBehavior: Clip.hardEdge,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(30),
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(context);
+                                                            },
+                                                            child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
+                                                          ),
+                                                        ],
+                                                        content: SizedBox(
+                                                          height: screenHeight * 0.5,
+                                                          child: Column(
+                                                            children: [
+                                                              SizedBox(
+                                                                height: 200,
+                                                                child: SvgPicture.asset(
+                                                                  'assets/svgs/locked.svg',
+                                                                  fit: BoxFit.contain,
+                                                                ),
+                                                              ),
+                                                              const Text(
+                                                                'Oops! You can\'t do that!',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Nunito',
+                                                                  fontSize: 17.5,
+                                                                  color: ColorsB.yellow500,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(height: 25),
+                                                              Text(
+                                                                'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Nunito',
+                                                                  fontSize: 13,
+                                                                  color: Colors.white.withOpacity(0.5),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                        const Text(
-                                                          'Oops! You can\'t do that!',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Nunito',
-                                                            fontSize: 17.5,
-                                                            color: ColorsB.yellow500,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 25),
-                                                        Text(
-                                                          'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Nunito',
-                                                            fontSize: 13,
-                                                            color: Colors.white.withOpacity(0.5),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                )
-                                            );
-                                          }
-                                        },
-                                        child: globalMap['verification'] != "Pending"
-                                        ? const Text(
-                                          'Reserve',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                        : const Icon(
-                                          Icons.lock_outline,
-                                          color: Colors.white,
-                                          size: 15,
-                                        ),
-                                        style: ButtonStyle(
-                                          elevation: MaterialStateProperty.all(0),
-                                          backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
-                                          shape: MaterialStateProperty.all<OutlinedBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(50),
+                                                      )
+                                              );
+                                            }
+                                          },
+                                          child: globalMap['verification'] != "Pending"
+                                              ? const Text(
+                                            'Reserve',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
                                             ),
+                                          )
+                                              : const Icon(
+                                            Icons.lock_outline,
+                                            color: Colors.white,
+                                            size: 15,
                                           ),
-                                        )
+                                          style: ButtonStyle(
+                                            elevation: MaterialStateProperty.all(0),
+                                            backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
+                                            shape: MaterialStateProperty.all<OutlinedBorder>(
+                                              RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(50),
+                                              ),
+                                            ),
+                                          )
+                                      )
                                     ),
                                   )
                                 ],
@@ -5101,14 +5312,14 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                             itemBuilder: (BuildContext context, int index) {
                                               return Padding(
                                                 padding: const EdgeInsets.all(2.5),
-                                                child: Container(
-                                                  child: Text(
-                                                    _events[_selectedDay]![index],
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
+                                                child: Text(
+                                                  globalMap['account'] != 'Student'
+                                                  ? _events[_selectedDay]![index]
+                                                  : _events[_selectedDay]![index].split('-')[0] + "-" + _events[_selectedDay]![index].split('-')[1],
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               );
