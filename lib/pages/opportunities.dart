@@ -28,7 +28,8 @@ class OpportunitiesList extends StatefulWidget {
   State<OpportunitiesList> createState() => _OpportunitiesListState();
 }
 
-class _OpportunitiesListState extends State<OpportunitiesList> {
+class _OpportunitiesListState extends State<OpportunitiesList> with AutomaticKeepAliveClientMixin {
+  bool get wantKeepAlive => true;
 
   var screenHeight = window.physicalSize.height / window.devicePixelRatio;
   var screenWidth = window.physicalSize.width / window.devicePixelRatio;
@@ -316,6 +317,7 @@ class _OpportunitiesListState extends State<OpportunitiesList> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
 
     //  print('building');
 

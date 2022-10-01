@@ -69,6 +69,8 @@ import './offersPage.dart';
 
 import 'dart:math' as math;
 
+import './sendFeedback.dart';
+
 
 
 
@@ -713,9 +715,9 @@ class _NewsPageState extends State<NewsPage>{
 
     var device = MediaQuery.of(context);
 
-    if(!opened){
-      _forNewUsers(context);
-    }
+    // if(!opened){
+    //   _forNewUsers(context);
+    // }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -824,7 +826,8 @@ class _NewsPageState extends State<NewsPage>{
                   const Calendar(key: ValueKey(3)),
                   const Notes(),
                   AlertPage(gMap: globalMap),
-                  const MyTimetable()
+                  const MyTimetable(),
+                  const FeedbackPage(),
                 ], map: globalMap, notif: haveNew, update: () {
                   setState(() {
 
@@ -1074,7 +1077,7 @@ class _NewsPageState extends State<NewsPage>{
 
                                                               children: [
                                                                 Text(
-                                                                  _names[index],
+                                                                  _names[index].split(' ')[0] + ' ' + _names[index].split(' ').last[0] + '.',
                                                                   style: const TextStyle(
                                                                       fontSize: 15,
                                                                       color: Colors
@@ -1288,7 +1291,6 @@ final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_Announcement
 
 
 class Announcements extends StatefulWidget {
-
   const Announcements({Key? key}) : super(key: key);
 
   @override
@@ -1302,7 +1304,8 @@ class Announcements extends StatefulWidget {
 
 int maximumCount = 0;
 
-class _AnnouncementsState extends State<Announcements> with TickerProviderStateMixin {
+class _AnnouncementsState extends State<Announcements> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin{
+bool get wantKeepAlive => true;
 
 
   var selectedColorS = Colors.white;
@@ -1540,6 +1543,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
 
     //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
@@ -1804,6 +1808,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               String post = jsondata[i.toString()]["post"].toString();
               String title = jsondata[i.toString()]["title"].toString();
               String owner = jsondata[i.toString()]["owner"].toString();
+              int ownerid = jsondata[i.toString()]["oid"];
               String location = jsondata[i.toString()]["location"].toString();
               String date = jsondata[i.toString()]["date"].toString();
               String link = jsondata[i.toString()]["link"].toString();
@@ -1825,6 +1830,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                   id: id,
                   body: post,
                   owner: owner,
+                  ownerID: ownerid,
                   link: link,
                   date: date,
                   location: location,
@@ -1855,7 +1861,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               } */
 
             }
-            events.add(SizedBox(height: screenHeight * .1));
+            events.add(SizedBox(height: screenHeight * .5));
             //  print(events);
           }
           else
@@ -2409,6 +2415,7 @@ Future<int> load(String channel) async {
                 String post = jsondata[i.toString()]["post"].toString();
                 String title = jsondata[i.toString()]["title"].toString();
                 String owner = jsondata[i.toString()]["owner"].toString();
+                int? ownerID = jsondata[i.toString()]["oid"];
                 String link = jsondata[i.toString()]["link"].toString();
 
 
@@ -2437,7 +2444,7 @@ Future<int> load(String channel) async {
                 }
 
 
-                if(post != "null" && post != null){
+                if(post != "null" && post != null && ownerID != null){
 
 
                   if(liked.contains(globalMap['id'].toString())){
@@ -2461,6 +2468,7 @@ Future<int> load(String channel) async {
                       ids: id,
                       descriptions: post,
                       owners: owner,
+                      ownerID: ownerID!,
                       link: link,
                       hero: _hero,
                       admin: globalMap['account'],
@@ -2479,7 +2487,7 @@ Future<int> load(String channel) async {
                 }
 
               }
-              posts.add(const SizedBox(height: 100));
+              posts.add(SizedBox(height: screenHeight * 3));
 
               setState(() {
                 isLoading = false;
@@ -2514,7 +2522,7 @@ Future<int> load(String channel) async {
 
 
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
+  void _hero(BuildContext context, String title, String description, String author, int oid, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -2525,7 +2533,7 @@ Future<int> load(String channel) async {
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author, ownerID: oid, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
               )
         )
     );
@@ -2547,6 +2555,7 @@ class BigNewsContainer extends StatefulWidget {
   final String description;
   final Color color;
   final String author;
+  final int ownerID;
   final String? imageLink;
   final File? file;
   int? likes, ids;
@@ -2556,7 +2565,7 @@ class BigNewsContainer extends StatefulWidget {
   StreamController<bool?>? contrDB;
 
 
-  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, required this.ownerID, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -2869,7 +2878,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   @override
   void initState() {
-    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
+    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.ownerID}.jpg';
     print(avatarImg);
 
 
@@ -2943,7 +2952,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         backgroundColor: ColorsB.gray200,
                         avatar: _CircleAvatar(),
                         label: Text(
-                            widget.author
+                            '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                         ),
                       )
                     ],
@@ -3019,7 +3028,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                 backgroundColor: ColorsB.gray200,
                                 avatar: _CircleAvatar(),
                                 label: Text(
-                                    widget.author
+                                    '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                                 ),
                               )
                             ],
@@ -3210,7 +3219,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                             backgroundColor: ColorsB.gray200,
                                             avatar: _CircleAvatar(),
                                             label: Text(
-                                                widget.author
+                                                '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                                             ),
                                           )
                                         ],
@@ -4968,7 +4977,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                   SizedBox(
                                     height: 30,
                                     child: Visibility(
-                                      visible: globalMap['account'] != 'Student',
+                                      visible: globalMap['account'] == 'Admin' || globalMap['account'] == 'Teacher',
                                       child: TextButton(
                                           onPressed: () {
                                             if(globalMap['verification'] != "Pending"){
@@ -5770,7 +5779,7 @@ class _PostItPageState extends State<PostItPage> {
 
                             for(int i = 0; i < channels.length; i++){
                               try {
-
+                                print(globalMap['id']);
 
                                 if(!imgSub && _file != null){
                                   await uploadImage(_file, name);
@@ -5779,8 +5788,10 @@ class _PostItPageState extends State<PostItPage> {
                                 //print(channels[i]);
 
                                 //print(_file);
+                                print('passed');
 
                                 var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
+                                print('parsed link');
                                 final response;
                                 if(_file != null){
                                   response = await http.post(url, body: {
@@ -5788,6 +5799,7 @@ class _PostItPageState extends State<PostItPage> {
                                     "channel": channels[i],
                                     "body": _postController.value.text,
                                     "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "owid": globalMap['id'].toString(),
                                     "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format"
                                   });
                                 }
@@ -5797,12 +5809,15 @@ class _PostItPageState extends State<PostItPage> {
                                     "channel": channels[i],
                                     "body": _postController.value.text,
                                     "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "owid": globalMap['id'].toString(),
                                     "link": ""
                                   });
                                 }
+                                print(1);
+                                print(response.statusCode);
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  //print(jsondata);
+                                  print(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {
@@ -5825,7 +5840,7 @@ class _PostItPageState extends State<PostItPage> {
 
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
-                                          print(jsondata2);
+                                          //  print(jsondata2);
                                           Navigator.of(context).pop();
                                         }
 
@@ -5842,7 +5857,7 @@ class _PostItPageState extends State<PostItPage> {
                                   }
                                 }
                               } catch (e) {
-                                //print(e);
+                                print(e);
                                 //Navigator.of(context).pop();
                               }
                             }
@@ -5889,68 +5904,6 @@ class _PostItPageState extends State<PostItPage> {
                           ),
                         ),
                       ),
-                      Opacity(
-                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || channels.isEmpty ? 0.5 : 1,
-                        child: TextButton(
-                          onPressed: () async {
-
-
-
-                            //TODO: Make the upload work
-
-
-                            if(_formKey.currentState!.validate() && !(classes[0] == false && classes[1] == false && classes[2] == false)) {
-
-                              if(classes[0] == true){
-                                _postColor = ColorsB.gray800;
-                              } else if(classes[1] == true){
-                                _postColor = Colors.amber;
-                              } else if(classes[2] == true){
-                                _postColor = Colors.indigoAccent;
-                              }
-
-
-                              Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                      pageBuilder: (context, animation, secAnim) {
-
-                                        return SlideTransition(
-                                          position: Tween<Offset>(
-                                              begin: const Offset(0, 1),
-                                              end: Offset.zero
-                                          ).animate(
-                                              CurvedAnimation(parent: animation, curve: Curves.ease)
-                                          ),
-                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me', file: _file,),
-                                        );
-                                      }
-
-                                  )
-                              );
-                            }
-
-
-
-                          },
-                          child: const Text(
-                            'Preview',
-                            style: TextStyle(
-                              fontFamily: 'Nunito',
-                              color: Colors.white,
-                              fontWeight: FontWeight.normal,
-                              letterSpacing: 2.5,
-                              fontSize: 20,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                            backgroundColor: ColorsB.gray800,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          ),
-                        ),
-                      )
                     ],
                   ),
                   const SizedBox(height: 100,),

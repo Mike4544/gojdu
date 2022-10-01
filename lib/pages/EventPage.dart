@@ -394,6 +394,8 @@ class _PostEventState extends State<PostEvent> {
 
                             bool imgSub = false;
 
+                            int owid = widget.gMap['id'];
+
                             try {
 
 
@@ -414,6 +416,7 @@ class _PostEventState extends State<PostEvent> {
                                   "date":  DateFormat('dd/MM/yyyy').format(pickedDate),
                                   "body": _postController.value.text,
                                   "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
+                                  "owid": owid.toString(),
                                   "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format",
                                   "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
                                 });
@@ -425,10 +428,12 @@ class _PostEventState extends State<PostEvent> {
                                   "date":  DateFormat('dd/MM/yyyy').format(pickedDate),
                                   "body": _postController.value.text,
                                   "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
+                                  "owid": owid.toString(),
                                   "link": "",
                                   "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
                                 });
                               }
+                              print(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
                                 print(jsondata);

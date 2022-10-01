@@ -17,9 +17,10 @@ class Post extends StatefulWidget {
   var color;
   var likesBool, dislikes;
   var likes, ids;
+  int ownerID;
   void Function() delete;
   String admin;
-  Function(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) hero;
+  Function(BuildContext context, String title, String description, String author, int oid, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) hero;
   var globalMap;
   var context;
   var update;
@@ -29,6 +30,7 @@ class Post extends StatefulWidget {
     required this.title,
     required this.color,
     required this.descriptions, required this.owners,
+    required this.ownerID,
     required this.link,
     required this.hero,
     required this.globalMap,
@@ -298,7 +300,7 @@ class _PostState extends State<Post> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(50),
-                      onTap: () => widget.hero(widget.context, widget.title, widget.descriptions, widget.owners, widget.color!, widget.link, widget.likes, widget.ids, widget.dislikes, widget.likesBool, _controllerLikes, _controllerLBool, _controllerDBool),
+                      onTap: () => widget.hero(widget.context, widget.title, widget.descriptions, widget.owners, widget.ownerID, widget.color!, widget.link, widget.likes, widget.ids, widget.dislikes, widget.likesBool, _controllerLikes, _controllerLBool, _controllerDBool),
                       child: Padding(
                         padding: const EdgeInsets.all(25.0),
                         child: Column(
@@ -314,7 +316,7 @@ class _PostState extends State<Post> {
                               ),
                             ),
                             Text(
-                              'by ' + widget.owners,     //  Hard coded!!
+                              'by ${widget.owners.split(' ').first} ${widget.owners.split(' ').last[0]}.',     //  Hard coded!!
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.5),
                                 fontSize: 15,

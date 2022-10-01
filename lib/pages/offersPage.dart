@@ -34,7 +34,8 @@ class OffersPage extends StatefulWidget {
 
 
 
-class _OffersPageState extends State<OffersPage>{
+class _OffersPageState extends State<OffersPage> with AutomaticKeepAliveClientMixin{
+  bool get wantKeepAlive => true;
 
   late List<OfferContainer> offers;
 
@@ -393,6 +394,7 @@ class _OffersPageState extends State<OffersPage>{
   
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Stack(
       children: [
         StatefulBuilder(

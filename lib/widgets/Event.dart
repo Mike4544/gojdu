@@ -20,6 +20,7 @@ class Event extends StatelessWidget {
   final String title;
   final String body;
   final String owner;
+  final int ownerID;
   final String location;
   final String date;
   final String link;
@@ -35,6 +36,7 @@ class Event extends StatelessWidget {
     required this.title,
     required this.body,
     required this.owner,
+    required this.ownerID,
     required this.location,
     required this.date,
     required this.link,
@@ -46,7 +48,7 @@ class Event extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    var avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${owner.replaceAll(' ', '_')}.jpg';
+    var avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/$ownerID.jpg';
 
     bool? _isnt404;
 
@@ -159,7 +161,7 @@ class Event extends StatelessWidget {
                               Flexible(
                                   child: Chip(
                                     label: Text(
-                                        owner
+                                        '${owner.split(' ').first} ${owner.split(' ').last[0]}.'
                                     ),
                                     avatar: _CircleAvatar(),
                                   )
@@ -193,7 +195,7 @@ class Event extends StatelessWidget {
 
                   Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => BigNewsContainer(title: title, description: body, author: owner, date: date, location: location, imageString: link, mapsLink: maps_link)
+                          builder: (_) => BigNewsContainer(title: title, description: body, author: owner, ownerID: ownerID, date: date, location: location, imageString: link, mapsLink: maps_link)
                       )
                   );
 
@@ -414,13 +416,14 @@ class BigNewsContainer extends StatefulWidget {
   final String description;
   final Color? color;
   final String author;
+  final int ownerID;
   final String date;
   final String location;
   final String? imageString;
   final String mapsLink;
 
 
-  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, this.imageString, required this.date, required this.location, required this.mapsLink}) : super(key: key);
+  const BigNewsContainer({Key? key, required this.title, required this.description, this.color = ColorsB.yellow500, required this.author, required this.ownerID, this.imageString, required this.date, required this.location, required this.mapsLink}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -515,7 +518,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   void initState() {
     // TODO: implement initState
 
-    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
+    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.ownerID}.jpg';
     print(avatarImg);
 
     _controller.addListener(() {
@@ -581,7 +584,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                             backgroundColor: ColorsB.gray200,
                             avatar: _CircleAvatar(),
                             label: Text(
-                                widget.author
+                                '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                             ),
                           )
                         ],
@@ -743,7 +746,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                   backgroundColor: ColorsB.gray200,
                                   avatar: _CircleAvatar(),
                                   label: Text(
-                                      widget.author
+                                      '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                                   ),
                                 )
                               ],
@@ -861,7 +864,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         ).image,
                       ),
                       label: Text(
-                          widget.author
+                          '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                       ),
                     )
                   ],

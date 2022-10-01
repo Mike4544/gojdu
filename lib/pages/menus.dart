@@ -23,7 +23,8 @@ class MenuTabs extends StatefulWidget {
 
 late int current_tab;
 
-class _MenuTabsState extends State<MenuTabs> {
+class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
+  bool get wantKeepAlive => true;
 
   late List<Tab> tabs;
 
@@ -96,11 +97,11 @@ class _MenuTabsState extends State<MenuTabs> {
         update: update,
       ),
       Tab(
-        color: Colors.greenAccent[400]!,
+        color: Colors.purple[300]!,
         image: "assets/images/Target.png",
         description: "Want to help digitalize education? Tell us your ideas!",
         title: "Improve the App",
-        index: 6,
+        index: 7,
         update: update,
       ),
     ];
@@ -173,6 +174,7 @@ class _MenuTabsState extends State<MenuTabs> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
 
     return SingleChildScrollView(
       controller: _controller,
