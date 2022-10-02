@@ -549,26 +549,48 @@ class _AddOpportunityState extends State<AddOpportunity> {
                                 } else {
                                   if (jsondata["success"]){
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          behavior: SnackBarBehavior.floating,
-                                          backgroundColor: Colors.green,
-                                          content: Row(
-                                            children: const [
-                                              Icon(Icons.check, color: Colors.white),
-                                              SizedBox(width: 20,),
-                                              Text(
-                                                'Hooray! A new event was born.',
-                                                style: TextStyle(
-                                                    color: Colors.white
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                    );
 
-                                    Navigator.of(context).pop();
+                                    try {
+                                      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
+                                      final response2 = await http.post(ulr2, body: {
+                                        "action": "Opportunities",
+                                        "channel": "Students"
+                                      });
+
+                                      print(response2.statusCode);
+
+                                      if(response2.statusCode == 200){
+
+                                        var jsondata2 = json.decode(response2.body);
+                                        print(jsondata2);
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              behavior: SnackBarBehavior.floating,
+                                              backgroundColor: Colors.green,
+                                              content: Row(
+                                                children: const [
+                                                  Icon(Icons.check, color: Colors.white),
+                                                  SizedBox(width: 20,),
+                                                  Text(
+                                                    'Hooray! A new event was born.',
+                                                    style: TextStyle(
+                                                        color: Colors.white
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            )
+                                        );
+
+                                        Navigator.of(context).pop();
+                                        //  print(jsondata2);
+                                        Navigator.of(context).pop();
+                                      }
+
+                                    } catch (e) {
+                                      //print(e);
+                                    }
 
 
                                     //  Navigator.of(context).pop();

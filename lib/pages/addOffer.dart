@@ -397,7 +397,7 @@ class _AddOfferState extends State<AddOffer> {
 
                       },
                     label: const Text(
-                      'Choose a logo (Preferrably with transparency)',
+                      'Choose a logo (MUST have transparency)',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.normal
@@ -646,26 +646,49 @@ class _AddOfferState extends State<AddOffer> {
                                 } else {
                                   if (jsondata["success"]){
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          behavior: SnackBarBehavior.floating,
-                                          backgroundColor: Colors.green,
-                                          content: Row(
-                                            children: const [
-                                              Icon(Icons.check, color: Colors.white),
-                                              SizedBox(width: 20,),
-                                              Text(
-                                                'Hooray! A new event was born.',
-                                                style: TextStyle(
-                                                    color: Colors.white
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                    );
+                                    try {
+                                      var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
+                                      final response2 = await http.post(ulr2, body: {
+                                        "action": "Offers",
+                                        "channel": "Students"
+                                      });
 
-                                    Navigator.of(context).pop();
+                                      print(response2.statusCode);
+
+                                      if(response2.statusCode == 200){
+
+                                        var jsondata2 = json.decode(response2.body);
+                                        print(jsondata2);
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              behavior: SnackBarBehavior.floating,
+                                              backgroundColor: Colors.green,
+                                              content: Row(
+                                                children: const [
+                                                  Icon(Icons.check, color: Colors.white),
+                                                  SizedBox(width: 20,),
+                                                  Text(
+                                                    'Hooray! A new offer was born.',
+                                                    style: TextStyle(
+                                                        color: Colors.white
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            )
+                                        );
+
+                                        Navigator.of(context).pop();
+                                        //  print(jsondata2);
+                                        Navigator.of(context).pop();
+                                      }
+
+                                    } catch (e) {
+                                      //print(e);
+                                    }
+
+
 
 
                                     //  Navigator.of(context).pop();

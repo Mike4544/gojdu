@@ -361,6 +361,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                                         if(!value){
                                           await messaging.unsubscribeFromTopic(widget.type + 's');
+                                          await messaging.unsubscribeFromTopic('all');
                                           final prefs = await _prefs;
 
                                           await prefs.setBool('notifActive', false);
@@ -401,6 +402,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         }
                                         else {
                                           await messaging.subscribeToTopic(widget.type + 's');
+                                          await messaging.subscribeToTopic('all');
                                           final prefs = await _prefs;
 
                                           await prefs.setBool('notifActive', true);
@@ -696,6 +698,7 @@ Future<void> logoff(BuildContext context) async {
   String type = prefs.getString('type')!;
 
   await messaging.unsubscribeFromTopic(type + 's');
+  await messaging.unsubscribeFromTopic('all');
 
   await prefs.remove('name');
   await prefs.remove('email');

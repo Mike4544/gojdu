@@ -464,6 +464,9 @@ class _SecondPageState extends State<SecondPage> {
                                 'id': jsondata['id'],
                               };
 
+                              await _firebaseMessaging.subscribeToTopic('Parents');
+                              await _firebaseMessaging.subscribeToTopic('all');
+
                               Navigator.pushReplacement(context, MaterialPageRoute(
                                   builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
                               ));

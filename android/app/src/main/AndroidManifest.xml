@@ -27,6 +27,7 @@
             <action android:name="android.intent.action.SENDTO" />
             <data android:scheme="mailto" />
         </intent>
+
         <intent>
             <action
                 android:name="android.intent.action.DIAL"/>
@@ -69,6 +70,10 @@
                     android:name="FLUTTER_NOTIFICATION_CLICK"/>
                 <category
                     android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
             </intent-filter>
         </activity>
         <activity

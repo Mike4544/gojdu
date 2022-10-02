@@ -328,6 +328,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                                       ));
 
                                                       await Future.delayed(const Duration(milliseconds: 500));
+                                                      await _firebaseMessaging.subscribeToTopic('Students');
+                                                      await _firebaseMessaging.subscribeToTopic('all');
 
                                                       Navigator.pushReplacement(context, MaterialPageRoute(
                                                           builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)

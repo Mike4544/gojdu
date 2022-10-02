@@ -13,6 +13,7 @@ import '../databases/alertsdb.dart';
 import '../widgets/back_navbar.dart';
 import '../widgets/Alert.dart';
 import 'package:intl/intl.dart';
+import '../local_notif_service.dart';
 
 class NotifPage extends StatefulWidget {
   final VoidCallback? updateFP;
@@ -32,6 +33,8 @@ class _NotifPageState extends State<NotifPage> {
   late bool isLoading = false;
 
   late Future loadAlerts = refreshAlerts();
+
+  final LocalNotificationService _notifService = LocalNotificationService();
 
 
   Future checkAndDelete() async {
@@ -147,10 +150,12 @@ class _NotifPageState extends State<NotifPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton(
                     onPressed: () async {
-                      await AlertDatabase.instance.truncate();
-                      await setBall(false);
+                      // await AlertDatabase.instance.truncate();
+                      // await setBall(false);
+                      //
+                      // refreshAlerts();
 
-                      refreshAlerts();
+                      _notifService.showNotification(id: 1, title: 'Test', body: 'Test');
                     },
                     child: const Text(
                       "Clear notifications",
