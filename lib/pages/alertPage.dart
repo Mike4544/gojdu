@@ -129,7 +129,7 @@ class _AlertPageState extends State<AlertPage> {
       var url = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
       final response = await http.post(url, body: {
         "action": "Report",
-        "channel": "Admins",
+        "channel": "Teachers",
         "fterm": fileFormat.toString(),
          "image": baseimage.toString(),   // FIXME: Upload it on the server and be done with it
         "rtitle": title,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -113,16 +112,12 @@ Future getFloors() async {
     final response = await http.post(url, body: {
     }).timeout(const Duration(seconds: 15));
 
-    print(response.statusCode);
 
     if(response.statusCode == 200){
       var jsondata = json.decode(response.body);
-      print(jsondata);
       if(jsondata['0']["error"]){
-        print(jsondata["message"]);
 
       }else{
-        print("Upload successful");
 
         for(int i = 1; i <= 3; i++){
           //  print(jsondata['$i']);
@@ -132,7 +127,6 @@ Future getFloors() async {
 
       }
     } else {
-      print("Upload failed");
       mapErrored = true;
       return throw Exception("Couldn't connect");
 
@@ -1133,8 +1127,6 @@ class _NewsPageState extends State<NewsPage>{
                                                                           .red,
                                                                       size: 30,),
                                                                     onTap: () {
-                                                                      print(
-                                                                          'Canceled');
 
                                                                       setState1(() {
                                                                         _names
@@ -1398,7 +1390,6 @@ bool get wantKeepAlive => true;
 
     _tabController.addListener(() async {
       if(!_tabController.indexIsChanging){
-        print(_tabController.index);
         setState(() {
           currentChannel = labels[_tabController.index];
           _refresh();
@@ -1791,10 +1782,8 @@ bool get wantKeepAlive => true;
       final response = await http.post(url, body: {
         "index": "0"
       });
-      print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -2155,16 +2144,13 @@ Future<void> deletePost(int Id, int index) async {
         "id": Id.toString()
       });
 
-      print(response.statusCode);
 
       if(response.statusCode == 200){
 
         var jsondata = json.decode(response.body);
-        print(jsondata);
 
         if(jsondata['error']){
 
-          print('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -2215,7 +2201,6 @@ Future<void> deletePost(int Id, int index) async {
 
       }
       else {
-        print("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
@@ -2259,7 +2244,6 @@ Future<void> deletePost(int Id, int index) async {
           )
       );
 
-      print(e);
 
     }
 
@@ -2274,18 +2258,14 @@ Future<void> deletePost(int Id, int index) async {
         "id": Id.toString()
       });
 
-      print(Id.toString());
-      print(response.statusCode);
 
       if(response.statusCode == 200){
-        print(response.body);
 
         var jsondata = json.decode(response.body);
         //  print(jsondata);
 
         if(jsondata['error']){
 
-          print('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -2336,7 +2316,6 @@ Future<void> deletePost(int Id, int index) async {
 
       }
       else {
-        print("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
@@ -2380,7 +2359,6 @@ Future<void> deletePost(int Id, int index) async {
           )
       );
 
-      print(e);
 
     }
 
@@ -2879,7 +2857,6 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   @override
   void initState() {
     avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.ownerID}.jpg';
-    print(avatarImg);
 
 
     _controller.addListener(() {
@@ -3443,9 +3420,6 @@ class _MapPageState extends State<MapPage>{
     }
     else {
       try{
-        print(floorNo);
-        print(floors[floorNo].file);
-        print(floors);
         return maps[floorNo];
       }
       catch (e) {
@@ -4293,18 +4267,14 @@ class _CalPag1State extends State<CalPag1> {
         "id": Id.toString()
       });
 
-      print(Id.toString());
-      print(response.statusCode);
 
       if(response.statusCode == 200){
-        print(response.body);
 
         var jsondata = json.decode(response.body);
         //  print(jsondata);
 
         if(jsondata['error']){
 
-          print('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -4355,7 +4325,6 @@ class _CalPag1State extends State<CalPag1> {
 
       }
       else {
-        print("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
@@ -4399,7 +4368,6 @@ class _CalPag1State extends State<CalPag1> {
           )
       );
 
-      print(e);
 
     }
 
@@ -5779,7 +5747,6 @@ class _PostItPageState extends State<PostItPage> {
 
                             for(int i = 0; i < channels.length; i++){
                               try {
-                                print(globalMap['id']);
 
                                 if(!imgSub && _file != null){
                                   await uploadImage(_file, name);
@@ -5788,10 +5755,8 @@ class _PostItPageState extends State<PostItPage> {
                                 //print(channels[i]);
 
                                 //print(_file);
-                                print('passed');
 
                                 var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
-                                print('parsed link');
                                 final response;
                                 if(_file != null){
                                   response = await http.post(url, body: {
@@ -5813,11 +5778,8 @@ class _PostItPageState extends State<PostItPage> {
                                     "link": ""
                                   });
                                 }
-                                print(1);
-                                print(response.statusCode);
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  print(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {
@@ -5836,7 +5798,6 @@ class _PostItPageState extends State<PostItPage> {
                                           "action": "Post"
                                         });
 
-                                        print(response2.statusCode);
 
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
@@ -5857,7 +5818,6 @@ class _PostItPageState extends State<PostItPage> {
                                   }
                                 }
                               } catch (e) {
-                                print(e);
                                 //Navigator.of(context).pop();
                               }
                             }
