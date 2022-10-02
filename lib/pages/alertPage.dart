@@ -183,7 +183,7 @@ class _AlertPageState extends State<AlertPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InputField(fieldName: 'Title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false,),
+                InputField(fieldName: 'Title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
                 const SizedBox(height: 50,),
                 const Text(
                   'Feedback',

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gojdu/pages/forgot_password.dart';
+import 'package:gojdu/pages/news.dart';
 import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
 import 'package:gojdu/pages/login.dart';
@@ -75,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
     pass = prefs.getString('password');
     notifActive = prefs.getBool('notifActive');
 
-    var _response = await http.get(Uri.parse('https://cnegojdu.ro/GojduApp/profiles/${fn}_$ln.jpg'));
+    var _response = await http.get(Uri.parse('https://cnegojdu.ro/GojduApp/profiles/${globalMap['id']}.jpg'));
 
     _lastFile = _response.bodyBytes;
 
@@ -97,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
     var url = Uri.parse('https://cnegojdu.ro/GojduApp/profile_upload.php');
     final response = await http.post(url, body: {
       "image": baseimage,
-      "name": '${fn}_$ln',
+      "name": '${globalMap['id']}',
       "format": 'jpg'
     });
 
@@ -132,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
     return SizedBox(
-      height: device.height ,
+      height: device.height * 1.25,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -235,11 +235,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                                   )
                                                   : Image.memory(
                                                     _lastFile,
-                                                    errorBuilder: (_, __, ___) => const Padding(
-                                                      padding: EdgeInsets.all(40),
+                                                    errorBuilder: (_, __, ___) => const Center(
                                                       child: Icon(Icons.upload_rounded, color: Colors.white, size: 40,),
+                                                      )
                                                     ),
-                                                  )
                                           ),
 
                                           Material(
@@ -355,13 +354,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   DataCell(Center(
                                     child: CupertinoSwitch(
-                                      value: notifActive ?? false,
+                                      value: notifActive ?? true,
                                       onChanged: (value) async {
 
                                         notifActive = value;
 
                                         if(!value){
                                           await messaging.unsubscribeFromTopic(widget.type + 's');
+                                          await messaging.unsubscribeFromTopic('all');
                                           final prefs = await _prefs;
 
                                           await prefs.setBool('notifActive', false);
@@ -402,6 +402,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         }
                                         else {
                                           await messaging.subscribeToTopic(widget.type + 's');
+                                          await messaging.subscribeToTopic('all');
                                           final prefs = await _prefs;
 
                                           await prefs.setBool('notifActive', true);
@@ -692,9 +693,12 @@ Future<void> logoff(BuildContext context) async {
   
   final prefs = await SharedPreferences.getInstance();
 
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
   String type = prefs.getString('type')!;
 
   await messaging.unsubscribeFromTopic(type + 's');
+  await messaging.unsubscribeFromTopic('all');
 
   await prefs.remove('name');
   await prefs.remove('email');

@@ -5,14 +5,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:geocode/geocode.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:gojdu/pages/news.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import 'package:http/http.dart' as http;
@@ -20,17 +16,25 @@ import 'package:http/http.dart' as http;
 import '../widgets/back_navbar.dart';
 import '../widgets/input_fields.dart';
 
-class PostEvent extends StatefulWidget {
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geocode/geocode.dart';
+
+import 'package:location/location.dart';
+
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
+class AddOffer extends StatefulWidget {
   final Map gMap;
 
 
-  const PostEvent({Key? key, required this.gMap}) : super(key: key);
+  const AddOffer({Key? key, required this.gMap}) : super(key: key);
 
   @override
-  State<PostEvent> createState() => _PostEventState();
+  State<AddOffer> createState() => _AddOfferState();
 }
 
-class _PostEventState extends State<PostEvent> {
+class _AddOfferState extends State<AddOffer> {
 
   //  <---------------  Post controller ---------------->
   late TextEditingController _postController;
@@ -68,6 +72,9 @@ class _PostEventState extends State<PostEvent> {
     _postController.dispose();
     _postTitleController.dispose();
     _locationController.dispose();
+    discountController.dispose();
+    companyName.dispose();
+    shortDescription.dispose();
     super.dispose();
   }
   List<String> channels = [];
@@ -84,6 +91,20 @@ class _PostEventState extends State<PostEvent> {
   DateTime pickedDate = DateTime.now();
   bool choosen = false;
 
+  String locationButton = 'Please select a location';
+
+  late LatLng coordsForLink;
+
+  Color? choosenColor;
+
+  File? logo;
+  String? logoString;
+  String? logoFormat;
+
+  final discountController = TextEditingController();
+  final shortDescription = TextEditingController();
+  final companyName = TextEditingController();
+
 
   String generateString(){
     String generated = '';
@@ -98,9 +119,9 @@ class _PostEventState extends State<PostEvent> {
 
   }
 
-  Future<void> uploadImage(File? file, String name) async {
+  Future<void> uploadImage(File? file, String name, String _format) async {
     try{
-      if(image == null || file == null){
+      if(file == null){
         return;
       }
       var imageBytes = file.readAsBytesSync();
@@ -112,8 +133,10 @@ class _PostEventState extends State<PostEvent> {
       final response = await http.post(url, body: {
         "image": baseimage,
         "name": name,
-        "format": format
+        "format": _format
       });
+
+      print('Image: ${response.statusCode}');
 
       if(response.statusCode == 200){
         var jsondata = json.decode(response.body);
@@ -132,12 +155,11 @@ class _PostEventState extends State<PostEvent> {
     }
     catch(e){
       //print("Error during converting to Base64");
+      throw Exception(e);
     }
   }
 
 
-  String locationButton = 'Please select a location';
-  late LatLng coordsForLink;
 
 
 
@@ -161,10 +183,10 @@ class _PostEventState extends State<PostEvent> {
               padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
               child: Row(
                 children: const [
-                  Icon(Icons.event, color: ColorsB.yellow500, size: 40,),
+                  Icon(Icons.local_activity_rounded, color: ColorsB.yellow500, size: 40,),
                   SizedBox(width: 20,),
                   Text(
-                    'Create an event',
+                    'Create an offer',
                     style: TextStyle(
                         fontSize: 25,
                         color: Colors.white,
@@ -185,10 +207,12 @@ class _PostEventState extends State<PostEvent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
+                  InputField(fieldName: 'Discount', isPassword: false, errorMessage: '', controller: discountController, isEmail: false, lengthLimiter: 20, label: 'Eg: 25%',),
+                  const SizedBox(height: 10),
+                  InputField(fieldName: 'Short description', isPassword: false, errorMessage: '', controller: shortDescription, isEmail: false, lengthLimiter: 45, label: 'Eg: Pentru produsele din gama X.',),
                   const SizedBox(height: 50,),
                   const Text(
-                    'Event details',
+                    'Long description',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       color: ColorsB.yellow500,
@@ -230,7 +254,7 @@ class _PostEventState extends State<PostEvent> {
                   ),
                   const SizedBox(height: 50),
                   const Text(
-                    'Choose a location',
+                    'Choose your location',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       color: ColorsB.yellow500,
@@ -273,7 +297,7 @@ class _PostEventState extends State<PostEvent> {
                   ),
                   const SizedBox(height: 50,),
                   const Text(
-                    'Choose a date',
+                    'Choose the end date',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       color: ColorsB.yellow500,
@@ -283,15 +307,15 @@ class _PostEventState extends State<PostEvent> {
                   const SizedBox(height: 10,),
                   TextButton.icon(
                     icon: Icon(Icons.calendar_today_outlined, color: choosen
-                      ? ColorsB.yellow500
-                      : Colors.white,),
+                        ? ColorsB.yellow500
+                        : Colors.white,),
                     label: Text(
                       choosen
                           ? DateFormat('dd/MM/yyyy').format(pickedDate)
                           : 'Choose a date',
                       style: TextStyle(
-                        color: choosen ? ColorsB.yellow500 : Colors.white,
-                        fontSize: 15
+                          color: choosen ? ColorsB.yellow500 : Colors.white,
+                          fontSize: 15
                       ),
                     ),
                     onPressed: () async {
@@ -321,6 +345,175 @@ class _PostEventState extends State<PostEvent> {
                       fontSize: 12,
                     ),
 
+                  ),
+
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Choose your logo',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (logo == null) TextButton.icon(
+                      onPressed: () async {
+
+                        try{
+                          final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
+                          if(_image == null) return;
+
+                          //logo = _image;
+
+                          CroppedFile? croppedFile = await ImageCropper().cropImage(
+                            sourcePath: _image.path,
+                            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+                            maxHeight: 1080,
+                            maxWidth: 1080,
+                            compressFormat: ImageCompressFormat.png,
+
+                          );
+
+                          if(croppedFile == null) return;
+
+
+                          logo = File(croppedFile.path);
+
+                          logoFormat = "png";
+
+                          logoString = base64Encode(logo!.readAsBytesSync());
+
+                          setState(() {
+
+                          });
+                        } catch(e) {
+                          setState(() {
+                            //  _imageText = 'Error! ${e.toString()}';
+                          });
+                        }
+
+
+
+                      },
+                    label: const Text(
+                      'Choose a logo (MUST have transparency)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal
+                      )
+                    ),
+                    icon: const Icon(Icons.image, color: Colors.white,),
+                  ) else SizedBox(
+                    height: 250,
+                    width: 250,
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: Image.memory(base64Decode(logoString!)).image
+                              )
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+
+                              try{
+                                final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
+                                if(_image == null) return;
+
+                                //logo = _image;
+
+                                CroppedFile? croppedFile = await ImageCropper().cropImage(
+                                    sourcePath: _image.path,
+                                  maxHeight: 1080,
+                                  maxWidth: 1080,
+                                  compressQuality: 75,
+                                  compressFormat: ImageCompressFormat.png,
+
+                                );
+
+                                if(croppedFile == null) return;
+
+
+                                logo = File(croppedFile.path);
+
+                                logoFormat = "png";
+
+                                logoString = base64Encode(logo!.readAsBytesSync());
+
+                                setState(() {
+
+                                });
+                              } catch(e) {
+                                setState(() {
+                                  //  _imageText = 'Error! ${e.toString()}';
+                                });
+                              }
+
+
+
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+
+                  const SizedBox(height: 50,),
+                  InputField(fieldName: 'Enter your company\'s name', isPassword: false, errorMessage: '', controller: companyName, isEmail: false, lengthLimiter: 20,),
+                  const SizedBox(height: 50,),
+                  const Text(
+                    'Choose a color',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton.icon(
+                    icon: Icon(Icons.format_paint_rounded, color: choosenColor ?? Colors.white),
+                    label: Text(
+                      choosenColor == null ? 'Please choose a color.' : choosenColor.toString(),
+                      style: const TextStyle(
+                          color: Colors.white
+                      ),
+                    ),
+                    onPressed: () {
+
+                      var pickerColor = Colors.white;
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Pick a color!'),
+                          content: SingleChildScrollView(
+                            child: ColorPicker(
+                              pickerColor: pickerColor,
+                              onColorChanged: (nColor){
+                                setState(() {
+                                  pickerColor = nColor;
+                                });
+                              },
+                            ),
+                          ),
+                          actions: <Widget>[
+                            ElevatedButton(
+                              child: const Text('Got it'),
+                              onPressed: () {
+                                setState(() => choosenColor = pickerColor);
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 25),
@@ -395,43 +588,53 @@ class _PostEventState extends State<PostEvent> {
 
                             bool imgSub = false;
 
-                            int owid = widget.gMap['id'];
-
                             try {
 
 
                               if(!imgSub && _file != null){
-                                await uploadImage(_file, name);
+                                await uploadImage(_file, name, format!);
                                 imgSub = true;
                               }
+                              var name2 = companyName.text.replaceAll(' ', '_').replaceAll('\'', '');
+                              print(name2);
+                              print('Logo ${logo == null}');
+
+                              await uploadImage(logo, name2, "png");
                               //print(channels[i]);
 
                               //print(_file);
 
-                              var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertEvent.php');
+                              var url = Uri.parse('https://cnegojdu.ro/GojduApp/addOffer.php');
                               final response;
                               if(_file != null){
                                 response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": locationButton,
+                                  "d": discountController.text,
+                                  "ld": _postController.value.text,
+                                  "sd": shortDescription.value.text,
+                                  "ow": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
+                                  "cn": companyName.text,
+                                  "loc": locationButton,
+                                  "ml": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}",
                                   "date":  DateFormat('dd/MM/yyyy').format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
-                                  "owid": owid.toString(),
-                                  "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format",
-                                  "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
+                                  "himg": "https://cnegojdu.ro/GojduApp/imgs/$name.$format",
+                                  "limg": "https://cnegojdu.ro/GojduApp/imgs/${companyName.text.replaceAll(' ', '_').replaceAll('\'', '')}.png",
+                                  "col": choosenColor.toString(),
+
                                 });
                               }
                               else {
                                 response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": locationButton,
+                                  "d": discountController.text,
+                                  "ld": _postController.value.text,
+                                  "sd": shortDescription.value.text,
+                                  "ow": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
+                                  "cn": companyName.text,
+                                  "loc": locationButton,
+                                  "ml": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}",
                                   "date":  DateFormat('dd/MM/yyyy').format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] + " " + widget.gMap["last_name"],
-                                  "owid": owid.toString(),
-                                  "link": "",
-                                  "maps_link": "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
+                                  "himg": "",
+                                  "limg": "https://cnegojdu.ro/GojduApp/imgs/${companyName.text.replaceAll(' ', '_').replaceAll('\'', '')}.png",
+                                  "col": choosenColor.toString(),
                                 });
                               }
                               print(response.statusCode);
@@ -443,12 +646,11 @@ class _PostEventState extends State<PostEvent> {
                                 } else {
                                   if (jsondata["success"]){
 
-
                                     try {
                                       var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
                                       final response2 = await http.post(ulr2, body: {
-                                        "action": "Event",
-                                        "owner":  "${globalMap['first_name']} ${globalMap["last_name"]}"
+                                        "action": "Offers",
+                                        "channel": "Students"
                                       });
 
                                       print(response2.statusCode);
@@ -459,23 +661,23 @@ class _PostEventState extends State<PostEvent> {
                                         print(jsondata2);
 
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  behavior: SnackBarBehavior.floating,
-                                                  backgroundColor: Colors.green,
-                                                  content: Row(
-                                                    children: const [
-                                                      Icon(Icons.check, color: Colors.white),
-                                                      SizedBox(width: 20,),
-                                                      Text(
-                                                        'Hooray! A new event was born.',
-                                                        style: TextStyle(
-                                                            color: Colors.white
-                                                        ),
-                                                      )
-                                                    ],
-                                                  ),
-                                                )
-                                            );
+                                            SnackBar(
+                                              behavior: SnackBarBehavior.floating,
+                                              backgroundColor: Colors.green,
+                                              content: Row(
+                                                children: const [
+                                                  Icon(Icons.check, color: Colors.white),
+                                                  SizedBox(width: 20,),
+                                                  Text(
+                                                    'Hooray! A new offer was born.',
+                                                    style: TextStyle(
+                                                        color: Colors.white
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            )
+                                        );
 
                                         Navigator.of(context).pop();
                                         //  print(jsondata2);
@@ -485,7 +687,11 @@ class _PostEventState extends State<PostEvent> {
                                     } catch (e) {
                                       //print(e);
                                     }
-                                                                        //  Navigator.of(context).pop();
+
+
+
+
+                                    //  Navigator.of(context).pop();
                                   }
                                   else
                                   {
@@ -811,4 +1017,5 @@ class _FullScreenMapState extends State<FullScreenMap> {
     );
   }
 }
+
 

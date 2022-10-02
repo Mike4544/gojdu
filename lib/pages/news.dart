@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/settings.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -59,6 +61,17 @@ import '../widgets/switchPosts.dart';
 
 import 'EventPage.dart';
 
+import './myTimetable.dart';
+
+import './opportunities.dart';
+
+import './offersPage.dart';
+
+import 'dart:math' as math;
+
+import './sendFeedback.dart';
+
+
 
 
 
@@ -79,26 +92,17 @@ late bool loaded;
 
 late Map globalMap;
 
+final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 List<Floor> floors = [
   // Floor(floor: 'parter', file: 'parter.png'),
   // Floor(floor: 'parter', file: 'parter.png'),
   // Floor(floor: 'parter', file: 'parter.png'),
 ];
 
+bool mapErrored = false;
 
-List<String> titles = [];
-List<String> sizes = [];
-
-List<Alert>? alerts;
-bool haveNew = false;
-
-final bar1Key = GlobalKey();
-final bar2Key = GlobalKey();
-
-
-
-
-Future<int> getFloors() async {
+Future getFloors() async {
   try{
     var url = Uri.parse('https://cnegojdu.ro/GojduApp/getfloors.php');
 
@@ -107,7 +111,7 @@ Future<int> getFloors() async {
 
 
     final response = await http.post(url, body: {
-    });
+    }).timeout(const Duration(seconds: 15));
 
     print(response.statusCode);
 
@@ -129,22 +133,55 @@ Future<int> getFloors() async {
       }
     } else {
       print("Upload failed");
+      mapErrored = true;
+      return throw Exception("Couldn't connect");
 
     }
 
   }
-  catch(e){
+  on TimeoutException catch(e){
     //print("Error during converting to Base64");
+    mapErrored = true;
+
+    ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
+        const SnackBar(
+            backgroundColor: Colors.red,
+            content: Text(
+                'Request has timed out. Some features might be missing.',
+                style: TextStyle(
+                  color: Colors.white,
+                )
+            )
+        )
+    );
 
 
+    return throw Exception("Timeout");
+
+
+  } finally {
+
+    return 1;
   }
-
-  return 1;
 
 
 
 
 }
+
+
+List<String> titles = [];
+List<String> sizes = [];
+
+List<Alert>? alerts;
+bool haveNew = false;
+
+final bar1Key = GlobalKey();
+final bar2Key = GlobalKey();
+
+
+
+
 
 
 // <---------- Height and width outside of context -------------->
@@ -168,6 +205,8 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
+
+
   late final accType;
 
 
@@ -175,7 +214,6 @@ class _NewsPageState extends State<NewsPage>{
   ConnectivityResult? connectionStatus, lastConnectionStatus;
   late StreamSubscription subscription;
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 
 
@@ -243,7 +281,7 @@ class _NewsPageState extends State<NewsPage>{
                 TextButton(
                   onPressed: () async {
                     await Future.delayed(const Duration(milliseconds: 100));
-                    _scaffoldKey.currentState!.showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
                       content: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           child: const Text("Unverified account. Some features might be unavailable to you.", style: TextStyle(fontFamily: 'Nunito', fontSize: 12, color: Colors.white),)),
@@ -268,11 +306,11 @@ class _NewsPageState extends State<NewsPage>{
                         fit: BoxFit.contain,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'Welcome! One more thing before you can start using the app.',
                       style: TextStyle(
                         fontFamily: 'Nunito',
-                        fontSize: 17.5,
+                        fontSize: 17.5.sp,
                         color: ColorsB.yellow500,
                         fontWeight: FontWeight.bold,
                       ),
@@ -282,7 +320,7 @@ class _NewsPageState extends State<NewsPage>{
                       'Currently you are unverified, meaning that you won\'t be able to login after you close the app until you verify yourself by clicking on the verification mail, or you get verified by an admin.',
                       style: TextStyle(
                         fontFamily: 'Nunito',
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         color: Colors.white.withOpacity(0.5),
                       ),
                     ),
@@ -301,14 +339,21 @@ class _NewsPageState extends State<NewsPage>{
     precacheImage(const AssetImage('assets/images/Carnet.png'), context);
     precacheImage(const AssetImage('assets/images/Map.png'), context);
     precacheImage(const AssetImage('assets/images/Settings.png'), context);
-    precachePicture(ExactAssetPicture(
-        SvgPicture.svgStringDecoderBuilder,
-        'assets/svgs/no_posts.svg'
-    ),
-      null,
-    );
+    precacheImage(const AssetImage("assets/images/orar.png"), context);
+    precacheImage(const AssetImage("assets/images/IT.png"), context);
+    precacheImage(const AssetImage("assets/images/Other.png"), context);
+    precacheImage(const AssetImage("assets/images/Design.png"), context);
+    precacheImage(const AssetImage("assets/images/Fashion.png"), context);
+    precacheImage(const AssetImage("assets/images/abstractFire.png"), context);
+    precacheImage(const AssetImage('assets/images/3.png'), context);
+    precacheImage(const AssetImage('assets/images/Triangle1.png'), context);
+    precacheImage(const AssetImage('assets/images/Untitled-1.png'), context);
+    precacheImage(const AssetImage('assets/images/Target.png'), context);
+    precacheImage(const AssetImage('assets/images/no_posts.png'), context);
 
   }
+
+
 
 
   @override
@@ -319,8 +364,10 @@ class _NewsPageState extends State<NewsPage>{
 
 
 
+
+
   //  Testing smthing
-  late final Future? gFloors = getFloors();
+  late Future? gFloors = getFloors();
 
   Future setBall(bool state) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -367,6 +414,7 @@ class _NewsPageState extends State<NewsPage>{
     //  refreshAlerts();
 
 
+
     subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
         connectionStatus = result;
@@ -382,10 +430,10 @@ class _NewsPageState extends State<NewsPage>{
 
       if(_scaffoldKey.currentState != null){
 
-        _scaffoldKey.currentState?.hideCurrentSnackBar();
+        ScaffoldMessenger.of(_scaffoldKey.currentContext!).hideCurrentSnackBar();
 
         if(message.data['type'] == 'Post'){
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.notifications, color: Colors.white, size: 17,),
@@ -404,7 +452,7 @@ class _NewsPageState extends State<NewsPage>{
           setState(() {
             globalMap['verification'] = 'Verified';
           });
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.check, color: Colors.white, size: 17,),
@@ -430,7 +478,7 @@ class _NewsPageState extends State<NewsPage>{
 
           //  refreshAlerts();
 
-          _scaffoldKey.currentState!.showSnackBar(SnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
             content: Row(
               children: const [
                 Icon(Icons.check, color: Colors.white, size: 17,),
@@ -471,6 +519,8 @@ class _NewsPageState extends State<NewsPage>{
 
     });
 
+    _loaded = false;
+
 
     super.initState();
 
@@ -496,12 +546,12 @@ class _NewsPageState extends State<NewsPage>{
 
   }
 
+  late bool _loaded;
+
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-
     loadRes(context);
+    super.didChangeDependencies();
   }
 
   @override
@@ -627,13 +677,14 @@ class _NewsPageState extends State<NewsPage>{
     }
   }
 
-  Future<void> _verifyUser(String? token, String? email, String status, int index) async {
+  Future _verifyUser(String? token, String? email, String status, int index) async {
+
     try {
       var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/verify_accounts.php');
       final response2 = await http.post(ulr2, body: {
         "email": email,
         "status": status,
-      });
+      }).timeout(const Duration(seconds: 15));
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
@@ -645,11 +696,16 @@ class _NewsPageState extends State<NewsPage>{
         }
       }
       else {
-        //print(response2.statusCode);
+        return throw Exception('Couldn\'t connect');
       }
-    } catch (e) {
+
+
+    } on TimeoutException catch (e) {
+
+      return throw Exception('Timeout');
       //print(e);
     }
+
   }
 
 
@@ -659,34 +715,119 @@ class _NewsPageState extends State<NewsPage>{
 
     var device = MediaQuery.of(context);
 
-    if(!opened){
-      _forNewUsers(context);
-    }
+    // if(!opened){
+    //   _forNewUsers(context);
+    // }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       key: _scaffoldKey,
-      appBar: CurvedAppbar(names: const ['Announcements', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
+      appBar: CurvedAppbar(names: const ['News', 'Opportunities', 'Offers', 'Menus'], nameIndex: _currentIndex, accType: globalMap['account'] + ' account', position: 1, map: globalMap, key: bar1Key, update: updateRedButton,),
       backgroundColor: ColorsB.gray900,
       extendBody: true,
-      bottomNavigationBar: _bottomNavBar(),
+      bottomNavigationBar: _loaded ? _bottomNavBar() : null,
       body: FutureBuilder(
         future: gFloors,
         builder: (context, snapshot) {
           if(!snapshot.hasData){
-            return const SizedBox();
+            return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                      CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500)),
+                      SizedBox(height: 15),
+                      Text(
+                        'Getting data...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5
+                        )
+                      )
+                  ]
+                )
+            );
+          }
+          else if(snapshot.hasError){
+            return Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.3,
+                      child: SvgPicture.asset('assets/svgs/404.svg'),
+                    ),
+                    const Text(
+                      'Zap! Something went wrong!',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                      ),
+                    ),
+                    Text(
+                      "Please retry.",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                    TextButton.icon(
+                        icon: Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                        onPressed: () {
+
+                          gFloors = getFloors();
+
+                          setState(() {
+
+                          });
+
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorsB.yellow500,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                50),
+                          ),
+                        )
+                    ),
+                  ],
+                )
+            );
           }
           else {
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _loaded = true;
+              });
+            });
+
+
             return PageView(
               physics: const NeverScrollableScrollPhysics(),
               controller: _pageController,
               children: [
                 Announcements( key: _announcementsKey,),
+                OpportunitiesList(globalMap: globalMap),
+                OffersPage(globalMap: globalMap,),
                 MenuTabs(pages: [
                   SettingsPage(type: globalMap['account'], key: const ValueKey(1), context: context,),
                   const MapPage(key: ValueKey(2)),
                   const Calendar(key: ValueKey(3)),
                   const Notes(),
-                  AlertPage(gMap: globalMap)
+                  AlertPage(gMap: globalMap),
+                  const MyTimetable(),
+                  const FeedbackPage(),
                 ], map: globalMap, notif: haveNew, update: () {
                   setState(() {
 
@@ -703,11 +844,394 @@ class _NewsPageState extends State<NewsPage>{
 
 
   Widget _bottomNavBar() {
+
+    List<Widget> _buttons = [
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'News',
+                            style: TextStyle(
+                                color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        ),
+                      ]
+                  ),
+                  onTap: () {
+                    //  _mapExpandAnim(_announcementsInput);
+                    setState(() {
+                      _currentIndex = 0;
+                      //  changeColors(_currentIndex);
+                    });
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.apartment_rounded, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Opportunities',
+                            style: TextStyle(
+                                color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 1;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.local_activity_rounded, color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Offers',
+                            style: TextStyle(
+                                color: _currentIndex == 2 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 2;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      children: [
+                        Icon(Icons.apps, color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white),
+                        Text(
+                            'Menus',
+                            style: TextStyle(
+                                color: _currentIndex == 3 ? ColorsB.yellow500 : Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 3;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+
+                  }
+              ),
+            ),
+          ),
+        ),
+      ),
+
+    ];
+
+
     if(globalMap['account'] == 'Admin') {
+
+      _buttons.insert(0, Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              child: GestureDetector(
+                child: SizedBox(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Icon(Icons.verified_user_outlined, color: Colors.white),
+                        Text(
+                            'Verify Users',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 7.5
+                            )
+                        )
+                      ]
+                  ),
+                ),
+                onTap: () {
+
+                  late var _getUsers = _loadUsers();
+                  // Verification page for the admin
+                  showDialog(
+                      barrierDismissible: false,
+                      context: context,
+                      builder: (context) {
+                        final ScrollController _scrollController = ScrollController();
+
+                        return StatefulBuilder(
+                            builder: (_, StateSetter setState1) {
+
+
+                              return AlertDialog(
+
+                                title: Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: [
+                                      Row(
+                                        children: const [
+                                          Icon(Icons.verified_user_outlined,
+                                            color: Colors.white, size: 30,),
+                                          SizedBox(width: 10,),
+                                          Text('Verify Users',
+                                            style: TextStyle(fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white),),
+                                        ],
+                                      ),
+                                      const Divider(color: Colors.white,
+                                        thickness: 0.5,
+                                        height: 20,),
+                                    ]
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                backgroundColor: ColorsB.gray900,
+                                content: SizedBox(
+                                    height: screenHeight * 0.75,
+                                    width: screenWidth * 0.8,
+                                    child: FutureBuilder(
+                                        future: _getUsers,
+                                        builder: (c, sn) {
+                                          if (sn.hasData &&
+                                              (_names.isNotEmpty ||
+                                                  _emails.isNotEmpty ||
+                                                  _types.isNotEmpty)) {
+                                            return Scrollbar(
+                                              controller: _scrollController,
+                                              child: ListView.builder(
+                                                controller: _scrollController,
+                                                physics: const BouncingScrollPhysics(),
+                                                itemCount: _names.isNotEmpty
+                                                    ? _names.length
+                                                    : 1,
+                                                itemBuilder: (context,
+                                                    index) {
+                                                  if (_names.isNotEmpty) {
+                                                    return Padding(
+                                                        padding: const EdgeInsets
+                                                            .all(10.0),
+                                                        child: Row(
+                                                          children: [
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment
+                                                                  .start,
+
+                                                              children: [
+                                                                Text(
+                                                                  _names[index].split(' ')[0] + ' ' + _names[index].split(' ').last[0] + '.',
+                                                                  style: const TextStyle(
+                                                                      fontSize: 15,
+                                                                      color: Colors
+                                                                          .white),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 5,),
+                                                                Text(
+                                                                  'Type: ${_types[index]}',
+                                                                  style: const TextStyle(
+                                                                      fontSize: 10,
+                                                                      color: ColorsB
+                                                                          .yellow500),
+                                                                ),
+                                                                Text(
+                                                                  'Email: ${_emails[index]}',
+                                                                  style: const TextStyle(
+                                                                      fontSize: 10,
+                                                                      color: ColorsB
+                                                                          .yellow500),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const Spacer(),
+                                                            Row(
+                                                                mainAxisAlignment: MainAxisAlignment
+                                                                    .spaceAround,
+                                                                children: [
+                                                                  GestureDetector(
+                                                                    child: const Icon(
+                                                                      Icons
+                                                                          .check_circle_outlined,
+                                                                      color: Colors
+                                                                          .green,
+                                                                      size: 30,),
+                                                                    onTap: () async {
+                                                                      //print('Checked');
+                                                                      await _verifyUser(
+                                                                          _tokens[index],
+                                                                          _emails[index],
+                                                                          'Verified',
+                                                                          index);
+                                                                      setState1(() {
+
+                                                                      });
+                                                                    },
+                                                                  ),
+                                                                  GestureDetector(
+                                                                    child: const Icon(
+                                                                      Icons
+                                                                          .cancel_outlined,
+                                                                      color: Colors
+                                                                          .red,
+                                                                      size: 30,),
+                                                                    onTap: () {
+                                                                      print(
+                                                                          'Canceled');
+
+                                                                      setState1(() {
+                                                                        _names
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _tokens
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _types
+                                                                            .removeAt(
+                                                                            index);
+                                                                        _emails
+                                                                            .removeAt(
+                                                                            index);
+                                                                      });
+
+
+                                                                      // TODO: Cancel feature + Check feature
+                                                                    },
+                                                                  ),
+                                                                ]
+                                                            )
+                                                          ],
+                                                        )
+                                                    );
+                                                  }
+                                                  else {
+                                                    return const Center(
+                                                      child: Text(
+                                                        'No accounts pending approval. Nice!',
+                                                        style: TextStyle(
+                                                            fontSize: 20,
+                                                            color: ColorsB
+                                                                .gray700),),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            );
+                                          }
+                                          else if (sn.hasData &&
+                                              (_names.isEmpty ||
+                                                  _emails.isEmpty ||
+                                                  _types.isEmpty)) {
+                                            return const Center(
+                                              child: Text(
+                                                'No accounts pending approval. Nice!',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: ColorsB
+                                                        .gray700),),
+                                            );
+                                          }
+                                          else {
+                                            return const Center(
+                                                child: CircularProgressIndicator(
+                                                  valueColor: AlwaysStoppedAnimation(
+                                                      ColorsB.yellow500),)
+                                            );
+                                          }
+                                        }
+                                    )
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      _names.clear();
+                                      _emails.clear();
+                                      _types.clear();
+                                      _tokens.clear();
+
+
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Close',
+                                        style: TextStyle(
+                                            color: Colors.white)),
+                                  ),
+                                ],
+                              );
+                            }
+                        );
+                      }
+
+                  );
+
+                },
+              ),
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ));
 
       return Container(
         width: screenWidth,
-        height: screenHeight * .075,
+        height: screenHeight * .1 >= 60 ? 60 : screenHeight * .1,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
@@ -723,213 +1247,14 @@ class _NewsPageState extends State<NewsPage>{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    child: GestureDetector(
-                      child: const Icon(Icons.verified_user_outlined, color: Colors.white),
-                      onTap: () {
-
-                        // Verification page for the admin
-                        showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            final ScrollController _scrollController = ScrollController();
-
-                            return StatefulBuilder(
-                                builder: (_, StateSetter setState1) =>
-                                    AlertDialog(
-
-                                      title: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children : [
-                                            Row(
-                                              children: const [
-                                                Icon(Icons.verified_user_outlined, color: Colors.white, size: 30,),
-                                                SizedBox(width: 10,),
-                                                Text('Verify Users', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
-                                              ],
-                                            ),
-                                            const Divider(color: Colors.white, thickness: 0.5, height: 20,),
-                                          ]
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      backgroundColor: ColorsB.gray900,
-                                      content: SizedBox(
-                                        height: screenHeight * 0.75,
-                                        width: screenWidth * 0.8,
-                                        child: FutureBuilder(
-                                          future: _loadUsers(),
-                                          builder: (c, sn) {
-                                            if(sn.hasData && (_names.isNotEmpty || _emails.isNotEmpty || _types.isNotEmpty)) {
-                                              return Scrollbar(
-                                                controller: _scrollController,
-                                                child: ListView.builder(
-                                                  controller: _scrollController,
-                                                  physics: const BouncingScrollPhysics(),
-                                                  itemCount: _names.length > 0 ? _names.length : 1,
-                                                  itemBuilder: (context, index) {
-                                                    if(_names.length > 0){
-                                                      return Padding(
-                                                        padding: const EdgeInsets.all(20.0),
-                                                        child: Row(
-                                                          children: [
-                                                            Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-
-                                                              children: [
-                                                                Text(
-                                                                  _names[index],
-                                                                  style: const TextStyle(fontSize: 15, color: Colors.white),
-                                                                ),
-                                                                const SizedBox(height: 5,),
-                                                                Text(
-                                                                  'Type: ${_types[index]}',
-                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
-                                                                ),
-                                                                Text(
-                                                                  'Email: ${_emails[index]}',
-                                                                  style: const TextStyle(fontSize: 10, color: ColorsB.yellow500),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            const Spacer(),
-                                                            GestureDetector(
-                                                              child: const Icon(Icons.check_circle_outlined, color: Colors.green, size: 30,),
-                                                              onTap: () async {
-                                                                //print('Checked');
-                                                                await _verifyUser(_tokens[index], _emails[index], 'Verified', index);
-                                                                setState1(() {
-
-                                                                });
-                                                              },
-                                                            ),
-                                                            const SizedBox(width: 10,),
-                                                            GestureDetector(
-                                                              child: const Icon(Icons.cancel_outlined, color: Colors.red, size: 30,),
-                                                              onTap: () {
-                                                                //print('Canceled');
-
-
-
-
-                                                                // TODO: Cancel feature + Check feature
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-                                                    else {
-                                                      return const Center(
-                                                        child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              );
-                                            }
-                                            else if(sn.hasData && (_names.isEmpty || _emails.isEmpty || _types.isEmpty)){
-                                              return const Center(
-                                                child: Text('No accounts pending approval. Nice!', style: TextStyle(fontSize: 20, color: ColorsB.gray700),),
-                                              );
-                                            }
-                                            else {
-                                              return const Center(
-                                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),)
-                                              );
-                                            }
-                                          }
-                                        )
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            _names.clear();
-                                            _emails.clear();
-                                            _types.clear();
-                                            _tokens.clear();
-
-
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close', style: TextStyle(color: Colors.white)),
-                                        ),
-                                      ],
-                                    )
-                            );
-                          }
-
-                        );
-
-                      },
-                    ),
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          //  _mapExpandAnim(_announcementsInput);
-                          setState(() {
-                            _currentIndex = 0;
-                            //  changeColors(_currentIndex);
-                          });
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                        }
-                    ),
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                      child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                      onTap: () {
-                        setState(() {
-                          _currentIndex = 1;
-                          //  changeColors(_currentIndex);
-                        });
-
-                        _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-
-                      }
-                    ),
-                  ),
-                ),
-              )
-            ]
+            children: _buttons,
         ),
       );
     }
     else {
       return Container(
         width: screenWidth,
-        height: 75,
+        height: screenHeight * .075 >= 60 ? 60 : screenHeight * .075,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
@@ -945,54 +1270,7 @@ class _NewsPageState extends State<NewsPage>{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.announcement, color: _currentIndex == 0 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          //  _mapExpandAnim(_announcementsInput);
-                          setState(() {
-                            _currentIndex = 0;
-                            //  changeColors(_currentIndex);
-                          });
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-                        }
-                    ),
-                  ),
-                ),
-              ),
-
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: GestureDetector(
-                        child: Icon(Icons.apps, color: _currentIndex == 1 ? ColorsB.yellow500 : Colors.white, size: 40),
-                        onTap: () {
-                          setState(() {
-                            _currentIndex = 1;
-                            //  changeColors(_currentIndex);
-                          });
-
-                          _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
-
-                        }
-                    ),
-                  ),
-                ),
-              )
-            ]
+            children: _buttons,
         ),
       );
     }
@@ -1010,8 +1288,9 @@ final GlobalKey<_AnnouncementsState> _announcementsKey = GlobalKey<_Announcement
 
 
 
-class Announcements extends StatefulWidget {
 
+
+class Announcements extends StatefulWidget {
   const Announcements({Key? key}) : super(key: key);
 
   @override
@@ -1025,7 +1304,8 @@ class Announcements extends StatefulWidget {
 
 int maximumCount = 0;
 
-class _AnnouncementsState extends State<Announcements> with TickerProviderStateMixin {
+class _AnnouncementsState extends State<Announcements> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin{
+bool get wantKeepAlive => true;
 
 
   var selectedColorS = Colors.white;
@@ -1065,7 +1345,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
 
 
-  List<Post> posts = [];
+  List<Widget> posts = [];
 
 
   late int currSelect;
@@ -1263,6 +1543,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
 
     //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
@@ -1284,55 +1565,44 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Latest news',
-                            style: TextStyle(
-                                color: ColorsB.yellow500,
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600
-                            ),
-                          ),
-                          const SizedBox(width: 10,),
-                          Visibility(
-                            visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' ? true : false, // cHANGE IT,
-                            child: GestureDetector(
-                              onTap: _showWritable,
-                              child: const Icon(
-                                Icons.add_circle_outline,
-                                size: 40,
-                                color: ColorsB.gray800,
-
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Latest news',
+                              style: TextStyle(
+                                  color: ColorsB.yellow500,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w600
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              height: 2,
-                              color: ColorsB.gray800,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 25,),
+                            const SizedBox(width: 10,),
+                            Visibility(
+                              visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin', // cHANGE IT,
+                              child: GestureDetector(
+                                onTap: _showWritable,
+                                child: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 40,
+                                  color: ColorsB.gray800,
 
-                      teachersBar(),
-                      SizedBox(
-                          height: 450,
-                          child: ShaderMask(
-                            shaderCallback: (Rect bounds) =>
-                                const material.LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    stops: [
-                                      0, 0.25
-                                    ],
-                                    colors: [Colors.transparent, ColorsB.gray900]
-                                ).createShader(bounds),
-                            blendMode: BlendMode.dstIn,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: ColorsB.gray800,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 25,),
+
+                        teachersBar(),
+                        SizedBox(
+                            height: 450,
                             child: TabBarView(
                               physics: const NeverScrollableScrollPhysics(),
                               controller: _tabController,
@@ -1345,157 +1615,159 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
 
                               ],
-                            ),
-                          )
-                      )
-                    ]
+                            )
+                        )
+                      ]
                   ),
                   Column(
-                    children: [
+                      children: [
 
-                      Row(
-                        children: [
-                          const Text(
-                            'Events',
-                            style: TextStyle(
-                                color: ColorsB.yellow500,
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600
+                        Row(
+                          children: [
+                            const Text(
+                              'Events',
+                              style: TextStyle(
+                                  color: ColorsB.yellow500,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w600
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10,),
-                          GestureDetector(
-                            onTap: _showWritableEvent,
-                            child: const Icon(
-                              Icons.add_circle_outline,
-                              size: 40,
-                              color: ColorsB.gray800,
+                            const SizedBox(width: 10,),
+                            Visibility(
+                              visible: globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin',
+                              child: GestureDetector(
+                                onTap: _showWritableEvent,
+                                child: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 40,
+                                  color: ColorsB.gray800,
 
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              height: 2,
-                              color: ColorsB.gray800,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 25,),
-                      Expanded(
-                        child: FutureBuilder(
-                          future: _loadEvents,
-                          builder: (context, snapshot){
-                            if(snapshot.hasData){
-                              return RefreshIndicator(
-                                onRefresh: () async {
-                                  events.clear();
-
-
-                                  _loadEvents = loadEvents();
-
-                                  setState(() {});
-
-                                },
-                                child: ListView.builder(
-                                    physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
-                                    shrinkWrap: false,
-                                    itemCount: events.isNotEmpty ? events.length : 1,
-                                    itemBuilder: (context, index) {
-                                      if(events.isNotEmpty) {
-                                        return events[index];
-                                      }
-                                      else {
-                                        return Center(
-                                            child: Column(
-                                              children: [
-                                                SizedBox(
-                                                    height: screenHeight * 0.25,
-                                                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
-                                                ),
-                                                const Text(
-                                                  'Wow! Such empty. So class.',
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.white.withOpacity(0.25),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 20,),
-                                                TextButton.icon(
-                                                    icon: Icon(
-                                                      Icons.refresh,
-                                                      color: Colors.white,
-                                                    ),
-                                                    label: Text(
-                                                      'Refresh',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                    onPressed: () async {
-                                                      //  _refresh();
-                                                      events.clear();
-
-
-                                                      _loadEvents = loadEvents();
-
-                                                      setState(() {});
-
-                                                    },
-                                                    style: TextButton.styleFrom(
-                                                      backgroundColor: ColorsB.yellow500,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(
-                                                            50),
-                                                      ),
-                                                    )
-                                                ),
-                                              ],
-                                            )
-                                        );
-                                      }
-                                    }
                                 ),
-                              );
-                            }
-                            else {
-                              return ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: 5,
-                                itemBuilder: (_, index) =>
-                                    Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Shimmer.fromColors(
-                                        baseColor: ColorsB.gray800,
-                                        highlightColor: ColorsB.gray700,
-                                        child: Container(                         // Student containers. Maybe get rid of the hero
-                                          height: screenHeight * 3,
-                                          decoration: BoxDecoration(
-                                            color: ColorsB.gray800,
-                                            borderRadius: BorderRadius.circular(
-                                                50),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: ColorsB.gray800,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 25,),
+                        Expanded(
+                          child: FutureBuilder(
+                              future: _loadEvents,
+                              builder: (context, snapshot){
+                                if(snapshot.hasData){
+                                  return RefreshIndicator(
+                                    onRefresh: () async {
+                                      events.clear();
+
+
+                                      _loadEvents = loadEvents();
+
+                                      setState(() {});
+
+                                    },
+                                    child: ListView.builder(
+                                        physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                                        shrinkWrap: false,
+                                        itemCount: events.length > 1 ? events.length : 1,
+                                        itemBuilder: (context, index) {
+                                          if(events.isNotEmpty) {
+                                            return events[index];
+                                          }
+                                          else {
+                                            return Center(
+                                                child: Column(
+                                                  children: [
+                                                    SizedBox(
+                                                        height: screenHeight * 0.25,
+                                                        child: Image.asset('assets/images/no_posts.png'),
+                                                    ),
+                                                    const Text(
+                                                      'Wow! Such empty. So class.',
+                                                      style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.white
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        color: Colors.white.withOpacity(0.25),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 20,),
+                                                    TextButton.icon(
+                                                        icon: Icon(
+                                                          Icons.refresh,
+                                                          color: Colors.white,
+                                                        ),
+                                                        label: Text(
+                                                          'Refresh',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 15,
+                                                          ),
+                                                        ),
+                                                        onPressed: () async {
+                                                          //  _refresh();
+                                                          events.clear();
+
+
+                                                          _loadEvents = loadEvents();
+
+                                                          setState(() {});
+
+                                                        },
+                                                        style: TextButton.styleFrom(
+                                                          backgroundColor: ColorsB.yellow500,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(
+                                                                50),
+                                                          ),
+                                                        )
+                                                    ),
+                                                  ],
+                                                )
+                                            );
+                                          }
+                                        }
+                                    ),
+                                  );
+                                }
+                                else {
+                                  return ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: 5,
+                                    itemBuilder: (_, index) =>
+                                        Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Shimmer.fromColors(
+                                            baseColor: ColorsB.gray800,
+                                            highlightColor: ColorsB.gray700,
+                                            child: Container(                         // Student containers. Maybe get rid of the hero
+                                              height: screenHeight * 3,
+                                              decoration: BoxDecoration(
+                                                color: ColorsB.gray800,
+                                                borderRadius: BorderRadius.circular(
+                                                    50),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                              );
-                            }
-                          }
-                        ),
-                      )
+                                  );
+                                }
+                              }
+                          ),
+                        )
 
-                    ]
+                      ]
                   )
                 ],
               ),
@@ -1536,9 +1808,11 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               String post = jsondata[i.toString()]["post"].toString();
               String title = jsondata[i.toString()]["title"].toString();
               String owner = jsondata[i.toString()]["owner"].toString();
+              int ownerid = jsondata[i.toString()]["oid"];
               String location = jsondata[i.toString()]["location"].toString();
               String date = jsondata[i.toString()]["date"].toString();
               String link = jsondata[i.toString()]["link"].toString();
+              String mapsLink = jsondata[i.toString()]["glink"].toString();
 
 
               int? id = jsondata[i.toString()]["id"];
@@ -1556,10 +1830,12 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                   id: id,
                   body: post,
                   owner: owner,
+                  ownerID: ownerid,
                   link: link,
                   date: date,
                   location: location,
                   gMap: globalMap,
+                  maps_link: mapsLink,
                   Context: context,
                   delete: () async {
                     await deleteEvent(id!, i - 2);
@@ -1585,6 +1861,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
               } */
 
             }
+            events.add(SizedBox(height: screenHeight * .5));
             //  print(events);
           }
           else
@@ -1601,7 +1878,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
 
   }
 
-  late List<Event> events;
+  late List<Widget> events;
 
 
 
@@ -1613,7 +1890,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Container(
-          height: 75,
+          height: device.height * .075 > 75 ? 75 : device.height * .075,
           width: device.width * 0.90,
           decoration: BoxDecoration(
               color: Colors.black12,
@@ -1710,7 +1987,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
         );
       }
       else {
-        if(posts.isNotEmpty){
+        if(posts.length > 1){
           return RefreshIndicator(
             backgroundColor: ColorsB.gray900,
             color: _color,
@@ -1762,7 +2039,7 @@ class _AnnouncementsState extends State<Announcements> with TickerProviderStateM
                 children: [
                   SizedBox(
                     height: screenHeight * 0.25,
-                    child: SvgPicture.asset('assets/svgs/no_posts.svg')
+                    child: Image.asset('assets/images/no_posts.png'),
                   ),
                   const Text(
                     'Wow! Such empty. So class.',
@@ -2138,6 +2415,7 @@ Future<int> load(String channel) async {
                 String post = jsondata[i.toString()]["post"].toString();
                 String title = jsondata[i.toString()]["title"].toString();
                 String owner = jsondata[i.toString()]["owner"].toString();
+                int? ownerID = jsondata[i.toString()]["oid"];
                 String link = jsondata[i.toString()]["link"].toString();
 
 
@@ -2166,12 +2444,7 @@ Future<int> load(String channel) async {
                 }
 
 
-
-                ////print(globalMap['id']);
-
-
-
-                if(post != "null" && post != null){
+                if(post != "null" && post != null && ownerID != null){
 
 
                   if(liked.contains(globalMap['id'].toString())){
@@ -2195,6 +2468,7 @@ Future<int> load(String channel) async {
                       ids: id,
                       descriptions: post,
                       owners: owner,
+                      ownerID: ownerID!,
                       link: link,
                       hero: _hero,
                       admin: globalMap['account'],
@@ -2209,24 +2483,12 @@ Future<int> load(String channel) async {
                   );
 
 
-
-                  //(link);
-
-                  // Prechaching the asset
-
-
-
                   ++maximumCount;
                 }
 
-                /* if(post != "null")
-              {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
-              } */
-
               }
+              posts.add(SizedBox(height: screenHeight * 3));
+
               setState(() {
                 isLoading = false;
                 loaded = true;
@@ -2260,7 +2522,7 @@ Future<int> load(String channel) async {
 
 
   // <-------------- Placing the hero container ---------------> //
-  void _hero(BuildContext context, String title, String description, String author, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
+  void _hero(BuildContext context, String title, String description, String author, int oid, Color color, String link, int? likes, int? ids, bool? dislikes, bool? likesBool, StreamController<int?> contrL, StreamController<bool> contrLB, StreamController<bool> contrDB) {
     Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secAnim) =>
@@ -2271,7 +2533,7 @@ Future<int> load(String channel) async {
                 ).animate(
                     CurvedAnimation(parent: animation, curve: Curves.ease)
                 ),
-                child: BigNewsContainer(title: title, description: description, color: color, author: author, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
+                child: BigNewsContainer(title: title, description: description, color: color, author: author, ownerID: oid, imageLink: link, likes: likes, ids: ids, dislikes: dislikes, likesBool: likesBool, contrL: contrL, contrLB: contrLB, contrDB: contrDB),
               )
         )
     );
@@ -2293,6 +2555,7 @@ class BigNewsContainer extends StatefulWidget {
   final String description;
   final Color color;
   final String author;
+  final int ownerID;
   final String? imageLink;
   final File? file;
   int? likes, ids;
@@ -2302,7 +2565,7 @@ class BigNewsContainer extends StatefulWidget {
   StreamController<bool?>? contrDB;
 
 
-  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
+  BigNewsContainer({Key? key, required this.title, required this.description, required this.color, required this.author, required this.ownerID, this.imageLink, this.file, this.likes, this.likesBool, this.dislikes, this.ids, this.contrL, this.contrDB, this.contrLB}) : super(key: key);
 
   @override
   State<BigNewsContainer> createState() => _BigNewsContainerState();
@@ -2540,9 +2803,82 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   bool visible = false;
   var avatarImg;
 
+  late bool _isnt404;
+
+  Future<int> _getImgStatus() async {
+    var response = await http.get(Uri.parse(avatarImg));
+
+    _isnt404 = response.statusCode != 404;
+
+    return response.statusCode;
+  }
+
+  Widget _CircleAvatar() {
+
+    late var _sCode = _getImgStatus();
+
+    return FutureBuilder(
+      future: _sCode,
+      builder: (context, snapshot){
+        if(snapshot.hasData){
+
+          if(_isnt404){
+            return CircleAvatar(
+              backgroundImage: Image.network(
+                avatarImg,
+              ).image,
+            );
+
+          }
+          else {
+            return CircleAvatar(
+              child: Text(
+                  widget.author[0]
+              ),
+            );
+
+          }
+
+
+        }
+        else if(snapshot.hasError){
+          return CircleAvatar(
+            child: Text(
+                widget.author[0]
+            ),
+          );
+        }
+        else {
+          return const CircleAvatar(
+            backgroundColor: Colors.white,
+          );
+        }
+      },
+
+    );
+
+
+    // try {
+    //   return CircleAvatar(
+    //     backgroundImage: Image.network(
+    //       avatarImg,
+    //     ).image,
+    //   );
+    // }
+    // catch(e) {
+    //   return CircleAvatar(
+    //     child: Text(
+    //         widget.author[0]
+    //     ),
+    //   );
+    // }
+  }
+
+
+
   @override
   void initState() {
-    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.author.split(' ').first}_${widget.author.split(' ').last}.jpg';
+    avatarImg = 'https://cnegojdu.ro/GojduApp/profiles/${widget.ownerID}.jpg';
     print(avatarImg);
 
 
@@ -2578,81 +2914,78 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
       bottomNavigationBar: const BackNavbar(),
       backgroundColor: ColorsB.gray900,
-      body: CustomScrollView(
-        controller: _controller,
-        slivers: [
-          SliverAppBar(
-            backgroundColor: widget.color,
-            automaticallyImplyLeading: false,
-            expandedHeight: screenHeight * .75,
-            pinned: true,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: [
-                StretchMode.blurBackground,
-              ],
-              background: topPage(),
-            ),
-            title: AnimatedOpacity(
-                opacity: visible ? 1 : 0,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: Row(
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.contain,
-                      child: Text(
-                          widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
+      body: Scrollbar(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: ClampingScrollPhysics()),
+          controller: _controller,
+          slivers: [
+            SliverAppBar(
+              backgroundColor: widget.color,
+              automaticallyImplyLeading: false,
+              expandedHeight: screenHeight * .75,
+              pinned: true,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: [
+                  StretchMode.blurBackground,
+                ],
+                background: topPage(),
+              ),
+              title: AnimatedOpacity(
+                  opacity: visible ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  child: Row(
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text(
+                            widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 25,),
-                    Chip(
-                      backgroundColor: ColorsB.gray200,
-                      avatar: CircleAvatar(
-                        backgroundImage: Image.network(
-                          avatarImg,
-                          errorBuilder: (c, ex, sT) => Text(
-                              widget.author[0]
-                          ),
-                        ).image,
-                      ),
-                      label: Text(
-                          widget.author
-                      ),
-                    )
-                  ],
-                )
-            ),
-
-          ),
-          SliverFillRemaining(
-            child: SizedBox(
-              child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Linkify(
-                    linkStyle: const TextStyle(color: ColorsB.yellow500),
-                    text: widget.description,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.normal
-                    ),
-                    onOpen: (link) async {
-                      if (await canLaunch(link.url)) {
-                        await launch(link.url);
-                      } else {
-                        throw 'Could not launch $link';
-                      }
-                    },
+                      const SizedBox(width: 25,),
+                      Chip(
+                        backgroundColor: ColorsB.gray200,
+                        avatar: _CircleAvatar(),
+                        label: Text(
+                            '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
+                        ),
+                      )
+                    ],
                   )
               ),
+
             ),
-          )
-        ],
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: SizedBox(
+                child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Linkify(
+                      linkStyle: const TextStyle(color: ColorsB.yellow500),
+                      text: widget.description,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17.5,
+                          fontWeight: FontWeight.normal
+                      ),
+                      onOpen: (link) async {
+                        if (await canLaunch(link.url)) {
+                          await launch(link.url);
+                        } else {
+                          throw 'Could not launch $link';
+                        }
+                      },
+                    )
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     ) ;
   }
@@ -2661,50 +2994,44 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     //print(imageLink);
 
 
-    if(widget.imageLink == 'null'){
+    if(widget.imageLink == 'null' || widget.imageLink == ''){
       return Hero(
         tag: 'title-rectangle',
         child: Container(
           color: widget.color,
           child: Align(
-            alignment: Alignment.bottomLeft,
+            alignment: Alignment.bottomCenter,
             child: Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Expanded(
                       child: SizedBox(
                           height: screenHeight * .3,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold
                                   ),
                                 ),
-                                Chip(
-                                  backgroundColor: ColorsB.gray200,
-                                  avatar: CircleAvatar(
-                                    backgroundImage: Image.network(
-                                      avatarImg,
-                                      errorBuilder: (c, ex, sT) => Text(
-                                          widget.author[0]
-                                      ),
-                                    ).image,
-                                  ),
-                                  label: Text(
-                                      widget.author
-                                  ),
-                                )
-                              ],
-                            ),
+                              ),
+                              Chip(
+                                backgroundColor: ColorsB.gray200,
+                                avatar: _CircleAvatar(),
+                                label: Text(
+                                    '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
+                                ),
+                              )
+                            ],
                           )
                       ),
                     ),
@@ -2881,7 +3208,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            widget.title.length > 30 ? widget.title.substring(0, 30) + '...' : widget.title,
+                                            widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
                                             style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 30,
@@ -2890,16 +3217,9 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                           ),
                                           Chip(
                                             backgroundColor: ColorsB.gray200,
-                                            avatar: CircleAvatar(
-                                              backgroundImage: Image.network(
-                                                avatarImg,
-                                                errorBuilder: (c, ex, sT) => Text(
-                                                    widget.author[0]
-                                                ),
-                                              ).image,
-                                            ),
+                                            avatar: _CircleAvatar(),
                                             label: Text(
-                                                widget.author
+                                                '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'
                                             ),
                                           )
                                         ],
@@ -3135,44 +3455,16 @@ class _MapPageState extends State<MapPage>{
 
   }
 
-
-  @override
-  Widget build(BuildContext context) {
+  bool isLoading = false;
 
 
+  Widget mapBody() {
+    if(!isLoading){
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      if(!mapErrored){
+        if(floors.isNotEmpty){
+          return Stack(
             children: [
-              const Text(
-                'Select floor',
-                style: TextStyle(
-                    color: ColorsB.yellow500,
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600
-                ),
-              ),
-              const SizedBox(width: 10,),
-              Expanded(
-                child: Container(
-                  color: ColorsB.gray800,
-                  height: 2,
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: 50,),
-
-          //Widgetul pt select floor
-
-          floors.isNotEmpty
-              ? Stack(
-              children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -3228,40 +3520,143 @@ class _MapPageState extends State<MapPage>{
               //TODO: Add the images (at least a placeholder one and do the thingy)
 
             ],
-          )
-              : Center(
-              child: Column(
-                children: [
-                  const Text(
-                    'No maps to display :(',
-                    style: TextStyle(color: ColorsB.gray800, fontSize: 30),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(context, PageRouteBuilder(
-                            pageBuilder: (context, a1, a2) =>
-                                SlideTransition(
-                                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                                  child: EditFloors(floors: floors, update: updateThis),
-                                )
-                        )
-                        );
-                      },
-                      icon: Icon(Icons.edit, size: 20, color: Colors.white),
-                      label: const Text(
-                        "Add floors",
-                        style: TextStyle(
-                            color: Colors.white
+          );
+        }
+
+        return Center(
+            child: Column(
+              children: [
+                const Text(
+                  'No maps to display :(',
+                  style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+                ),
+                const SizedBox(height: 20),
+                Visibility(
+                    visible: globalMap['account'] == "Admin" || globalMap['account'] == "Teacher",
+                    child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(context, PageRouteBuilder(
+                              pageBuilder: (context, a1, a2) =>
+                                  SlideTransition(
+                                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                                    child: EditFloors(floors: floors, update: updateThis),
+                                  )
+                          )
+                          );
+                        },
+                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        label: const Text(
+                          "Add floors",
+                          style: TextStyle(
+                              color: Colors.white
+                          ),
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: ColorsB.gray800,
-                      )
-                  )
-                ],
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorsB.gray800,
+                        )
+                    )
+                )
+              ],
+            )
+        );
+      }
+
+      return Center(
+          child: Column(
+            children: [
+              const Text(
+                'Request has timed out. Please try again.',
+                style: TextStyle(color: ColorsB.gray800, fontSize: 30),
+              ),
+              const SizedBox(height: 10),
+
+              TextButton.icon(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text(
+                      'Refresh',
+                    style: TextStyle(
+                      color: Colors.white
+                    )
+                  ),
+                  onPressed: () async {
+                    floors.clear();
+
+                    setState(() {
+                      isLoading = true;
+                      mapErrored = false;
+                    });
+
+                    await getFloors();
+
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
               )
+            ],
+          )
+      );
+
+
+    }
+
+    return Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(ColorsB.yellow500)),
+              SizedBox(height: 15),
+              Text(
+                  'Getting data...',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5
+                  )
+              )
+            ]
+        )
+    );
+
+
+
+
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(25, 50, 25, 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Select floor',
+                style: TextStyle(
+                    color: ColorsB.yellow500,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600
+                ),
+              ),
+              const SizedBox(width: 10,),
+              Expanded(
+                child: Container(
+                  color: ColorsB.gray800,
+                  height: 2,
+                ),
+              ),
+            ],
           ),
+
+          SizedBox(height: 50,),
+
+          //Widgetul pt select floor
+          mapBody(),
 
           // DropdownSelector(update: _mapUpdate,),
           // //TODO: Add the images (at least a placeholder one and do the thingy)
@@ -3623,10 +4018,7 @@ class _CalPag1State extends State<CalPag1> {
                               ),
                             ),
                             const SizedBox(height: 20,),
-                            SvgPicture.asset(
-                              'assets/svgs/no_posts.svg',
-                              height: 200,
-                            ),
+                            Image.asset('assets/images/no_posts.png', height: 200,),
                           ],
                         ),
                       );
@@ -3893,6 +4285,127 @@ class _CalPag1State extends State<CalPag1> {
     );
   }
 
+  Future<void> deleteEvent(int Id, int index) async {
+
+    try {
+      var url = Uri.parse('https://cnegojdu.ro/GojduApp/deleteHall.php');
+      final response = await http.post(url, body: {
+        "id": Id.toString()
+      });
+
+      print(Id.toString());
+      print(response.statusCode);
+
+      if(response.statusCode == 200){
+        print(response.body);
+
+        var jsondata = json.decode(response.body);
+        //  print(jsondata);
+
+        if(jsondata['error']){
+
+          print('Errored');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+                content: Row(
+                  children: const [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Uh-oh! Something went wrong!',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+        }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Row(
+                  children: const [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 20,),
+                    Text(
+                      'Hooray! The post was deleted.',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    )
+                  ],
+                ),
+              )
+          );
+
+          halls.removeAt(index);
+
+
+        }
+
+
+
+      }
+      else {
+        print("Deletion failed.");
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+              content: Row(
+                children: const [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 20,),
+                  Text(
+                    'Uh-oh! Something went wrong!',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      }
+
+    } catch(e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            content: Row(
+              children: const [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 20,),
+                Text(
+                  'Uh-oh! Something went wrong!',
+                  style: TextStyle(
+                      color: Colors.white
+                  ),
+                )
+              ],
+            ),
+          )
+      );
+
+      print(e);
+
+    }
+
+
+  }
+
   Future<int> _loadHalls() async {
     //await Future.delayed(const Duration(seconds: 1));
     //titles.isNotEmpty && sizes.isNotEmpty ? hasLoaded = true : hasLoaded = false;
@@ -3916,7 +4429,19 @@ class _CalPag1State extends State<CalPag1> {
 
             if (title != null && size != null) {
 
-              Hall hall = Hall(index: i-2, title: title, size: size, changePage: changePage, Id: jsondata[i.toString()]['id']);
+              Hall hall = Hall(
+                  index: i-2,
+                  title: title,
+                  size: size,
+                  changePage: changePage,
+                  Id: jsondata[i.toString()]['id'],
+                  delete: () async {
+                  await deleteEvent(jsondata[i.toString()]['id'], i - 2);
+                  setState(() {
+
+                  });
+                },
+              );
 
               halls.add(hall);
               //print(halls);
@@ -3964,8 +4489,9 @@ class Hall extends StatelessWidget {
   final String title;
   final String size;
   final int Id;
+  final Function delete;
   final Function(int) changePage;
-  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id}) : super(key: key);
+  const Hall({Key? key, required this.index, required this.title, required this.size, required this.changePage, required this.Id, required this.delete}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -3975,84 +4501,179 @@ class Hall extends StatelessWidget {
         color: ColorsB.gray800,
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(30),
-          onTap: () {
-            _currentHall = Id;
-            changePage(1);
-          },
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: ShaderMask(
-                  shaderCallback: (rect) {
-                    return const material.LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      stops: [0, 1],
-                      colors: [
-                        Colors.transparent,
-                        Colors.black,
-                      ],
-                    ).createShader(rect);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: Icon(
-                    Icons.account_balance_sharp,
-                    color: ColorsB.gray700.withOpacity(0.25),
-                    size: 75,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.account_balance,
-                          color: ColorsB.yellow500,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10,),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.fitWidth,
-                            child: Text(
-                              title,
-                              style: const TextStyle(
-                                overflow: TextOverflow.ellipsis,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(
-                      color: Colors.white.withOpacity(0.1),
-                      thickness: 1,
-                    ),
-                    const SizedBox(height: 10,),
-                    Text(
-                      'Type: ${size}',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 10,
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () {
+                _currentHall = Id;
+                changePage(1);
+              },
+              child: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return const material.LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          stops: [0, 1],
+                          colors: [
+                            Colors.transparent,
+                            Colors.black,
+                          ],
+                        ).createShader(rect);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Icon(
+                        Icons.account_balance_sharp,
+                        color: ColorsB.gray700.withOpacity(0.25),
+                        size: 75,
                       ),
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.account_balance,
+                              color: ColorsB.yellow500,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10,),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.fitWidth,
+                                child: Text(
+                                  title,
+                                  style: const TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(
+                          color: Colors.white.withOpacity(0.1),
+                          thickness: 1,
+                        ),
+                        const SizedBox(height: 10,),
+                        Text(
+                          'Type: ${size}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 10,
+                          ),
+                        ),
 
-                  ],
-                ),
-              )
-            ],
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
+          Visibility(
+            visible: globalMap['account'] == 'Admin',
+            child: Positioned(
+              bottom: 10,
+              right: 10,
+              child: IconButton(
+                icon: Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) =>
+                          AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: ColorsB.gray900,
+                              title: Column(
+                                children: const [
+                                  Text(
+                                    'Are you sure you want delete this post?',
+                                    style: TextStyle(
+                                        color: ColorsB.yellow500,
+                                        fontSize: 15
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: ColorsB.yellow500,
+                                    thickness: 1,
+                                    height: 10,
+                                  )
+                                ],
+                              ),
+                              content: SizedBox(
+                                height: 75,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        InkWell(
+                                          onTap: () async {
+
+                                            await delete();
+
+                                            Navigator.of(context).pop();
+
+                                            //  logoff(context);
+                                          },
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              color: ColorsB.yellow500,
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            height: 50,
+                                            width: 75,
+                                            child: Icon(
+                                              Icons.check, color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              color: ColorsB.gray800,
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            height: 50,
+                                            width: 75,
+                                            child: Icon(
+                                              Icons.close, color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              )
+                          )
+                  );
+                },
+              ),
+            ),
+          ),
+        ]
       ),
     );
   }
@@ -4355,330 +4976,333 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                   ),
                                   SizedBox(
                                     height: 30,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          if(globalMap['verification'] != "Pending"){
-                                            showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  var timeText = TextEditingController();
-                                                  var timeText2 = TextEditingController();
+                                    child: Visibility(
+                                      visible: globalMap['account'] == 'Admin' || globalMap['account'] == 'Teacher',
+                                      child: TextButton(
+                                          onPressed: () {
+                                            if(globalMap['verification'] != "Pending"){
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    var timeText = TextEditingController();
+                                                    var timeText2 = TextEditingController();
 
-                                                  TimeOfDay? parsedTime1;
-                                                  TimeOfDay? parsedTime2;
+                                                    TimeOfDay? parsedTime1;
+                                                    TimeOfDay? parsedTime2;
 
-                                                  var _formKey = GlobalKey<FormState>();
-                                                  var errorText1, errorText2;
+                                                    var _formKey = GlobalKey<FormState>();
+                                                    var errorText1, errorText2;
 
-                                                  bool clicked = false;
+                                                    bool clicked = false;
 
 
 
-                                                  return StatefulBuilder(
-                                                      builder: (_, StateSetter setState) =>
-                                                          AlertDialog(
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(30),
-                                                              ),
-                                                              backgroundColor: ColorsB.gray900,
-                                                              content: SizedBox(
-                                                                height: 200,
-                                                                child: Center(
-                                                                  child: Form(
-                                                                    key: _formKey,
-                                                                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                                                                    child: Column(
-                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                      children: [
-                                                                        Row(
-                                                                          children: [
-                                                                            const Text(
-                                                                              'From: ',
-                                                                              style: TextStyle(
-                                                                                fontSize: 15,
-                                                                                fontWeight: FontWeight.bold,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              width: 200,
-                                                                              height: 50,
-                                                                              child: TextFormField(
-                                                                                controller: timeText,
-                                                                                style: const TextStyle(
+                                                    return StatefulBuilder(
+                                                        builder: (_, StateSetter setState) =>
+                                                            AlertDialog(
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(30),
+                                                                ),
+                                                                backgroundColor: ColorsB.gray900,
+                                                                content: SizedBox(
+                                                                  height: 200,
+                                                                  child: Center(
+                                                                    child: Form(
+                                                                      key: _formKey,
+                                                                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                                                                      child: Column(
+                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          Row(
+                                                                            children: [
+                                                                              const Text(
+                                                                                'From: ',
+                                                                                style: TextStyle(
                                                                                   fontSize: 15,
+                                                                                  fontWeight: FontWeight.bold,
                                                                                   color: Colors.white,
                                                                                 ),
-
-                                                                                readOnly: true,
-                                                                                decoration: InputDecoration(
-                                                                                  errorText: errorText1,
-                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                  labelText: "Enter Time", //label text of field
-                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                  focusedBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                width: 10,
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: 200,
+                                                                                height: 50,
+                                                                                child: TextFormField(
+                                                                                  controller: timeText,
+                                                                                  style: const TextStyle(
+                                                                                    fontSize: 15,
+                                                                                    color: Colors.white,
                                                                                   ),
-                                                                                  enabledBorder: UnderlineInputBorder(
-                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                                ),
 
-                                                                                onTap: () async {
-                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  //print(pickedTime.toString());
-                                                                                  if(pickedTime != null){
-                                                                                    parsedTime1 = pickedTime;
-                                                                                    //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  //print(formattedTime);
-                                                                                    setState(() {
-                                                                                      timeText.text = formattedTime;
-                                                                                      _time1 = formattedTime;
-                                                                                      //print(formattedTime);
-
-                                                                                    });
-                                                                                  }
-
-                                                                                },
-
-                                                                                validator: (value) {
-                                                                                  if(value == null || value.isEmpty){
-                                                                                    return "Please enter time";
-                                                                                  }
-                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                      return "Please enter valid time";
-                                                                                    }
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                        Row(
-                                                                          children: [
-                                                                            const Text(
-                                                                              'To: ',
-                                                                              style: TextStyle(
-                                                                                fontSize: 15,
-                                                                                fontWeight: FontWeight.bold,
-                                                                                color: Colors.white,
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              width: 200,
-                                                                              height: 50,
-                                                                              child: TextFormField(
-                                                                                controller: timeText2,
-                                                                                style: const TextStyle(
-                                                                                  fontSize: 15,
-                                                                                  color: Colors.white,
-                                                                                ),
-
-                                                                                readOnly: true,
-                                                                                decoration: InputDecoration(
-                                                                                  errorText: errorText2,
-                                                                                  icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
-                                                                                  labelText: "Enter Time", //label text of field
-                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                  focusedBorder: UnderlineInputBorder(
-                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  readOnly: true,
+                                                                                  decoration: InputDecoration(
+                                                                                    errorText: errorText1,
+                                                                                    icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                    labelText: "Enter Time", //label text of field
+                                                                                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                    focusedBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                    ),
+                                                                                    enabledBorder: UnderlineInputBorder(
+                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
                                                                                   ),
-                                                                                  enabledBorder: UnderlineInputBorder(
-                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+
+                                                                                  onTap: () async {
+                                                                                    TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                    //print(pickedTime.toString());
+                                                                                    if(pickedTime != null){
+                                                                                      parsedTime1 = pickedTime;
+                                                                                      //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                      String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                      //  //print(formattedTime);
+                                                                                      setState(() {
+                                                                                        timeText.text = formattedTime;
+                                                                                        _time1 = formattedTime;
+                                                                                        //print(formattedTime);
+
+                                                                                      });
+                                                                                    }
+
+                                                                                  },
+
+                                                                                  validator: (value) {
+                                                                                    if(value == null || value.isEmpty){
+                                                                                      return "Please enter time";
+                                                                                    }
+                                                                                    else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                      if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                        return "Please enter valid time";
+                                                                                      }
+                                                                                    }
+                                                                                    return null;
+                                                                                  },
+
                                                                                 ),
-
-                                                                                onTap: () async {
-                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                  parsedTime2 = pickedTime;
-                                                                                  if(pickedTime != null){
-
-                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                    //  //print(formattedTime);
-                                                                                    setState(() {
-                                                                                      timeText2.text = formattedTime;
-                                                                                      _time2 = formattedTime;
-                                                                                    });
-                                                                                  }
-                                                                                },
-                                                                                validator: (value) {
-                                                                                  if(value == null || value.isEmpty){
-                                                                                    return "Please enter time";
-                                                                                  }
-                                                                                  else if(parsedTime1 != null && parsedTime2 != null){
-                                                                                    if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
-                                                                                      return "Please enter valid time";
-                                                                                    }
-                                                                                  }
-                                                                                  return null;
-                                                                                },
-
                                                                               ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                        TextButton.icon(
-                                                                          onPressed: () async {
-                                                                            if(_events[_selectedDay] != null){
-                                                                              if(!overlap(_time1, _time2)){
-                                                                                setState(() {
-                                                                                  errorText1 = errorText2 = 'Overlapping!';
-                                                                                });
-                                                                                return;
-                                                                              }
-                                                                            }
-
-                                                                            if(_formKey.currentState!.validate()){
-                                                                              try {
-                                                                                setState(() {
-                                                                                  clicked = true;
-                                                                                });
-                                                                                var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
-                                                                                final response = await http.post(url, body: {
-                                                                                  "day": _selectedDay.toString().split(' ').first,
-                                                                                  "start": _time1+":00",
-                                                                                  "end": _time2+":00",
-                                                                                  "hall": _currentHall.toString(),
-                                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                                });
-                                                                                //print(response.statusCode);
-                                                                                //print("does work");
-                                                                                if (response.statusCode == 200) {
-                                                                                  var jsondata = json.decode(response.body);
-                                                                                  //print(jsondata);
-                                                                                  if (jsondata["error"]) {
-                                                                                  } else {
-                                                                                    if (jsondata["success"]){
-                                                                                      Navigator.pop(context);
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                      //print(jsondata["message"]);
-                                                                                    }
-                                                                                  }
-                                                                                }
-                                                                                //print(_events);
-
-                                                                                widget.changePage(3);
-                                                                                setState(() {
-
-                                                                                });
-                                                                              } catch (e){
-                                                                                _events[_selectedDay] = ['Error! Please try again!'];
-                                                                              }
-                                                                            }
-                                                                          },
-                                                                          icon: !clicked ? const Icon(
-                                                                            Icons.add_circle,
-                                                                            color: Colors.white,
-                                                                          ) : const SizedBox(),
-                                                                          label: !clicked ? const Text(
-                                                                            'Reserve',
-                                                                            style: TextStyle(
-                                                                              color: Colors.white,
-                                                                            ),
-                                                                          ) : const CircularProgressIndicator(
-                                                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                            ],
                                                                           ),
-                                                                        )
+                                                                          Row(
+                                                                            children: [
+                                                                              const Text(
+                                                                                'To: ',
+                                                                                style: TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  fontWeight: FontWeight.bold,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                width: 10,
+                                                                              ),
+                                                                              SizedBox(
+                                                                                width: 200,
+                                                                                height: 50,
+                                                                                child: TextFormField(
+                                                                                  controller: timeText2,
+                                                                                  style: const TextStyle(
+                                                                                    fontSize: 15,
+                                                                                    color: Colors.white,
+                                                                                  ),
 
-                                                                      ],
+                                                                                  readOnly: true,
+                                                                                  decoration: InputDecoration(
+                                                                                    errorText: errorText2,
+                                                                                    icon: Icon(Icons.timer, color: Colors.white.withOpacity(0.5),), //icon of text field
+                                                                                    labelText: "Enter Time", //label text of field
+                                                                                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                    focusedBorder: UnderlineInputBorder(
+                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                    ),
+                                                                                    enabledBorder: UnderlineInputBorder(
+                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                  ),
+
+                                                                                  onTap: () async {
+                                                                                    TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                    parsedTime2 = pickedTime;
+                                                                                    if(pickedTime != null){
+
+                                                                                      String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                      //  //print(formattedTime);
+                                                                                      setState(() {
+                                                                                        timeText2.text = formattedTime;
+                                                                                        _time2 = formattedTime;
+                                                                                      });
+                                                                                    }
+                                                                                  },
+                                                                                  validator: (value) {
+                                                                                    if(value == null || value.isEmpty){
+                                                                                      return "Please enter time";
+                                                                                    }
+                                                                                    else if(parsedTime1 != null && parsedTime2 != null){
+                                                                                      if(parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))){
+                                                                                        return "Please enter valid time";
+                                                                                      }
+                                                                                    }
+                                                                                    return null;
+                                                                                  },
+
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                          TextButton.icon(
+                                                                            onPressed: () async {
+                                                                              if(_events[_selectedDay] != null){
+                                                                                if(!overlap(_time1, _time2)){
+                                                                                  setState(() {
+                                                                                    errorText1 = errorText2 = 'Overlapping!';
+                                                                                  });
+                                                                                  return;
+                                                                                }
+                                                                              }
+
+                                                                              if(_formKey.currentState!.validate()){
+                                                                                try {
+                                                                                  setState(() {
+                                                                                    clicked = true;
+                                                                                  });
+                                                                                  var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertbookings.php');
+                                                                                  final response = await http.post(url, body: {
+                                                                                    "day": _selectedDay.toString().split(' ').first,
+                                                                                    "start": _time1+":00",
+                                                                                    "end": _time2+":00",
+                                                                                    "hall": _currentHall.toString(),
+                                                                                    "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                                  });
+                                                                                  //print(response.statusCode);
+                                                                                  //print("does work");
+                                                                                  if (response.statusCode == 200) {
+                                                                                    var jsondata = json.decode(response.body);
+                                                                                    //print(jsondata);
+                                                                                    if (jsondata["error"]) {
+                                                                                    } else {
+                                                                                      if (jsondata["success"]){
+                                                                                        Navigator.pop(context);
+                                                                                      }
+                                                                                      else
+                                                                                      {
+                                                                                        //print(jsondata["message"]);
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                  //print(_events);
+
+                                                                                  widget.changePage(3);
+                                                                                  setState(() {
+
+                                                                                  });
+                                                                                } catch (e){
+                                                                                  _events[_selectedDay] = ['Error! Please try again!'];
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            icon: !clicked ? const Icon(
+                                                                              Icons.add_circle,
+                                                                              color: Colors.white,
+                                                                            ) : const SizedBox(),
+                                                                            label: !clicked ? const Text(
+                                                                              'Reserve',
+                                                                              style: TextStyle(
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ) : const CircularProgressIndicator(
+                                                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                            ),
+                                                                          )
+
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                ),
-                                                              )
-                                                          )
-                                                  );
-                                                }
+                                                                )
+                                                            )
+                                                    );
+                                                  }
 
-                                            );
-                                          }
-                                          else {
-                                            showDialog(
-                                                barrierDismissible: false,
-                                                context: context,
-                                                builder: (_) =>
-                                                AlertDialog(
-                                                  backgroundColor: ColorsB.gray900,
-                                                  clipBehavior: Clip.hardEdge,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(30),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
-                                                    ),
-                                                  ],
-                                                  content: SizedBox(
-                                                    height: screenHeight * 0.5,
-                                                    child: Column(
-                                                      children: [
-                                                        SizedBox(
-                                                          height: 200,
-                                                          child: SvgPicture.asset(
-                                                            'assets/svgs/locked.svg',
-                                                            fit: BoxFit.contain,
+                                              );
+                                            }
+                                            else {
+                                              showDialog(
+                                                  barrierDismissible: false,
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      AlertDialog(
+                                                        backgroundColor: ColorsB.gray900,
+                                                        clipBehavior: Clip.hardEdge,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(30),
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(context);
+                                                            },
+                                                            child: const Text("Okay", style: TextStyle(fontFamily: 'Nunito', fontSize: 15, color: Colors.white),),
+                                                          ),
+                                                        ],
+                                                        content: SizedBox(
+                                                          height: screenHeight * 0.5,
+                                                          child: Column(
+                                                            children: [
+                                                              SizedBox(
+                                                                height: 200,
+                                                                child: SvgPicture.asset(
+                                                                  'assets/svgs/locked.svg',
+                                                                  fit: BoxFit.contain,
+                                                                ),
+                                                              ),
+                                                              const Text(
+                                                                'Oops! You can\'t do that!',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Nunito',
+                                                                  fontSize: 17.5,
+                                                                  color: ColorsB.yellow500,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(height: 25),
+                                                              Text(
+                                                                'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Nunito',
+                                                                  fontSize: 13,
+                                                                  color: Colors.white.withOpacity(0.5),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                        const Text(
-                                                          'Oops! You can\'t do that!',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Nunito',
-                                                            fontSize: 17.5,
-                                                            color: ColorsB.yellow500,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 25),
-                                                        Text(
-                                                          'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Nunito',
-                                                            fontSize: 13,
-                                                            color: Colors.white.withOpacity(0.5),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                )
-                                            );
-                                          }
-                                        },
-                                        child: globalMap['verification'] != "Pending"
-                                        ? const Text(
-                                          'Reserve',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                        : const Icon(
-                                          Icons.lock_outline,
-                                          color: Colors.white,
-                                          size: 15,
-                                        ),
-                                        style: ButtonStyle(
-                                          elevation: MaterialStateProperty.all(0),
-                                          backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
-                                          shape: MaterialStateProperty.all<OutlinedBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(50),
+                                                      )
+                                              );
+                                            }
+                                          },
+                                          child: globalMap['verification'] != "Pending"
+                                              ? const Text(
+                                            'Reserve',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
                                             ),
+                                          )
+                                              : const Icon(
+                                            Icons.lock_outline,
+                                            color: Colors.white,
+                                            size: 15,
                                           ),
-                                        )
+                                          style: ButtonStyle(
+                                            elevation: MaterialStateProperty.all(0),
+                                            backgroundColor: globalMap["verification"] != "Pending" ? MaterialStateProperty.all<Color>(ColorsB.yellow500) : MaterialStateProperty.all<Color>(ColorsB.gray700),
+                                            shape: MaterialStateProperty.all<OutlinedBorder>(
+                                              RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(50),
+                                              ),
+                                            ),
+                                          )
+                                      )
                                     ),
                                   )
                                 ],
@@ -4697,14 +5321,14 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                             itemBuilder: (BuildContext context, int index) {
                                               return Padding(
                                                 padding: const EdgeInsets.all(2.5),
-                                                child: Container(
-                                                  child: Text(
-                                                    _events[_selectedDay]![index],
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
+                                                child: Text(
+                                                  globalMap['account'] != 'Student'
+                                                  ? _events[_selectedDay]![index]
+                                                  : _events[_selectedDay]![index].split('-')[0] + "-" + _events[_selectedDay]![index].split('-')[1],
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               );
@@ -4926,7 +5550,7 @@ class _PostItPageState extends State<PostItPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false,),
+                  InputField(fieldName: 'Choose a title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
                   const SizedBox(height: 50,),
                   const Text(
                     'Post contents',
@@ -5155,7 +5779,7 @@ class _PostItPageState extends State<PostItPage> {
 
                             for(int i = 0; i < channels.length; i++){
                               try {
-
+                                print(globalMap['id']);
 
                                 if(!imgSub && _file != null){
                                   await uploadImage(_file, name);
@@ -5164,8 +5788,10 @@ class _PostItPageState extends State<PostItPage> {
                                 //print(channels[i]);
 
                                 //print(_file);
+                                print('passed');
 
                                 var url = Uri.parse('https://cnegojdu.ro/GojduApp/insertposts.php');
+                                print('parsed link');
                                 final response;
                                 if(_file != null){
                                   response = await http.post(url, body: {
@@ -5173,6 +5799,7 @@ class _PostItPageState extends State<PostItPage> {
                                     "channel": channels[i],
                                     "body": _postController.value.text,
                                     "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "owid": globalMap['id'].toString(),
                                     "link": "https://cnegojdu.ro/GojduApp/imgs/$name.$format"
                                   });
                                 }
@@ -5182,12 +5809,15 @@ class _PostItPageState extends State<PostItPage> {
                                     "channel": channels[i],
                                     "body": _postController.value.text,
                                     "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                    "owid": globalMap['id'].toString(),
                                     "link": ""
                                   });
                                 }
+                                print(1);
+                                print(response.statusCode);
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  //print(jsondata);
+                                  print(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {
@@ -5210,7 +5840,7 @@ class _PostItPageState extends State<PostItPage> {
 
                                         if(response2.statusCode == 200){
                                           var jsondata2 = json.decode(response2.body);
-                                          print(jsondata2);
+                                          //  print(jsondata2);
                                           Navigator.of(context).pop();
                                         }
 
@@ -5227,7 +5857,7 @@ class _PostItPageState extends State<PostItPage> {
                                   }
                                 }
                               } catch (e) {
-                                //print(e);
+                                print(e);
                                 //Navigator.of(context).pop();
                               }
                             }
@@ -5274,68 +5904,6 @@ class _PostItPageState extends State<PostItPage> {
                           ),
                         ),
                       ),
-                      Opacity(
-                        opacity: _postTitleController.text.isEmpty || _postController.text.isEmpty  || channels.isEmpty ? 0.5 : 1,
-                        child: TextButton(
-                          onPressed: () async {
-
-
-
-                            //TODO: Make the upload work
-
-
-                            if(_formKey.currentState!.validate() && !(classes[0] == false && classes[1] == false && classes[2] == false)) {
-
-                              if(classes[0] == true){
-                                _postColor = ColorsB.gray800;
-                              } else if(classes[1] == true){
-                                _postColor = Colors.amber;
-                              } else if(classes[2] == true){
-                                _postColor = Colors.indigoAccent;
-                              }
-
-
-                              Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                      pageBuilder: (context, animation, secAnim) {
-
-                                        return SlideTransition(
-                                          position: Tween<Offset>(
-                                              begin: const Offset(0, 1),
-                                              end: Offset.zero
-                                          ).animate(
-                                              CurvedAnimation(parent: animation, curve: Curves.ease)
-                                          ),
-                                          child: BigNewsContainer(title: _postTitleController.value.text, description: _postController.value.text, color: _postColor!, author: 'By Me', file: _file,),
-                                        );
-                                      }
-
-                                  )
-                              );
-                            }
-
-
-
-                          },
-                          child: const Text(
-                            'Preview',
-                            style: TextStyle(
-                              fontFamily: 'Nunito',
-                              color: Colors.white,
-                              fontWeight: FontWeight.normal,
-                              letterSpacing: 2.5,
-                              fontSize: 20,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                            backgroundColor: ColorsB.gray800,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          ),
-                        ),
-                      )
                     ],
                   ),
                   const SizedBox(height: 100,),

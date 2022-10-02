@@ -50,7 +50,11 @@ class _InputFieldState extends State<InputField> {
           controller: widget.controller,
           autofocus: false,
           cursorColor: ColorsB.yellow500,
-          onChanged: widget.onChanged,
+          onChanged: (_) {
+            setState(() {
+
+            });
+          },
           inputFormatters: [
             LengthLimitingTextInputFormatter(widget.lengthLimiter)
           ],
@@ -60,6 +64,10 @@ class _InputFieldState extends State<InputField> {
           obscureText: widget.isPassword,
           textAlign: TextAlign.start,
           decoration: InputDecoration(
+            suffixText: widget.lengthLimiter != null ? '${widget.controller!.text.length}/${widget.lengthLimiter}' : null,
+            suffixStyle: TextStyle(
+              color: Colors.black26
+            ),
             icon: widget.icon,
             errorText: widget.errorMessage!.isNotEmpty ? widget.errorMessage : null,
             hintText: widget.label,

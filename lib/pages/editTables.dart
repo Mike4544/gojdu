@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -46,7 +47,7 @@ class _EditFloorsState extends State<EditFloors> {
         if(jsondata["error"]){
           print(jsondata["message"]);
 
-          _scaffoldKey.currentState!.showSnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
               SnackBar(
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: Colors.red,
@@ -72,7 +73,7 @@ class _EditFloorsState extends State<EditFloors> {
           //  widget.floors = temporary;
           //  print(widget.floors);
 
-          _scaffoldKey.currentState!.showSnackBar(
+          ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.green,
@@ -97,7 +98,7 @@ class _EditFloorsState extends State<EditFloors> {
         }
       } else {
         print("Upload failed");
-        _scaffoldKey.currentState!.showSnackBar(
+        ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.red,
@@ -123,7 +124,7 @@ class _EditFloorsState extends State<EditFloors> {
     }
     catch(e){
       //print("Error during converting to Base64");
-      _scaffoldKey.currentState!.showSnackBar(
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red,
@@ -156,7 +157,7 @@ class _EditFloorsState extends State<EditFloors> {
 
     for(int i = 0; i < widget.floors.length; ++i){
       temporary.add(widget.floors[i].clone());
-       print('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
+       // print('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
     }
 
     canClick = false;
@@ -848,6 +849,7 @@ class _EditFloorsState extends State<EditFloors> {
                     Map<String, Map<String, String>> data = {};
 
                     for(int i = 0; i < temporary.length; i++){
+
                       data.addAll({"id[$i]":{"floor": temporary[i].floor, "file": temporary[i].file, "b64": temporary[i].image}});
                     }
 

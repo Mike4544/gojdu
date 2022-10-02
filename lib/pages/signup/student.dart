@@ -33,6 +33,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
   var _lastname = TextEditingController();
   var _password = TextEditingController();
   var _repPassword = TextEditingController();
+  var _schoolCode = TextEditingController();
 
   //  <---------------  Form key  ----------------->
   final _formKey = GlobalKey<FormState>();
@@ -49,6 +50,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
     _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
+
     error = '';
 
   }
@@ -63,6 +65,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
     _lastname.dispose();
     _password.dispose();
     _repPassword.dispose();
+    _schoolCode.dispose();
 
   }
 
@@ -159,6 +162,10 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                   InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: error, isEmail: false,),
 
+                  const SizedBox(height: 50,),
+
+                  InputField(fieldName: 'School Code', isPassword: false, controller: _schoolCode, errorMessage: error, isEmail: false, label: 'Ex: A1B2C3',),
+
                   const SizedBox(height: 100,),
 
                   TextButton(
@@ -185,10 +192,12 @@ class _StudentSignUpState extends State<StudentSignUp> {
                           "password_1": _password.value.text,
                           "password_2": _repPassword.value.text,
                           "email": _mail.value.text,
+                          "code": _schoolCode.text,
                           "token": token,
                         });
                         if(response.statusCode == 200){
-                          var jsondata = json.decode(response.body);
+                          var jsondata = await json.decode(response.body);
+                          print(jsondata);
                           if(jsondata["error"]){
                             setState(() {
                               error = jsondata["message"];
@@ -199,12 +208,12 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               //save the data returned from server
                               //and navigate to home page
                               String? user = jsondata["username"];
-                              String? email = jsondata["email"];
-                              String first_name = jsondata["first_name"];
-                              String last_name = jsondata["last_name"];
+                              String? email =  _mail.value.text;
+                              String first_name = _username.value.text;
+                              String last_name = _lastname.value.text;
                               String? acc_type = jsondata["account"];
 
-                              _prefs.setString('email', email!);
+                              _prefs.setString('email', email);
                               _prefs.setString('first_name', first_name);
                               _prefs.setString('password', _password.value.text);
                               _prefs.setString('last_name', last_name);
@@ -212,16 +221,176 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                               Navigator.of(context).pop('dialog');
 
+
                               final loginMap = {
-                                "username": user,
-                                "email": email,
-                                "account": acc_type,
-                                'verification': 'Pending',
+                                'first_name': _username.value.text,
+                                'last_name': _lastname.value.text,
+                                'email': email,
+                                'account': acc_type,
+                                'verification': jsondata['verification'],
+                                'id': jsondata['id'],
                               };
 
-                              Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
-                              ));
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) {
+
+                                  TextEditingController _code = TextEditingController();
+                                  GlobalKey _formKey1 = GlobalKey<FormState>();
+
+
+                                  return  AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      backgroundColor: ColorsB.gray900,
+                                      title: Column(
+                                        children: const [
+                                          Text(
+                                            'Verify your email',
+                                            style: TextStyle(
+                                                color: ColorsB.yellow500,
+                                                fontSize: 15
+                                            ),
+                                          ),
+                                          Divider(
+                                            color: ColorsB.yellow500,
+                                            thickness: 1,
+                                            height: 10,
+                                          )
+                                        ],
+                                      ),
+                                      content: SizedBox(
+                                        height: 250,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'A code has been sent to your email. Please enter it here and verify your account!',
+                                              style: TextStyle(
+                                                  color: ColorsB.yellow500,
+                                                  fontSize: 15
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Form(
+                                              key: _formKey1,
+                                              child: TextFormField(
+                                                cursorColor: ColorsB.yellow500,
+                                                controller: _code,
+                                                decoration: InputDecoration(
+                                                    filled: true,
+                                                    labelText: "Enter Code",
+                                                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                                                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 7.5),
+                                                    fillColor: ColorsB.gray200,
+                                                    border: OutlineInputBorder(
+                                                        borderRadius: BorderRadius.circular(50),
+                                                        borderSide: BorderSide.none
+                                                    )
+                                                ),
+                                                validator: (pwrd){
+                                                  if(pwrd!.isEmpty) {
+                                                    return "This field cannot be empty.";
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            InkWell(
+                                              onTap: () async {
+
+                                                if(_formKey.currentState!.validate()) {
+
+                                                  var url = Uri.parse(
+                                                      'https://cnegojdu.ro/GojduApp/verify_accounts.php');
+                                                  final response = await http.post(url, body: {
+                                                    'email': email,
+                                                    'code': _code.text
+                                                  });
+                                                  print(response.statusCode);
+                                                  if(response.statusCode == 200){
+                                                    var jsondata = json.decode(response.body);
+
+                                                    if(jsondata['success']){
+
+
+                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                        backgroundColor: ColorsB.yellow500,
+                                                        content: Text(
+                                                          'Account verified!',
+                                                          style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontFamily: 'Nunito'
+                                                          ),
+                                                        ),
+                                                      ));
+
+                                                      await Future.delayed(const Duration(milliseconds: 500));
+                                                      await _firebaseMessaging.subscribeToTopic('Students');
+                                                      await _firebaseMessaging.subscribeToTopic('all');
+
+                                                      Navigator.pushReplacement(context, MaterialPageRoute(
+                                                          builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
+                                                      ));
+
+
+                                                    }
+                                                    if(jsondata['error']){
+                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                        backgroundColor: Colors.red,
+                                                        content: Text(
+                                                          'The code might be incorrect!',
+                                                          style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontFamily: 'Nunito'
+                                                          ),
+                                                        ),
+                                                      ));
+
+                                                    }
+                                                  }
+                                                  else {
+                                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                      backgroundColor: Colors.red,
+                                                      content: Text(
+                                                        'Something went wrong!',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontFamily: 'Nunito'
+                                                        ),
+                                                      ),
+                                                    ));
+
+                                                  }
+
+
+
+
+                                                }
+
+                                                //  logoff(context);
+                                              },
+                                              borderRadius: BorderRadius.circular(30),
+                                              child: Ink(
+                                                decoration: BoxDecoration(
+                                                  color: ColorsB.yellow500,
+                                                  borderRadius: BorderRadius.circular(30),
+                                                ),
+                                                height: 50,
+                                                width: 75,
+                                                child: const Icon(
+                                                  Icons.check, color: Colors.white,
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                  );
+                                }
+                              );
                               //user shared preference to save data
                             }else{
                               error = "Error connecting.";

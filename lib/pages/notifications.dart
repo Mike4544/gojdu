@@ -13,6 +13,7 @@ import '../databases/alertsdb.dart';
 import '../widgets/back_navbar.dart';
 import '../widgets/Alert.dart';
 import 'package:intl/intl.dart';
+import '../local_notif_service.dart';
 
 class NotifPage extends StatefulWidget {
   final VoidCallback? updateFP;
@@ -32,6 +33,8 @@ class _NotifPageState extends State<NotifPage> {
   late bool isLoading = false;
 
   late Future loadAlerts = refreshAlerts();
+
+  final LocalNotificationService _notifService = LocalNotificationService();
 
 
   Future checkAndDelete() async {
@@ -127,10 +130,9 @@ class _NotifPageState extends State<NotifPage> {
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
             child: Row(
-               mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(Icons.notifications, color: ColorsB.yellow500, size: 40,),
                     SizedBox(width: 20,),
@@ -144,26 +146,25 @@ class _NotifPageState extends State<NotifPage> {
                     ),
                   ],
                 ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextButton(
-                      onPressed: () async {
-                        await AlertDatabase.instance.truncate();
-                        await setBall(false);
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextButton(
+                    onPressed: () async {
+                      // await AlertDatabase.instance.truncate();
+                      // await setBall(false);
+                      //
+                      // refreshAlerts();
 
-                        refreshAlerts();
-                      },
-                      child: const Text(
-                        "Clear notifications",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
+                      _notifService.showNotification(id: 1, title: 'Test', body: 'Test');
+                    },
+                    child: const Text(
+                      "Clear notifications",
+                      style: TextStyle(
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 )
-
               ],
             )
           ),
@@ -270,18 +271,22 @@ class AlertContainer extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          title.length < 45 ? title : '$title...',
-                          style: TextStyle(
-                              color: !read ? Colors.white : Colors.white30,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17.5
+                        Flexible(
+                          child: Text(
+                            title.length < 15 ? title : '${title.substring(0, 15)}...',
+                            overflow: TextOverflow.fade,
+                            style: TextStyle(
+                                color: !read ? Colors.white : Colors.white30,
+                                fontWeight: FontWeight.bold,
+                                overflow: TextOverflow.fade,
+                                fontSize: 17.5
+                            ),
                           ),
                         ),
                         const SizedBox(height: 15,),
@@ -295,11 +300,16 @@ class AlertContainer extends StatelessWidget {
                       ],
 
                     ),
-                    Text(
-                      'Alerted by $owner',
-                      style: TextStyle(
-                          color: read ? Colors.white30 : ColorsB.yellow500,
-                          fontSize: 15
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Text(
+                          owner.length < 12 ? 'Alerted by $owner' : 'Alerted by ${owner.substring(0, 15)}...',
+                          style: TextStyle(
+                              color: read ? Colors.white30 : ColorsB.yellow500,
+                              fontSize: 15
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -385,12 +395,14 @@ class BigNewsContainer extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold
+                          SizedBox(
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold
+                              ),
                             ),
                           ),
                           Text(
