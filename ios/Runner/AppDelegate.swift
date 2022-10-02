@@ -31,7 +31,6 @@ func requestPermission() -> Void {
       if #available(iOS 10.0, *) {
         // For iOS 10 display notification (sent via APNS)
         UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
-        GeneratedPluginRegistrant.register(with: self)
 
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(

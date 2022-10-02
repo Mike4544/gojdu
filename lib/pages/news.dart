@@ -772,11 +772,11 @@ class _NewsPageState extends State<NewsPage>{
                     ),
                     const SizedBox(height: 20,),
                     TextButton.icon(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.refresh,
                           color: Colors.white,
                         ),
-                        label: Text(
+                        label: const Text(
                           'Refresh',
                           style: TextStyle(
                             color: Colors.white,
@@ -872,7 +872,7 @@ class _NewsPageState extends State<NewsPage>{
                       _currentIndex = 0;
                       //  changeColors(_currentIndex);
                     });
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
                   }
               ),
             ),
@@ -904,7 +904,7 @@ class _NewsPageState extends State<NewsPage>{
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
 
                   }
               ),
@@ -937,7 +937,7 @@ class _NewsPageState extends State<NewsPage>{
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
 
                   }
               ),
@@ -970,7 +970,7 @@ class _NewsPageState extends State<NewsPage>{
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex, duration: Duration(milliseconds: 500), curve: Curves.ease);
+                    _pageController.animateToPage(_currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
 
                   }
               ),
@@ -1233,7 +1233,7 @@ class _NewsPageState extends State<NewsPage>{
         width: screenWidth,
         height: screenHeight * .1 >= 60 ? 60 : screenHeight * .1,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
             boxShadow: [
               BoxShadow(
@@ -1256,7 +1256,7 @@ class _NewsPageState extends State<NewsPage>{
         width: screenWidth,
         height: screenHeight * .075 >= 60 ? 60 : screenHeight * .075,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
             boxShadow: [
               BoxShadow(
@@ -1703,11 +1703,11 @@ bool get wantKeepAlive => true;
                                                     ),
                                                     const SizedBox(height: 20,),
                                                     TextButton.icon(
-                                                        icon: Icon(
+                                                        icon: const Icon(
                                                           Icons.refresh,
                                                           color: Colors.white,
                                                         ),
-                                                        label: Text(
+                                                        label: const Text(
                                                           'Refresh',
                                                           style: TextStyle(
                                                             color: Colors.white,
@@ -2058,11 +2058,11 @@ bool get wantKeepAlive => true;
                   ),
                   const SizedBox(height: 20,),
                   TextButton.icon(
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.refresh,
                         color: Colors.white,
                       ),
-                      label: Text(
+                      label: const Text(
                         'Refresh',
                         style: TextStyle(
                           color: Colors.white,
@@ -2111,11 +2111,11 @@ bool get wantKeepAlive => true;
             ),
             const SizedBox(height: 20,),
             TextButton.icon(
-              icon: Icon(
+              icon: const Icon(
                 Icons.refresh,
                 color: Colors.white,
               ),
-              label: Text(
+              label: const Text(
                 'Refresh',
                 style: TextStyle(
                   color: Colors.white,
@@ -3439,7 +3439,7 @@ class _MapPageState extends State<MapPage>{
 
 
     if(floors.isEmpty){
-      return SizedBox();
+      return const SizedBox();
     }
     else {
       try{
@@ -3468,9 +3468,9 @@ class _MapPageState extends State<MapPage>{
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 100),
+                  const SizedBox(height: 100),
                   AnimatedSwitcher(
-                    duration: Duration(milliseconds: 250),
+                    duration: const Duration(milliseconds: 250),
                     child: _mapChildren(),
                     transitionBuilder: (child, animation) =>
                         SlideTransition(
@@ -3479,7 +3479,7 @@ class _MapPageState extends State<MapPage>{
                             child: child,
                           ),
                           position: Tween<Offset>(
-                              begin: Offset(1, 0),
+                              begin: const Offset(1, 0),
                               end: Offset.zero
                           ).animate(animation),
                         ),
@@ -3503,7 +3503,7 @@ class _MapPageState extends State<MapPage>{
                           )
                           );
                         },
-                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        icon: const Icon(Icons.edit, size: 20, color: Colors.white),
                         label: const Text(
                           "Edit floors",
                           style: TextStyle(
@@ -3544,7 +3544,7 @@ class _MapPageState extends State<MapPage>{
                           )
                           );
                         },
-                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        icon: const Icon(Icons.edit, size: 20, color: Colors.white),
                         label: const Text(
                           "Add floors",
                           style: TextStyle(
@@ -3653,7 +3653,7 @@ class _MapPageState extends State<MapPage>{
             ],
           ),
 
-          SizedBox(height: 50,),
+          const SizedBox(height: 50,),
 
           //Widgetul pt select floor
           mapBody(),
@@ -4588,7 +4588,7 @@ class Hall extends StatelessWidget {
               bottom: 10,
               right: 10,
               child: IconButton(
-                icon: Icon(Icons.delete, color: Colors.white),
+                icon: const Icon(Icons.delete, color: Colors.white),
                 onPressed: () {
                   showDialog(
                       context: context,
@@ -4640,7 +4640,7 @@ class Hall extends StatelessWidget {
                                             ),
                                             height: 50,
                                             width: 75,
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.check, color: Colors.white,
                                             ),
                                           ),
@@ -4657,7 +4657,7 @@ class Hall extends StatelessWidget {
                                             ),
                                             height: 50,
                                             width: 75,
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.close, color: Colors.white,
                                             ),
                                           ),
@@ -4898,7 +4898,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                             Icons.chevron_right,
                             color: Colors.white,
                           ),
-                          titleTextStyle: TextStyle(
+                          titleTextStyle: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                           ),
@@ -4925,7 +4925,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                             fontSize: 12,
                           ),
 
-                          selectedDecoration: BoxDecoration(
+                          selectedDecoration: const BoxDecoration(
                               color: ColorsB.yellow500,
                               shape: BoxShape.circle
                           ),
@@ -5571,7 +5571,7 @@ class _PostItPageState extends State<PostItPage> {
                       fillColor: Colors.white,
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                           color: Colors.red,
                         )
                       ),

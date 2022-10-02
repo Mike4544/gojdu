@@ -61,18 +61,18 @@ Future<void> main() async {
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  await _locNotifs.init();
+  //  await _locNotifs.init();
 
   // SUBSCRIBING TO THE NOTIFICATIONS
   await messaging.subscribeToTopic(type + 's');
   await messaging.subscribeToTopic('all');
 
-  await _locNotifs.showPeriodicNotification(
-      id: 0,
-      title: "Don't miss out!",
-      body: "You might have new posts, events, opportunities or offers awaiting for you! Open the app and find out!",
-      repeatInterval: RepeatInterval.weekly
-  );
+  // await _locNotifs.showPeriodicNotification(
+  //     id: 0,
+  //     title: "Don't miss out!",
+  //     body: "You might have new posts, events, opportunities or offers awaiting for you! Open the app and find out!",
+  //     repeatInterval: RepeatInterval.weekly
+  // );
 
 
   runApp(ScreenUtilInit(

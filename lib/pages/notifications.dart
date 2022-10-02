@@ -34,7 +34,7 @@ class _NotifPageState extends State<NotifPage> {
 
   late Future loadAlerts = refreshAlerts();
 
-  final LocalNotificationService _notifService = LocalNotificationService();
+  //  final LocalNotificationService _notifService = LocalNotificationService();
 
 
   Future checkAndDelete() async {
@@ -146,6 +146,7 @@ class _NotifPageState extends State<NotifPage> {
                     ),
                   ],
                 ),
+                /*
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton(
@@ -155,7 +156,7 @@ class _NotifPageState extends State<NotifPage> {
                       //
                       // refreshAlerts();
 
-                      _notifService.showNotification(id: 1, title: 'Test', body: 'Test');
+                      //  _notifService.showNotification(id: 1, title: 'Test', body: 'Test');
                     },
                     child: const Text(
                       "Clear notifications",
@@ -164,7 +165,7 @@ class _NotifPageState extends State<NotifPage> {
                       ),
                     ),
                   ),
-                )
+                )*/
               ],
             )
           ),

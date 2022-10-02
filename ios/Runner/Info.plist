@@ -8,6 +8,8 @@
 		<string>This app needs access to location when in the background.</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Photo Library access Warning</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
