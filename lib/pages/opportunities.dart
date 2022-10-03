@@ -442,11 +442,11 @@ class _OpportunitiesListState extends State<OpportunitiesList> with AutomaticKee
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin', searchController: searchEditor,),
+                            SearchButtonBar(isAdmin: widget.globalMap['account'] == 'Admin' || widget.globalMap['account'] == 'Teacher', searchController: searchEditor,),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Visibility(
-                                visible: widget.globalMap['account'] == 'Admin',
+                                visible: widget.globalMap['account'] == 'Admin' || widget.globalMap['account'] == 'Teacher',
                                 child: FloatingActionButton(
                                   elevation: 0,
                                   backgroundColor: ColorsB.gray800,

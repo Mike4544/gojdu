@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:animate_icons/animate_icons.dart';
 
@@ -45,7 +46,7 @@ class StyledDropdown extends StatelessWidget {
                         "$title",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -58,7 +59,7 @@ class StyledDropdown extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w100,
-                          fontSize: 15,
+                          fontSize: 15.sp,
                         ),
                       )
                     ],
