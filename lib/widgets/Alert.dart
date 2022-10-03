@@ -12,6 +12,7 @@ class AlertFields {
   static const String imageString = 'imageString';
   static const String time = 'time';
   static const String owner = 'owner';
+  static const String shared = 'shared';
 
 }
 
@@ -23,6 +24,7 @@ class Alert {
   final String imageString;
   final DateTime createdTime;
   final String owner;
+  bool shared;
 
   Alert({
     this.id,
@@ -31,7 +33,8 @@ class Alert {
     required this.description,
     required this.imageString,
     required this.createdTime,
-    required this.owner
+    required this.owner,
+    required this.shared
 });
 
   Map<String, dynamic> toJson() =>
@@ -42,7 +45,8 @@ class Alert {
     "description": description,
     "imageString": imageString,
     "time": createdTime.toIso8601String(),
-    "owner": owner
+    "owner": owner,
+    "shared": shared ? 1 : 0
   };
 
   static Alert fromJson(Map<String, dynamic> json) => Alert(
@@ -53,6 +57,7 @@ class Alert {
     imageString: json[AlertFields.imageString] as String,
     createdTime: DateTime.parse(json[AlertFields.time] as String),
     owner: json[AlertFields.owner] as String,
+    shared: json[AlertFields.shared] == 1
   );
 
   Alert copy({
@@ -62,7 +67,8 @@ class Alert {
     String? description,
     String? imageString,
     DateTime? createdTime,
-    String? owner
+    String? owner,
+    bool? shared
 }) => Alert(
     id: id ?? this.id,
     read: read ?? this.read,
@@ -70,7 +76,8 @@ class Alert {
     description: description ?? this.description,
     imageString: imageString ?? this.imageString,
     createdTime: createdTime ?? this.createdTime,
-    owner: owner ?? this.owner
+    owner: owner ?? this.owner,
+    shared: shared ?? this.shared
   );
 
 

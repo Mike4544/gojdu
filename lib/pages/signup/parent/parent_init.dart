@@ -387,7 +387,7 @@ class _SecondPageState extends State<SecondPage> {
               SizedBox(
                 height: device.size.height * 0.1,
               ),
-              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText, lengthLimiter: 30, ),
+              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText),
 
               SizedBox(
                 height: device.size.height * 0.05,

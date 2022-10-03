@@ -393,7 +393,8 @@ class _NewsPageState extends State<NewsPage>{
       description: data['report_desc'],
       imageString: data['report_image'].toString(),
       createdTime: DateTime.parse(data['report_time']),
-      owner: data['report_owner']
+      owner: data['report_owner'],
+      shared: false
     );
 
     await AlertDatabase.instance.create(alert);
@@ -1539,7 +1540,7 @@ bool get wantKeepAlive => true;
     //  currentWidth = _textSize(labels[_currentAnnouncement], style).width;
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(25, 0, 25, 75),
         child: Column(
@@ -1662,12 +1663,15 @@ bool get wantKeepAlive => true;
 
                                     },
                                     child: ListView.builder(
-                                        physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                                         shrinkWrap: false,
-                                        itemCount: events.length > 1 ? events.length : 1,
+                                        itemCount: events.isNotEmpty ? events.length : 1,
                                         itemBuilder: (context, index) {
                                           if(events.isNotEmpty) {
-                                            return events[index];
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 20),
+                                              child: events[index]
+                                            );
                                           }
                                           else {
                                             return Center(
@@ -1784,7 +1788,7 @@ bool get wantKeepAlive => true;
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-
+        //  print(jsondata);
         if (jsondata["1"]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
@@ -1797,7 +1801,7 @@ bool get wantKeepAlive => true;
               String post = jsondata[i.toString()]["post"].toString();
               String title = jsondata[i.toString()]["title"].toString();
               String owner = jsondata[i.toString()]["owner"].toString();
-              int ownerid = jsondata[i.toString()]["oid"];
+              int? ownerid = jsondata[i.toString()]["oid"];
               String location = jsondata[i.toString()]["location"].toString();
               String date = jsondata[i.toString()]["date"].toString();
               String link = jsondata[i.toString()]["link"].toString();
@@ -1806,15 +1810,7 @@ bool get wantKeepAlive => true;
 
               int? id = jsondata[i.toString()]["id"];
 
-
-
-              ////print(globalMap['id']);
-
-
-
-              if(post != "null" && post != null){
-
-
+              if(post != "null" && post != null && ownerid != null){
                 events.add(Event(title: title,
                   id: id,
                   body: post,
@@ -1828,29 +1824,10 @@ bool get wantKeepAlive => true;
                   Context: context,
                   delete: () async {
                     await deleteEvent(id!, i - 2);
-
-                    setState(() {
-
-                    });
-
-                  },
-                )
-                );
-
-
-
-
+                    setState(() {});
+                  }));
               }
-
-              /* if(post != "null")
-              {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
-              } */
-
             }
-            events.add(SizedBox(height: screenHeight * .5));
             //  print(events);
           }
           else
@@ -1860,7 +1837,7 @@ bool get wantKeepAlive => true;
         }
       }
     } catch (e) {
-
+      print(e);
     }
 
     return 0;
@@ -1985,7 +1962,7 @@ bool get wantKeepAlive => true;
             },
             child: ListView.builder(
                 controller: _scrollController,
-                physics: const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 shrinkWrap: false,
                 itemCount: maxScrollCount < posts.length ? maxScrollCount + 1 : posts.length,
                 itemBuilder: (_, index) {
@@ -2023,15 +2000,77 @@ bool get wantKeepAlive => true;
           );
         }
         else {
-          return Center(
+          return ListView(
+            physics: const BouncingScrollPhysics(),
+            children: [
+              Center(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: screenHeight * 0.25,
+                        child: Image.asset('assets/images/no_posts.png'),
+                      ),
+                      const Text(
+                        'Wow! Such empty. So class.',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white
+                        ),
+                      ),
+                      Text(
+                        "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                      ),
+                      const SizedBox(height: 20,),
+                      TextButton.icon(
+                          icon: const Icon(
+                            Icons.refresh,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Refresh',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          onPressed: () {
+                            _refresh();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: ColorsB.yellow500,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  50),
+                            ),
+                          )
+                      ),
+                    ],
+                  )
+              ),
+              const SizedBox(height: 200),
+            ],
+          );
+        }
+      }
+    }
+    else {
+      return ListView(
+        physics: const BouncingScrollPhysics(),
+        children: [
+          Center(
               child: Column(
                 children: [
                   SizedBox(
-                    height: screenHeight * 0.25,
-                    child: Image.asset('assets/images/no_posts.png'),
+                    height: screenHeight * 0.3,
+                    child: SvgPicture.asset('assets/svgs/404.svg'),
                   ),
                   const Text(
-                    'Wow! Such empty. So class.',
+                    'Zap! Something went wrong!',
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -2039,7 +2078,7 @@ bool get wantKeepAlive => true;
                     ),
                   ),
                   Text(
-                    "It seems the only thing here is a lonely Doge. Pet it or begone!",
+                    "Please retry.",
                     style: TextStyle(
                       fontSize: 15,
                       color: Colors.white.withOpacity(0.25),
@@ -2071,59 +2110,9 @@ bool get wantKeepAlive => true;
                   ),
                 ],
               )
-          );
-        }
-      }
-    }
-    else {
-      return Center(
-        child: Column(
-          children: [
-            SizedBox(
-              height: screenHeight * 0.3,
-              child: SvgPicture.asset('assets/svgs/404.svg'),
-            ),
-            const Text(
-              'Zap! Something went wrong!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white
-              ),
-            ),
-            Text(
-              "Please retry.",
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.white.withOpacity(0.25),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            TextButton.icon(
-              icon: const Icon(
-                Icons.refresh,
-                color: Colors.white,
-              ),
-              label: const Text(
-                'Refresh',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                ),
-              ),
-              onPressed: () {
-                _refresh();
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: ColorsB.yellow500,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      50),
-                ),
-              )
-            ),
-          ],
-        )
+          ),
+          const SizedBox(height: 200),
+        ],
       );
     }
 
@@ -2465,7 +2454,7 @@ Future<int> load(String channel) async {
                 }
 
               }
-              posts.add(SizedBox(height: screenHeight * 3));
+              posts.add(SizedBox(height: screenHeight * 1));
 
               setState(() {
                 isLoading = false;

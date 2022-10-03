@@ -15,6 +15,8 @@ import '../widgets/Alert.dart';
 import 'package:intl/intl.dart';
 import '../local_notif_service.dart';
 
+import 'package:http/http.dart' as http;
+
 class NotifPage extends StatefulWidget {
   final VoidCallback? updateFP;
 
@@ -77,6 +79,13 @@ class _NotifPageState extends State<NotifPage> {
     return 1;
 
 
+  }
+
+
+  void share(Alert al) async {
+    setState(() {
+      al.shared = true;
+    });
   }
 
   void update(Alert al) async{
@@ -191,7 +200,16 @@ class _NotifPageState extends State<NotifPage> {
 
                           await AlertDatabase.instance.update(temp);
 
-                      }
+                      },
+                    share: () async {
+                        share(alerts![index]);
+
+                        final temp = alerts![index].copy(
+                          shared: true,
+                        );
+
+                        await AlertDatabase.instance.update(temp);
+                    },
                     );
                 }
                 else {
@@ -225,11 +243,17 @@ class _NotifPageState extends State<NotifPage> {
 class AlertContainer extends StatelessWidget {
   final Alert alert;
   final VoidCallback callback;
+  final VoidCallback share;
 
-  const AlertContainer({Key? key, required this.alert, required this.callback}) : super(key: key);
+  const AlertContainer({Key? key, required this.alert, required this.callback, required this.share}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
+
+
+
+
 
     var title = alert.title;
     var owner = alert.owner;
@@ -237,6 +261,51 @@ class AlertContainer extends StatelessWidget {
     var time = alert.createdTime;
     var stringImage = alert.imageString;
     var read = alert.read;
+    var shared = alert.shared;
+
+
+
+    Future<void> sendReport(String title, String owner, String desc, DateTime time, var link) async {
+      try{
+
+        var url = Uri.parse('https://cnegojdu.ro/GojduApp/notifications.php');
+        final response = await http.post(url, body: {
+          "action": "Report_teachers",
+          "channel": "Teachers",
+          "rtitle": title,
+          "rdesc": desc,
+          "rowner": owner,
+          "link": link,
+          "time": time.toIso8601String()
+        });
+
+        // print(response.statusCode);
+        //       // print(response.body);
+        //  print(DateTime.now().toIso8601String());
+        print(response.statusCode);
+
+        if(response.statusCode == 200){
+          var jsondata = jsonDecode(response.body);
+
+          print(jsondata);
+
+          //  Navigator.of(context).pop();
+        }
+        else {
+          print('Error!');
+        }
+
+
+
+
+
+      }
+      catch(e){
+        print("Exception! $e");
+      }
+
+
+    }
 
 
     return Center(
@@ -269,6 +338,38 @@ class AlertContainer extends StatelessWidget {
                   )
                 ]
               ),
+            ),
+            SizedBox(
+              height: 125,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+
+                    callback();
+
+                    Navigator.of(context).push(
+                        PageRouteBuilder(
+                            pageBuilder: (context, animation, secAnim) =>
+                                SlideTransition(
+                                  position: Tween<Offset>(
+                                      begin: const Offset(0, 1),
+                                      end: Offset.zero
+                                  ).animate(
+                                      CurvedAnimation(parent: animation, curve: Curves.ease)
+                                  ),
+                                  child: BigNewsContainer(title: title, description: desc, color: ColorsB.gray800, author: owner, imageString: stringImage,),
+                                )
+                        )
+                    );
+
+                  },
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 125,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
@@ -301,51 +402,63 @@ class AlertContainer extends StatelessWidget {
                       ],
 
                     ),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Text(
-                          owner.length < 12 ? 'Alerted by $owner' : 'Alerted by ${owner.substring(0, 15)}...',
-                          style: TextStyle(
-                              color: read ? Colors.white30 : ColorsB.yellow500,
-                              fontSize: 15
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Text(
+                              owner.length < 12 ? 'Alerted by $owner' : 'Alerted by ${owner.substring(0, 15)}...',
+                              style: TextStyle(
+                                  color: read ? Colors.white30 : ColorsB.yellow500,
+                                  fontSize: 15
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        if (!shared) FittedBox(
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.send, color: Colors.white, size: 20,),
+                            onPressed: () async {
+                              share();
+
+                              await sendReport(title, owner, desc, time, stringImage);
+
+                            },
+                            label: const Text(
+                                "Share with teachers",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                )
+                            ),
+                            style: TextButton.styleFrom(
+                                backgroundColor: ColorsB.yellow500,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30)
+                                )
+                            ),
+                          ),
+                        ) else Container(
+                          height: 30,
+                          width: 30,
+                          child: const Center(
+                            child: FittedBox(
+                              child: Icon(Icons.check, color: Colors.white,),
+                            ),
+                          ),
+                          decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: ColorsB.gray800
+                          ),
+                        )
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            SizedBox(
-              height: 125,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-
-                    callback();
-
-                    Navigator.of(context).push(
-                        PageRouteBuilder(
-                            pageBuilder: (context, animation, secAnim) =>
-                                SlideTransition(
-                                  position: Tween<Offset>(
-                                      begin: const Offset(0, 1),
-                                      end: Offset.zero
-                                  ).animate(
-                                      CurvedAnimation(parent: animation, curve: Curves.ease)
-                                  ),
-                                  child: BigNewsContainer(title: title, description: desc, color: ColorsB.gray800, author: owner, imageString: stringImage,),
-                                )
-                        )
-                    );
-
-                  },
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
             )
+
           ],
         ),
       ),

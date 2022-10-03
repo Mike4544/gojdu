@@ -46,6 +46,8 @@ class _InputFieldState extends State<InputField> {
 
         TextFormField(
           enableSuggestions: false,
+          autocorrect: false,
+          keyboardType: TextInputType.visiblePassword,
           focusNode: widget.focusNode,
           controller: widget.controller,
           autofocus: false,

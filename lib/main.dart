@@ -48,9 +48,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.instance.requestPermission();
 
-  final Widget homeWidget = await getPage();
+  await FirebaseMessaging.instance.requestPermission();
 
   Paint.enableDithering = true;
 
@@ -60,6 +59,7 @@ Future<void> main() async {
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final Widget homeWidget = await getPage();
 
   //  await _locNotifs.init();
 
@@ -73,6 +73,7 @@ Future<void> main() async {
   //     body: "You might have new posts, events, opportunities or offers awaiting for you! Open the app and find out!",
   //     repeatInterval: RepeatInterval.weekly
   // );
+
 
 
   runApp(ScreenUtilInit(
@@ -145,6 +146,9 @@ Future<Widget> getPage() async {
 
             type = acc_type;
             await prefs.setString('type', type);
+            await prefs.setString('first_name', fn);
+            await prefs.setString('last_name', ln);
+            await prefs.setString('email', email);
 
             return NewsPage(
               data: loginMap,

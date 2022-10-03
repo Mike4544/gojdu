@@ -44,7 +44,8 @@ class AlertDatabase {
     ${AlertFields.description} $stringType,
     ${AlertFields.imageString} $stringType,
     ${AlertFields.time} $stringType,
-    ${AlertFields.owner} $stringType
+    ${AlertFields.owner} $stringType,
+    ${AlertFields.shared} $boolType
     )
     ''');
 

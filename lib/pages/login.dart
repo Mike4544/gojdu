@@ -331,6 +331,10 @@ class _LoginState extends State<Login> {
                   /*TODO: M/D: Make a 'remember me' check.
                                           We wouldn't want to make the users uncomfy UwU
                                    */
+
+                  await _firebaseMessaging.subscribeToTopic(acc_type + 's');
+                  await _firebaseMessaging.subscribeToTopic('all');
+
                   setState(() {
                     isLoggingIn = false;
                   });
