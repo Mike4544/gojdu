@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
@@ -13,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Firebase thingys
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
@@ -40,6 +43,9 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
   // <---------------- Error messages -------------->
   late String error;
+
+  bool acceptedTerms = false;
+  String termsError = '';
 
   @override
   void initState() {
@@ -166,11 +172,76 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                   InputField(fieldName: 'School Code', isPassword: false, controller: _schoolCode, errorMessage: error, isEmail: false, label: 'Ex: A1B2C3',),
 
+                  const SizedBox(height: 50,),
+
+                  Row(
+                    children: [
+                      Checkbox(
+                        activeColor: ColorsB.yellow500,
+                        value: acceptedTerms,
+                        onChanged: (nvalue) {
+                          setState(() {
+                            acceptedTerms = nvalue!;
+
+                            termsError = "";
+                          });
+                        },
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          text: 'I accept the ',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(.5)
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'terms and conditions.',
+                              style: const TextStyle(
+                                color: ColorsB.yellow500,
+                                decoration: TextDecoration.underline
+                              ),
+                              recognizer: TapGestureRecognizer()..onTap = () async {
+                                if(await canLaunchUrl(Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'))){
+                                  await launchUrl(
+                                      Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'), mode: LaunchMode.externalApplication
+                                  );
+                                }
+                              }
+                            )
+                          ]
+                        ),
+                      )
+
+                    ]
+                  ),
+                  const SizedBox(height: 10,),
+                  Text(
+                    termsError,
+                    style: const TextStyle(
+                      color: Colors.red
+                    ),
+                  ),
+
                   const SizedBox(height: 100,),
 
                   TextButton(
                     onPressed: () async {
                       if(_formKey.currentState!.validate()){
+
+                        if(!acceptedTerms){
+                          setState(() {
+                            termsError = "Please accept the terms and conditions to further continue using the app.";
+                          });
+
+                          return;
+                        }
+
+                        termsError = "";
+
+                        setState(() {
+
+                        });
+
                         showDialog(context: context,
                             barrierDismissible: false,
                             builder: (_) =>
@@ -180,6 +251,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               ),
                             )
                         );
+
+
                         //await Future.delayed(Duration(seconds: 3));
 
                         final _prefs = await SharedPreferences.getInstance();
