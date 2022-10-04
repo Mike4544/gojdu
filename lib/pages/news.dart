@@ -678,7 +678,7 @@ class _NewsPageState extends State<NewsPage>{
       var ulr2 = Uri.parse('https://cnegojdu.ro/GojduApp/verify_accounts.php');
       final response2 = await http.post(ulr2, body: {
         "email": email,
-        "status": status,
+        "code": "NO_CODE"
       }).timeout(const Duration(seconds: 15));
 
       if (response2.statusCode == 200) {
@@ -699,6 +699,8 @@ class _NewsPageState extends State<NewsPage>{
 
       return throw Exception('Timeout');
       //print(e);
+    } catch (e){
+      print(e);
     }
 
   }
@@ -1111,7 +1113,7 @@ class _NewsPageState extends State<NewsPage>{
                                                                           .green,
                                                                       size: 30,),
                                                                     onTap: () async {
-                                                                      //print('Checked');
+                                                                      print('Checked');
                                                                       await _verifyUser(
                                                                           _tokens[index],
                                                                           _emails[index],
