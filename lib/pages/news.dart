@@ -1066,35 +1066,37 @@ class _NewsPageState extends State<NewsPage>{
                                                             .all(10.0),
                                                         child: Row(
                                                           children: [
-                                                            Column(
-                                                              crossAxisAlignment: CrossAxisAlignment
-                                                                  .start,
+                                                            Flexible(
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment
+                                                                    .start,
 
-                                                              children: [
-                                                                Text(
-                                                                  _names[index].split(' ')[0] + ' ' + _names[index].split(' ').last[0] + '.',
-                                                                  style: const TextStyle(
-                                                                      fontSize: 15,
-                                                                      color: Colors
-                                                                          .white),
-                                                                ),
-                                                                const SizedBox(
-                                                                  height: 5,),
-                                                                Text(
-                                                                  'Type: ${_types[index]}',
-                                                                  style: const TextStyle(
-                                                                      fontSize: 10,
-                                                                      color: ColorsB
-                                                                          .yellow500),
-                                                                ),
-                                                                Text(
-                                                                  'Email: ${_emails[index]}',
-                                                                  style: const TextStyle(
-                                                                      fontSize: 10,
-                                                                      color: ColorsB
-                                                                          .yellow500),
-                                                                ),
-                                                              ],
+                                                                children: [
+                                                                  Text(
+                                                                    _names[index].split(' ')[0] + ' ' + _names[index].split(' ').last[0] + '.',
+                                                                    style: const TextStyle(
+                                                                        fontSize: 15,
+                                                                        color: Colors
+                                                                            .white),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    height: 5,),
+                                                                  Text(
+                                                                    'Type: ${_types[index]}',
+                                                                    style: const TextStyle(
+                                                                        fontSize: 10,
+                                                                        color: ColorsB
+                                                                            .yellow500),
+                                                                  ),
+                                                                  Text(
+                                                                    'Email: ${_emails[index]}',
+                                                                    style: const TextStyle(
+                                                                        fontSize: 10,
+                                                                        color: ColorsB
+                                                                            .yellow500),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                             ),
                                                             const Spacer(),
                                                             Row(
@@ -1664,10 +1666,10 @@ bool get wantKeepAlive => true;
                                     },
                                     child: ListView.builder(
                                         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                                        shrinkWrap: false,
-                                        itemCount: events.isNotEmpty ? events.length : 1,
+                                        shrinkWrap: true,
+                                        itemCount: events.length > 1 ? events.length : 1,
                                         itemBuilder: (context, index) {
-                                          if(events.isNotEmpty) {
+                                          if(events.length > 1) {
                                             return Padding(
                                               padding: const EdgeInsets.only(bottom: 20),
                                               child: events[index]
@@ -1834,6 +1836,7 @@ bool get wantKeepAlive => true;
           {
             //print(jsondata["1"]["message"]);
           }
+          events.add(SizedBox(height: screenHeight * .25));
         }
       }
     } catch (e) {
@@ -2454,7 +2457,7 @@ Future<int> load(String channel) async {
                 }
 
               }
-              posts.add(SizedBox(height: screenHeight * 1));
+              posts.add(SizedBox(height: screenHeight * .25));
 
               setState(() {
                 isLoading = false;
@@ -3734,7 +3737,13 @@ class _CalendarState extends State<Calendar>{
                   , size: 30,
                 ),
               ),
-              const SizedBox(width: 10),
+              Text(
+                'Back',
+                style: TextStyle(
+                  color: currentPage != 0 ? Colors.white : Colors.white.withOpacity(0.5)
+                )
+              ),
+              const SizedBox(width: 20),
               Flexible(
                 child: PageTransitionSwitcher(
                     duration: const Duration(milliseconds: 500),
