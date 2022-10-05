@@ -172,167 +172,166 @@ class _AlertPageState extends State<AlertPage> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: SizedBox(
-        child: Padding(
-          padding: const EdgeInsets.all(35.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InputField(fieldName: 'Title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
-                const SizedBox(height: 50,),
-                const Text(
-                  'Feedback',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    color: ColorsB.yellow500,
-                    fontSize: 20,
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.all(35.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InputField(fieldName: 'Title', isPassword: false, errorMessage: '', controller: _postTitleController, isEmail: false, lengthLimiter: 30,),
+              const SizedBox(height: 50,),
+              const Text(
+                'Feedback',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  color: ColorsB.yellow500,
+                  fontSize: 20,
                 ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _postController,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  minLines: 5,
-                  cursorColor: ColorsB.yellow500,
-                  decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(
-                          color: Colors.red,
-                        )
-                    ),
-                    filled: true,
-                    border: OutlineInputBorder(
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _postController,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                minLines: 5,
+                cursorColor: ColorsB.yellow500,
+                decoration: InputDecoration(
+                  fillColor: Colors.white,
+                  errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
-                    ),
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                      )
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Field cannot be empty.';
-                    }
-                  },
-                  onChanged: (s) {
-                    setState(() {
-
-                    });
-                  },
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Field cannot be empty.';
+                  }
+                },
+                onChanged: (s) {
+                  setState(() {
 
-                const SizedBox(height: 50),
-                ExpansionTile(
+                  });
+                },
+              ),
 
-                  collapsedIconColor: ColorsB.gray800,
-                  iconColor: ColorsB.yellow500,
-                  title: const Text(
-                    'Header Image - Optional',
-                    style: TextStyle(
-                      color: ColorsB.yellow500,
-                    ),
+              const SizedBox(height: 50),
+              ExpansionTile(
+
+                collapsedIconColor: ColorsB.gray800,
+                iconColor: ColorsB.yellow500,
+                title: const Text(
+                  'Header Image - Optional',
+                  style: TextStyle(
+                    color: ColorsB.yellow500,
                   ),
-                  children: [
-                    TextButton.icon(
-                      onPressed: () async {
-                        //  Image picker things
+                ),
+                children: [
+                  TextButton.icon(
+                    onPressed: () async {
+                      //  Image picker things
 
-                        try{
-                          final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
-                          if(_image == null) return;
+                      try{
+                        final _image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 25);
+                        if(_image == null) return;
 
-                          image = _image;
-                          _file = File(image!.path);
+                        image = _image;
+                        _file = File(image!.path);
 
-                          format = image!.name.split('.').last;
+                        format = image!.name.split('.').last;
 
-                          setState(() {
-                            _imageText = path.basename(_file!.path);
-                          });
-                        } catch(e) {
-                          setState(() {
-                            _imageText = 'Error! ${e.toString()}';
-                          });
-                        }
+                        setState(() {
+                          _imageText = path.basename(_file!.path);
+                        });
+                      } catch(e) {
+                        setState(() {
+                          _imageText = 'Error! ${e.toString()}';
+                        });
+                      }
 
-                      },
-                      icon: const Icon(
-                        Icons.add_a_photo,
+                    },
+                    icon: const Icon(
+                      Icons.add_a_photo,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _imageText,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: const TextStyle(
                         color: Colors.white,
-                      ),
-                      label: Text(
-                        _imageText,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        softWrap: false,
-                        style: const TextStyle(
-                          color: Colors.white,
 
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-
-
-                const SizedBox(height: 100,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () async {
-
-                        if(_formKey.currentState!.validate()){
-
-                          showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
-                          setState(() {
-                            errorText = '';
-                          });
-
-                           print(_postTitleController.text);
-                           print(_postController.text);
-
-                          await sendReport(_file, _postTitleController.text, _postController.text, format);
-
-
-                          bool imgSub = false;
-
-
-
-                          Navigator.of(context).pop();
-
-                          //TODO: There is some unhandled exception and I have no fucking idea where. - Mihai
-                        }
-
-                      },
-                      child: const Text(
-                        'Send',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal,
-                          letterSpacing: 2.5,
-                          fontSize: 20,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                        backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty ? ColorsB.gray800 : ColorsB.yellow500,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 100,),
-              ],
-            ),
+                  )
+                ],
+              ),
+
+
+              const SizedBox(height: 100,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+
+                      if(_formKey.currentState!.validate()){
+
+                        showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),),));
+                        setState(() {
+                          errorText = '';
+                        });
+
+                         print(_postTitleController.text);
+                         print(_postController.text);
+
+                        await sendReport(_file, _postTitleController.text, _postController.text, format);
+
+
+                        bool imgSub = false;
+
+
+
+                        Navigator.of(context).pop();
+
+                        //TODO: There is some unhandled exception and I have no fucking idea where. - Mihai
+                      }
+
+                    },
+                    child: const Text(
+                      'Send',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal,
+                        letterSpacing: 2.5,
+                        fontSize: 20,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                      backgroundColor: _postController.text.isEmpty || _postTitleController.text.isEmpty ? ColorsB.gray800 : ColorsB.yellow500,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 100,),
+            ],
           ),
         ),
       ),

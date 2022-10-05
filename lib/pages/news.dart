@@ -980,7 +980,6 @@ class _NewsPageState extends State<NewsPage>{
 
 
     if(globalMap['account'] == 'Admin') {
-
       _buttons.insert(0, Expanded(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -1225,11 +1224,18 @@ class _NewsPageState extends State<NewsPage>{
           ),
         ),
       ));
+    }
 
-      return Container(
-        width: screenWidth,
-        height: screenHeight * .1 >= 60 ? 60 : screenHeight * .1,
-        decoration: BoxDecoration(
+    double navHeight = screenHeight * .075 >= 60 ? 60 : screenHeight * .075;
+
+    if(Platform.isIOS){
+      navHeight += 20;
+    }
+
+    return Container(
+      width: screenWidth,
+      height: navHeight,
+      decoration: BoxDecoration(
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
             color: ColorsB.gray800,
             boxShadow: [
@@ -1241,36 +1247,15 @@ class _NewsPageState extends State<NewsPage>{
               )
             ]
         ),
+      child: Padding(
+        padding: Platform.isIOS ? const EdgeInsets.only(bottom: 20) : EdgeInsets.zero,
         child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _buttons,
-        ),
-      );
-    }
-    else {
-      return Container(
-        width: screenWidth,
-        height: screenHeight * .075 >= 60 ? 60 : screenHeight * .075,
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
-            color: ColorsB.gray800,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                spreadRadius: 10,
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              )
-            ]
-        ),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _buttons,
-        ),
-      );
-    }
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: _buttons,
+        )
+      ),
+    );
   }
 
 }
@@ -3173,7 +3158,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                 child: SizedBox(
                                     height: screenHeight * .3,
                                     child: FittedBox(
-                                      fit: BoxFit.contain,
+                                      fit: BoxFit.scaleDown,
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         crossAxisAlignment: CrossAxisAlignment.start,

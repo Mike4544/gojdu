@@ -1098,63 +1098,66 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
         bottomNavigationBar: const BackNavbar(),
         backgroundColor: ColorsB.gray900,
-        body: CustomScrollView(
-          controller: _controller,
-          slivers: [
-            SliverAppBar(
-              backgroundColor: widget.color,
-              automaticallyImplyLeading: false,
-              expandedHeight: screenHeight * .75,
-              pinned: true,
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: [
-                  StretchMode.blurBackground,
-                ],
-                background: topPage(),
-              ),
-              title: AnimatedOpacity(
-                  opacity: visible ? 1 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
-                        style: TextStyle(
-                            color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
-                            fontWeight: FontWeight.bold
+        body: Scrollbar(
+          child: CustomScrollView(
+            controller: _controller,
+            slivers: [
+              SliverAppBar(
+                backgroundColor: widget.color,
+                automaticallyImplyLeading: false,
+                expandedHeight: screenHeight * .75,
+                pinned: true,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: [
+                    StretchMode.blurBackground,
+                  ],
+                  background: topPage(),
+                ),
+                title: AnimatedOpacity(
+                    opacity: visible ? 1 : 0,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: Row(
+                      children: [
+                        Text(
+                          widget.title.length > 20 ? widget.title.substring(0, 20) + '...' : widget.title,
+                          style: TextStyle(
+                              color: ThemeData.estimateBrightnessForColor(widget.color!) == Brightness.light ? ColorsB.gray900 : Colors.white,
+                              fontWeight: FontWeight.bold
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-              ),
-
-            ),
-            SliverFillRemaining(
-              child: SizedBox(
-                child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: SelectableLinkify(
-                      linkStyle: const TextStyle(color: ColorsB.yellow500),
-                      text: widget.description,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17.5,
-                          fontWeight: FontWeight.normal
-                      ),
-                      onOpen: (link) async {
-                        if (await canLaunch(link.url)) {
-                          await launch(link.url);
-                        } else {
-                          throw 'Could not launch $link';
-                        }
-                      },
+                      ],
                     )
                 ),
+
               ),
-            )
-          ],
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: SizedBox(
+                  child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: SelectableLinkify(
+                        linkStyle: const TextStyle(color: ColorsB.yellow500),
+                        text: widget.description,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17.5,
+                            fontWeight: FontWeight.normal
+                        ),
+                        onOpen: (link) async {
+                          if (await canLaunch(link.url)) {
+                            await launch(link.url);
+                          } else {
+                            throw 'Could not launch $link';
+                          }
+                        },
+                      )
+                  ),
+                ),
+              )
+            ],
+          ),
         )
     );
 
