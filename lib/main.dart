@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import '../others/options.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -43,7 +47,6 @@ import './local_notif_service.dart';
 String type = '';
 
 Future<void> main() async {
-
   final LocalNotificationService _locNotifs = LocalNotificationService();
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -74,12 +77,10 @@ Future<void> main() async {
   //     repeatInterval: RepeatInterval.weekly
   // );
 
-
-
   runApp(ScreenUtilInit(
     designSize: const Size(412, 732),
     minTextAdapt: true,
-    builder: (context, child){
+    builder: (context, child) {
       return MaterialApp(
         theme: ThemeData(
           fontFamily: 'Nunito',
@@ -117,12 +118,12 @@ Future<Widget> getPage() async {
   } else {
     try {
       //print(true);
-      var url = Uri.parse('https://cnegojdu.ro/GojduApp/login_gojdu.php');
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),
         "password": prefs.getString('password').toString(),
         "token": token,
-      });
+      }).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
@@ -160,6 +161,8 @@ Future<Widget> getPage() async {
       } else {
         return const Login();
       }
+    } on TimeoutException {
+      return const Login();
     } catch (e) {
       return const Login();
     }

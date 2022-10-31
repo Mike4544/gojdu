@@ -5,6 +5,7 @@ import 'package:gojdu/pages/settings.dart';
 import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 
 class MenuTabs extends StatefulWidget {
   List<Widget> pages;
@@ -13,36 +14,48 @@ class MenuTabs extends StatefulWidget {
   VoidCallback update;
   GlobalKey key2;
 
-
-  MenuTabs({Key? key, required this.pages, required this.map, required this.notif, required this.update, required this.key2}) : super(key: key);
+  MenuTabs(
+      {Key? key,
+      required this.pages,
+      required this.map,
+      required this.notif,
+      required this.update,
+      required this.key2})
+      : super(key: key);
 
   @override
   State<MenuTabs> createState() => _MenuTabsState();
 }
 
-
 late int current_tab;
 
-class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
-  bool get wantKeepAlive => true;
-
+class _MenuTabsState extends State<MenuTabs> {
   late List<Tab> tabs;
 
   late List<Widget> switcherPages;
 
   final _controller = ScrollController();
 
-
-
   void update() {
     setState(() {
       _controller.jumpTo(0);
-
     });
+  }
+
+  bool backInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+    if (current_tab > 0) {
+      setState(() {
+        current_tab = 0;
+      });
+      return true;
+    }
+
+    return false;
   }
 
   @override
   void initState() {
+    BackButtonInterceptor.add(backInterceptor);
 
     switcherPages = [];
     current_tab = 0;
@@ -59,7 +72,8 @@ class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
       Tab(
         color: Colors.pink[400],
         image: "assets/images/Map.png",
-        description: "Having trouble navigating through the school? Worry not! We've got you covered!",
+        description:
+            "Having trouble navigating through the school? Worry not! We've got you covered!",
         title: "School Map",
         index: 2,
         update: update,
@@ -67,7 +81,8 @@ class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
       Tab(
         color: ColorsB.gray700,
         image: "assets/images/Calendar.png",
-        description: "Do you need to reserve one of our school's halls? This is the place!",
+        description:
+            "Do you need to reserve one of our school's halls? This is the place!",
         title: "Book a Hall",
         index: 3,
         update: update,
@@ -75,7 +90,8 @@ class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
       Tab(
         color: Colors.indigoAccent,
         image: "assets/images/Carnet.png",
-        description: "Need to remember something important? Use this section to your heart's content.",
+        description:
+            "Need to remember something important? Use this section to your heart's content.",
         title: "Notes",
         index: 4,
         update: update,
@@ -109,7 +125,6 @@ class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
     switcherPages.add(tabsColumn());
     switcherPages.addAll(widget.pages);
 
-
     super.initState();
   }
 
@@ -123,66 +138,61 @@ class _MenuTabsState extends State<MenuTabs> with AutomaticKeepAliveClientMixin{
     );
   }
 
-  Widget mainPage(){
-
+  Widget mainPage() {
     return PageTransitionSwitcher(
-      transitionBuilder: (child, pAnim, sAnim) =>
-          SharedAxisTransition(animation: pAnim, secondaryAnimation: sAnim, transitionType: SharedAxisTransitionType.horizontal, fillColor: ColorsB.gray900, child: child),
+      transitionBuilder: (child, pAnim, sAnim) => SharedAxisTransition(
+          animation: pAnim,
+          secondaryAnimation: sAnim,
+          transitionType: SharedAxisTransitionType.horizontal,
+          fillColor: ColorsB.gray900,
+          child: child),
       child: current_tab == 0
           ? switcherPages[current_tab]
           : Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      current_tab = 0;
-                      setState(() {
-
-                      });
-                    },
-                    icon: const Icon(RoundedTriangle.polygon_1, color: Colors.white),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    tabs[current_tab - 1].title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        current_tab = 0;
+                        setState(() {});
+                      },
+                      icon: const Icon(RoundedTriangle.polygon_1,
+                          color: Colors.white),
                     ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 10),
-              switcherPages[current_tab]
-          ],
-        ),
+                    const SizedBox(width: 10),
+                    Text(
+                      tabs[current_tab - 1].title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 25),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 10),
+                switcherPages[current_tab]
+              ],
+            ),
     );
-
   }
-
 
   @override
   void dispose() {
     // TODO: implement dispose
+    BackButtonInterceptor.removeAll();
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return SingleChildScrollView(
       controller: _controller,
       physics: const BouncingScrollPhysics(),
       child: SizedBox(
-        //  height: MediaQuery.of(context).size.height,
-          child: mainPage()
-      ),
+          //  height: MediaQuery.of(context).size.height,
+          child: mainPage()),
     );
   }
 }
@@ -199,12 +209,19 @@ class Tab extends StatelessWidget {
 
   final VoidCallback update;
 
-
-  const Tab({Key? key, required this.color, required this.image, required this.title, required this.description, required this.index, required this.update, this.page}) : super(key: key);
+  const Tab(
+      {Key? key,
+      required this.color,
+      required this.image,
+      required this.title,
+      required this.description,
+      required this.index,
+      required this.update,
+      this.page})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
     var sp = MediaQuery.of(context).textScaleFactor;
 
     var device = MediaQuery.of(context);
@@ -213,26 +230,23 @@ class Tab extends StatelessWidget {
 
     var borderRadius = height * .075;
 
-
     return ScreenUtilInit(
       designSize: const Size(412, 732),
       minTextAdapt: true,
-      builder: (context, child){
+      builder: (context, child) {
         return Padding(
           padding: EdgeInsets.all(height * .01),
           child: Container(
             height: height * .25,
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: [color, Color.alphaBlend(Colors.white.withOpacity(.5), color)],
-                    stops: const [
-                      .3, 1
-                    ],
-                    begin: Alignment.center,
-                    end: Alignment.topRight
-                ),
-                borderRadius: BorderRadius.circular(borderRadius)
-            ),
+                gradient: LinearGradient(colors: [
+                  color,
+                  Color.alphaBlend(Colors.white.withOpacity(.5), color)
+                ], stops: const [
+                  .3,
+                  1
+                ], begin: Alignment.center, end: Alignment.topRight),
+                borderRadius: BorderRadius.circular(borderRadius)),
             child: Stack(
               children: [
                 Padding(
@@ -240,9 +254,7 @@ class Tab extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(borderRadius),
-                        color: color
-                    ),
-
+                        color: color),
                   ),
                 ),
                 Padding(
@@ -265,13 +277,11 @@ class Tab extends StatelessWidget {
                                         color: Colors.white,
                                         blurRadius: 50,
                                       )
-                                    ]
-                                ),
+                                    ]),
                               ),
                               Image.asset(image),
                             ],
-                          )
-                      ),
+                          )),
                       Flexible(
                         flex: 3,
                         child: Column(
@@ -308,10 +318,8 @@ class Tab extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-
                       current_tab = index;
                       update();
-
                     },
                     borderRadius: BorderRadius.circular(borderRadius),
                   ),
@@ -324,4 +332,3 @@ class Tab extends StatelessWidget {
     );
   }
 }
-

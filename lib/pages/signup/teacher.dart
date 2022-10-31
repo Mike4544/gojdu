@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:gojdu/others/options.dart';
 
 class TeacherSignUp extends StatefulWidget {
   const TeacherSignUp({Key? key}) : super(key: key);
@@ -26,15 +27,13 @@ class TeacherSignUp extends StatefulWidget {
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _TeacherSignUpState extends State<TeacherSignUp> {
-
-bool firstPage = true;
+  bool firstPage = true;
 
   void _update(bool fPage) {
     setState(() {
       firstPage = fPage;
     });
   }
-
 
   @override
   void initState() {
@@ -49,14 +48,12 @@ bool firstPage = true;
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
-    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
-
+    var height = device.size.height < 675
+        ? MediaQuery.of(context).size.height * .125
+        : MediaQuery.of(context).size.height * .1;
 
     return GestureDetector(
       onTap: () {
@@ -82,9 +79,9 @@ bool firstPage = true;
                     letterSpacing: 1,
                   ),
                 ),
-
-                SizedBox(width: 10,),
-
+                SizedBox(
+                  width: 10,
+                ),
                 Container(
                   color: ColorsB.yellow500,
                   width: 2.5,
@@ -94,38 +91,34 @@ bool firstPage = true;
             ),
           ),
         ),
-        body: AnimatedSwitcher( //Changing the screens. The update function makes it possible for a class to modify the value of a parent.
-          duration: Duration(seconds: 1),
-          transitionBuilder: (child, animation) {
-            return SlideTransition(
-              child: FadeTransition(
-                opacity: animation,
-                child: child,
-              ),
-              position: Tween<Offset>(
-                  begin: Offset(1, 0),
-                  end: Offset.zero
-              ).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.ease)
-              ),
-            );
-          },
-          child: firstPage ?
-              FirstPage(
-                key: Key('1'),
-                update: _update,
-              )
-              : SecondPage(
-            key: Key('2'),
-          )
-        ),
+        body: AnimatedSwitcher(
+            //Changing the screens. The update function makes it possible for a class to modify the value of a parent.
+            duration: Duration(seconds: 1),
+            transitionBuilder: (child, animation) {
+              return SlideTransition(
+                child: FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                position: Tween<Offset>(begin: Offset(1, 0), end: Offset.zero)
+                    .animate(
+                        CurvedAnimation(parent: animation, curve: Curves.ease)),
+              );
+            },
+            child: firstPage
+                ? FirstPage(
+                    key: Key('1'),
+                    update: _update,
+                  )
+                : SecondPage(
+                    key: Key('2'),
+                  )),
       ),
     );
   }
 }
 
 //TODO: M: Make the teachers' page (signup)
-
 
 //First page of the signup
 
@@ -139,8 +132,6 @@ class FirstPage extends StatefulWidget {
 }
 
 class _FirstPageState extends State<FirstPage> {
-
-
   //Text controllers
 
   var _mail = TextEditingController();
@@ -157,7 +148,6 @@ class _FirstPageState extends State<FirstPage> {
   var acceptedTerms = false;
   var termsError = "";
 
-
   @override
   void initState() {
     // TODO: implement initState
@@ -167,7 +157,6 @@ class _FirstPageState extends State<FirstPage> {
     _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
-
   }
 
   @override
@@ -179,16 +168,11 @@ class _FirstPageState extends State<FirstPage> {
     _username.dispose();
     _password.dispose();
     _repPassword.dispose();
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
-
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -196,13 +180,11 @@ class _FirstPageState extends State<FirstPage> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Form(
           key: _formKey,
-
           child: Column(
             children: [
-
-
-              SizedBox(height: device.size.height * 0.05,),
-
+              SizedBox(
+                height: device.size.height * 0.05,
+              ),
               const Text(
                 'Input your details below:',
                 style: TextStyle(
@@ -211,94 +193,116 @@ class _FirstPageState extends State<FirstPage> {
                   fontSize: 40,
                 ),
               ),
-
               const Divider(
                 height: 25,
                 thickness: 2,
                 color: ColorsB.yellow500,
               ),
-
               SizedBox(
                 height: device.size.height * 0.075,
               ),
-
-              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', isEmail: true, errorMessage: ''),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Password', isPassword: true, controller: _password, isEmail: false, errorMessage: ''),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, isEmail: false, errorMessage: ''),
-
-              const SizedBox(height: 50,),
-
-              Row(
-                  children: [
-                    Checkbox(
-                      activeColor: ColorsB.yellow500,
-                      value: acceptedTerms,
-                      onChanged: (nvalue) {
-                        setState(() {
-                          acceptedTerms = nvalue!;
-
-                          termsError = "";
-                        });
-                      },
-                    ),
-                    RichText(
-                      text: TextSpan(
-                          text: 'I accept the ',
-                          style: TextStyle(
-                              color: Colors.white.withOpacity(.5)
-                          ),
-                          children: [
-                            TextSpan(
-                                text: 'terms and conditions.',
-                                style: const TextStyle(
-                                    color: ColorsB.yellow500,
-                                    decoration: TextDecoration.underline
-                                ),
-                                recognizer: TapGestureRecognizer()..onTap = () async {
-                                  if(await canLaunchUrl(Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'))){
-                                    await launchUrl(
-                                        Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'), mode: LaunchMode.externalApplication
-                                    );
-                                  }
-                                }
-                            )
-                          ]
-                      ),
-                    )
-
-                  ]
+              InputField(
+                  fieldName: 'Email Address',
+                  isPassword: false,
+                  controller: _mail,
+                  label: 'example@example.com',
+                  isEmail: true,
+                  errorMessage: ''),
+              const SizedBox(
+                height: 50,
               ),
-              const SizedBox(height: 10,),
+              InputField(
+                fieldName: 'First Name',
+                isPassword: false,
+                controller: _username,
+                errorMessage: error,
+                isEmail: false,
+                label: 'Ex: Mihai',
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                fieldName: 'Last Name',
+                isPassword: false,
+                controller: _lastname,
+                errorMessage: error,
+                isEmail: false,
+                label: 'Ex: Popescu',
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                  fieldName: 'Password',
+                  isPassword: true,
+                  controller: _password,
+                  isEmail: false,
+                  errorMessage: ''),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                  fieldName: 'Repeat Password',
+                  isPassword: true,
+                  controller: _repPassword,
+                  isEmail: false,
+                  errorMessage: ''),
+              const SizedBox(
+                height: 50,
+              ),
+              Row(children: [
+                Checkbox(
+                  activeColor: ColorsB.yellow500,
+                  value: acceptedTerms,
+                  onChanged: (nvalue) {
+                    setState(() {
+                      acceptedTerms = nvalue!;
+
+                      termsError = "";
+                    });
+                  },
+                ),
+                RichText(
+                  text: TextSpan(
+                      text: 'I accept the ',
+                      style: TextStyle(color: Colors.white.withOpacity(.5)),
+                      children: [
+                        TextSpan(
+                            text: 'terms and conditions.',
+                            style: const TextStyle(
+                                color: ColorsB.yellow500,
+                                decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                if (await canLaunchUrl(Uri.parse(
+                                    '${Misc.link}/${Misc.appName}/terms.html'))) {
+                                  await launchUrl(
+                                      Uri.parse(
+                                          '${Misc.link}/${Misc.appName}/terms.html'),
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              })
+                      ]),
+                )
+              ]),
+              const SizedBox(
+                height: 10,
+              ),
               Text(
                 termsError,
-                style: const TextStyle(
-                    color: Colors.red
-                ),
+                style: const TextStyle(color: Colors.red),
               ),
-
-              const SizedBox(height: 100,),
-
+              const SizedBox(
+                height: 100,
+              ),
               TextButton(
                 onPressed: () async {
-                  if(_formKey.currentState!.validate()){
-
-                    if(!acceptedTerms){
+                  if (_formKey.currentState!.validate()) {
+                    if (!acceptedTerms) {
                       setState(() {
-                        termsError = "Please accept the terms and conditions to further continue using the app.";
+                        termsError =
+                            "Please accept the terms and conditions to further continue using the app.";
                       });
 
                       return;
@@ -306,24 +310,22 @@ class _FirstPageState extends State<FirstPage> {
 
                     termsError = "";
 
-                    setState(() {
+                    setState(() {});
 
-                    });
-
-                    showDialog(context: context,
+                    showDialog(
+                        context: context,
                         barrierDismissible: false,
-                        builder: (_) =>
-                        const Center(
-                          child: SpinKitRing(
-                            color: ColorsB.yellow500,
-                          ),
-                        )
-                    );
+                        builder: (_) => const Center(
+                              child: SpinKitRing(
+                                color: ColorsB.yellow500,
+                              ),
+                            ));
                     //await Future.delayed(Duration(seconds: 3));
                     final _prefs = await SharedPreferences.getInstance();
                     String? token = await _firebaseMessaging.getToken();
 
-                    var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_teacher.php');
+                    var url = Uri.parse(
+                        '${Misc.link}/${Misc.appName}/register_teacher.php');
                     final response = await http.post(url, body: {
                       "first_name": _username.value.text,
                       "last_name": _lastname.value.text,
@@ -333,15 +335,15 @@ class _FirstPageState extends State<FirstPage> {
                       "token": token
                     });
                     print(response.statusCode);
-                    if(response.statusCode == 200){
+                    if (response.statusCode == 200) {
                       var jsondata = json.decode(response.body);
-                      if(jsondata["error"]){
+                      if (jsondata["error"]) {
                         setState(() {
                           error = jsondata["message"];
                           Navigator.of(context).pop('dialog');
                         });
-                      }else{
-                        if(jsondata["success"]){
+                      } else {
+                        if (jsondata["success"]) {
                           //save the data returned from server
                           //and navigate to home page
                           String? user = jsondata["username"];
@@ -361,33 +363,29 @@ class _FirstPageState extends State<FirstPage> {
                             "username": user,
                             "email": email,
                             "account": acc_type,
-
                           };
 
                           widget.update!(false);
                           //user shared preference to save data
-                        }else{
+                        } else {
                           error = "Error connecting.";
                           Navigator.of(context).pop('dialog');
                         }
                       }
-                    }else{
+                    } else {
                       setState(() {
                         error = "wtf?";
                         Navigator.of(context).pop('dialog');
-
                       });
                     }
 
-
-
                     //TODO: Add funtionality to the student register button
                   }
-                 //widget.update!(false);
+                  //widget.update!(false);
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child:Text(
+                  child: Text(
                     'Continue',
                     style: TextStyle(
                       color: ColorsB.yellow500,
@@ -400,12 +398,11 @@ class _FirstPageState extends State<FirstPage> {
                 style: TextButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(360),
+                      borderRadius: BorderRadius.circular(360),
                       side: BorderSide(
                         color: ColorsB.yellow500,
                       ),
-                    )
-                ),
+                    )),
               )
             ],
           ),
@@ -423,7 +420,6 @@ class SecondPage extends StatefulWidget {
 }
 
 class _SecondPageState extends State<SecondPage> {
-
   var _containerHeight = ValueNotifier<double>(0);
   bool open = false;
 
@@ -445,10 +441,8 @@ class _SecondPageState extends State<SecondPage> {
     _containerHeight.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
 
     return SingleChildScrollView(
@@ -465,17 +459,14 @@ class _SecondPageState extends State<SecondPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-
             const Divider(
               height: 25,
               thickness: 2,
               color: ColorsB.yellow500,
             ),
-
             SizedBox(
               height: device.size.height * 0.025,
             ),
-
             const Text(
               "Before you can access it though it must undergo verification by the school staff.",
               style: TextStyle(
@@ -484,25 +475,21 @@ class _SecondPageState extends State<SecondPage> {
                 fontWeight: FontWeight.normal,
               ),
             ),
-
             SizedBox(
               height: device.size.height * 0.1,
             ),
-
-            StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require teacher accounts to be verified',
-            description: 'To keep third-parties from making fake accounts of various teachers, we require this type of account to be verified.',
+            StyledDropdown(
+              containerHeight: _containerHeight,
+              device: device,
+              sopen: open,
+              title: 'We require teacher accounts to be verified',
+              description:
+                  'To keep third-parties from making fake accounts of various teachers, we require this type of account to be verified.',
               controller: _iconController,
             ),
-
-
           ],
         ),
       ),
     );
   }
 }
-
-
-
-
-

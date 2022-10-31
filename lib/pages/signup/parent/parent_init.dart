@@ -12,11 +12,12 @@ import 'package:http/http.dart' as http;
 import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 // Firebase thingys
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'package:gojdu/others/options.dart';
 
 String? fntopass;
 String? lntopass;
@@ -27,8 +28,6 @@ String? email2topass;
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-
-
 class ParentsSignupPage1 extends StatefulWidget {
   const ParentsSignupPage1({Key? key}) : super(key: key);
 
@@ -37,7 +36,6 @@ class ParentsSignupPage1 extends StatefulWidget {
 }
 
 class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
-
   bool firstPage = true;
 
   void _update(bool fPage) {
@@ -61,9 +59,10 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
 
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
-    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
+    var height = device.size.height < 675
+        ? MediaQuery.of(context).size.height * .125
+        : MediaQuery.of(context).size.height * .1;
 
     return GestureDetector(
       onTap: () {
@@ -89,9 +88,9 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
                     letterSpacing: 1,
                   ),
                 ),
-
-                SizedBox(width: 10,),
-
+                SizedBox(
+                  width: 10,
+                ),
                 Container(
                   color: ColorsB.yellow500,
                   width: 2.5,
@@ -101,7 +100,8 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
             ),
           ),
         ),
-        body: AnimatedSwitcher( //Changing the screens. The update function makes it possible for a class to modify the value of a parent.
+        body: AnimatedSwitcher(
+            //Changing the screens. The update function makes it possible for a class to modify the value of a parent.
             duration: Duration(seconds: 1),
             transitionBuilder: (child, animation) {
               return SlideTransition(
@@ -109,28 +109,23 @@ class _ParentsSignupPage1State extends State<ParentsSignupPage1> {
                   opacity: animation,
                   child: child,
                 ),
-                position: Tween<Offset>(
-                    begin: Offset(1, 0),
-                    end: Offset.zero
-                ).animate(
-                    CurvedAnimation(parent: animation, curve: Curves.ease)
-                ),
+                position: Tween<Offset>(begin: Offset(1, 0), end: Offset.zero)
+                    .animate(
+                        CurvedAnimation(parent: animation, curve: Curves.ease)),
               );
             },
-            child: firstPage ?
-            FirstPage(
-              key: Key('1'),
-              update: _update,
-            )
+            child: firstPage
+                ? FirstPage(
+                    key: Key('1'),
+                    update: _update,
+                  )
                 : SecondPage(
-              key: Key('2'),
-            )
-        ),
+                    key: Key('2'),
+                  )),
       ),
     );
 
     //TODO: M: Make the parents signup page (1/2).
-
   }
 }
 
@@ -144,8 +139,6 @@ class FirstPage extends StatefulWidget {
 }
 
 class _FirstPageState extends State<FirstPage> {
-
-
   //Text controllers
 
   var _mail = TextEditingController();
@@ -168,7 +161,6 @@ class _FirstPageState extends State<FirstPage> {
     _lastname = TextEditingController();
     _password = TextEditingController();
     _repPassword = TextEditingController();
-
   }
 
   var acceptedTerms = false;
@@ -184,14 +176,10 @@ class _FirstPageState extends State<FirstPage> {
     _lastname.dispose();
     _password.dispose();
     _repPassword.dispose();
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
 
     return SingleChildScrollView(
@@ -199,13 +187,12 @@ class _FirstPageState extends State<FirstPage> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Form(
-
           key: _formKey,
-
           child: Column(
             children: [
-              SizedBox(height: device.size.height * 0.05,),
-
+              SizedBox(
+                height: device.size.height * 0.05,
+              ),
               const Text(
                 'Input your details below:',
                 style: TextStyle(
@@ -214,94 +201,119 @@ class _FirstPageState extends State<FirstPage> {
                   fontSize: 40,
                 ),
               ),
-
               const Divider(
                 height: 25,
                 thickness: 2,
                 color: ColorsB.yellow500,
               ),
-
               SizedBox(
                 height: device.size.height * 0.075,
               ),
-
-              InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: '', isEmail: true,),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: '', isEmail: false,),
-
-              const SizedBox(height: 50,),
-
-              InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: '', isEmail: false,),
-
-              const SizedBox(height: 50,),
-
-              Row(
-                  children: [
-                    Checkbox(
-                      activeColor: ColorsB.yellow500,
-                      value: acceptedTerms,
-                      onChanged: (nvalue) {
-                        setState(() {
-                          acceptedTerms = nvalue!;
-
-                          termsError = "";
-                        });
-                      },
-                    ),
-                    RichText(
-                      text: TextSpan(
-                          text: 'I accept the ',
-                          style: TextStyle(
-                              color: Colors.white.withOpacity(.5)
-                          ),
-                          children: [
-                            TextSpan(
-                                text: 'terms and conditions.',
-                                style: const TextStyle(
-                                    color: ColorsB.yellow500,
-                                    decoration: TextDecoration.underline
-                                ),
-                                recognizer: TapGestureRecognizer()..onTap = () async {
-                                  if(await canLaunchUrl(Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'))){
-                                    await launchUrl(
-                                        Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'), mode: LaunchMode.externalApplication
-                                    );
-                                  }
-                                }
-                            )
-                          ]
-                      ),
-                    )
-
-                  ]
+              InputField(
+                fieldName: 'Email Address',
+                isPassword: false,
+                controller: _mail,
+                label: 'example@example.com',
+                errorMessage: '',
+                isEmail: true,
               ),
-              const SizedBox(height: 10,),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                fieldName: 'First Name',
+                isPassword: false,
+                controller: _username,
+                errorMessage: error,
+                isEmail: false,
+                label: 'Ex: Mihai',
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                fieldName: 'Last Name',
+                isPassword: false,
+                controller: _lastname,
+                errorMessage: error,
+                isEmail: false,
+                label: 'Ex: Popescu',
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                fieldName: 'Password',
+                isPassword: true,
+                controller: _password,
+                errorMessage: '',
+                isEmail: false,
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              InputField(
+                fieldName: 'Repeat Password',
+                isPassword: true,
+                controller: _repPassword,
+                errorMessage: '',
+                isEmail: false,
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              Row(children: [
+                Checkbox(
+                  activeColor: ColorsB.yellow500,
+                  value: acceptedTerms,
+                  onChanged: (nvalue) {
+                    setState(() {
+                      acceptedTerms = nvalue!;
+
+                      termsError = "";
+                    });
+                  },
+                ),
+                RichText(
+                  text: TextSpan(
+                      text: 'I accept the ',
+                      style: TextStyle(color: Colors.white.withOpacity(.5)),
+                      children: [
+                        TextSpan(
+                            text: 'terms and conditions.',
+                            style: const TextStyle(
+                                color: ColorsB.yellow500,
+                                decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                if (await canLaunchUrl(Uri.parse(
+                                    '${Misc.link}/${Misc.appName}/terms.html'))) {
+                                  await launchUrl(
+                                      Uri.parse(
+                                          '${Misc.link}/${Misc.appName}/terms.html'),
+                                      mode: LaunchMode.externalApplication);
+                                }
+                              })
+                      ]),
+                )
+              ]),
+              const SizedBox(
+                height: 10,
+              ),
               Text(
                 termsError,
-                style: const TextStyle(
-                    color: Colors.red
-                ),
+                style: const TextStyle(color: Colors.red),
               ),
-
-              const SizedBox(height: 100,),
-
+              const SizedBox(
+                height: 100,
+              ),
               TextButton(
                 onPressed: () async {
-                  if(_formKey.currentState!.validate()){
-
-                    if(!acceptedTerms){
+                  if (_formKey.currentState!.validate()) {
+                    if (!acceptedTerms) {
                       setState(() {
-                        termsError = "Please accept the terms and conditions to further continue using the app.";
+                        termsError =
+                            "Please accept the terms and conditions to further continue using the app.";
                       });
 
                       return;
@@ -309,21 +321,16 @@ class _FirstPageState extends State<FirstPage> {
 
                     termsError = "";
 
-                    setState(() {
+                    setState(() {});
 
-                    });
-
-
-
-                    showDialog(context: context,
+                    showDialog(
+                        context: context,
                         barrierDismissible: false,
-                        builder: (_) =>
-                        const Center(
-                          child: SpinKitRing(
-                            color: ColorsB.yellow500,
-                          ),
-                        )
-                    );
+                        builder: (_) => const Center(
+                              child: SpinKitRing(
+                                color: ColorsB.yellow500,
+                              ),
+                            ));
                     await Future.delayed(const Duration(seconds: 3));
                     fntopass = _username.value.text;
                     lntopass = _lastname.value.text;
@@ -335,18 +342,15 @@ class _FirstPageState extends State<FirstPage> {
 
                     setState(() {
                       widget.update!(false);
-
                     });
                   }
 
-
                   //Butonu de continue la parinti
                   //Dupa cum ai obs, am adaugat loading-uri
-
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child:Text(
+                  child: Text(
                     'Continue',
                     style: TextStyle(
                       color: ColorsB.yellow500,
@@ -363,8 +367,7 @@ class _FirstPageState extends State<FirstPage> {
                       side: const BorderSide(
                         color: ColorsB.yellow500,
                       ),
-                    )
-                ),
+                    )),
               )
             ],
           ),
@@ -382,7 +385,6 @@ class SecondPage extends StatefulWidget {
 }
 
 class _SecondPageState extends State<SecondPage> {
-
   var _containerHeight = ValueNotifier<double>(0);
   bool open = false;
 
@@ -412,10 +414,8 @@ class _SecondPageState extends State<SecondPage> {
     _containerHeight.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
 
     return SingleChildScrollView(
@@ -423,9 +423,7 @@ class _SecondPageState extends State<SecondPage> {
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
-
           key: _formKey,
-
           child: Column(
             children: [
               const Text(
@@ -436,17 +434,14 @@ class _SecondPageState extends State<SecondPage> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-
               const Divider(
                 height: 25,
                 thickness: 2,
                 color: ColorsB.yellow500,
               ),
-
               SizedBox(
                 height: device.size.height * 0.025,
               ),
-
               const Text(
                 "Before you can create your account, please input your child's email below.",
                 style: TextStyle(
@@ -455,12 +450,15 @@ class _SecondPageState extends State<SecondPage> {
                   fontWeight: FontWeight.normal,
                 ),
               ),
-
               SizedBox(
                 height: device.size.height * 0.1,
               ),
-              InputField(fieldName: 'Child\'s email', isPassword: false, controller: _childUsername, isEmail: true, errorMessage: _errorText),
-
+              InputField(
+                  fieldName: 'Child\'s email',
+                  isPassword: false,
+                  controller: _childUsername,
+                  isEmail: true,
+                  errorMessage: _errorText),
               SizedBox(
                 height: device.size.height * 0.05,
               ),
@@ -468,20 +466,18 @@ class _SecondPageState extends State<SecondPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: () async{
-
+                    onPressed: () async {
                       final _prefs = await SharedPreferences.getInstance();
 
-                      if(_formKey.currentState!.validate()){
-                        showDialog(context: context,
+                      if (_formKey.currentState!.validate()) {
+                        showDialog(
+                            context: context,
                             barrierDismissible: false,
-                            builder: (_) =>
-                            const Center(
-                              child: SpinKitRing(
-                                color: ColorsB.yellow500,
-                              ),
-                            )
-                        );
+                            builder: (_) => const Center(
+                                  child: SpinKitRing(
+                                    color: ColorsB.yellow500,
+                                  ),
+                                ));
 
                         email2topass = _childUsername.value.text;
 
@@ -499,7 +495,8 @@ class _SecondPageState extends State<SecondPage> {
                         _prefs.setString('type', 'Parent');
                         String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_parent.php');
+                        var url = Uri.parse(
+                            '${Misc.link}/${Misc.appName}/register_parent.php');
                         final response = await http.post(url, body: {
                           "first_name": fntopass,
                           "last_name": lntopass,
@@ -509,16 +506,16 @@ class _SecondPageState extends State<SecondPage> {
                           "kid": email2topass,
                           "token": token,
                         });
-                        if(response.statusCode == 200){
+                        if (response.statusCode == 200) {
                           print(response.statusCode);
                           var jsondata = json.decode(response.body);
-                          if(jsondata["error"]){
+                          if (jsondata["error"]) {
                             setState(() {
                               _errorText = jsondata["message"];
                               Navigator.of(context).pop('dialog');
                             });
-                          }else{
-                            if(jsondata["success"]){
+                          } else {
+                            if (jsondata["success"]) {
                               //save the data returned from server
                               //and navigate to home page
                               String? user = jsondata["username"];
@@ -536,36 +533,38 @@ class _SecondPageState extends State<SecondPage> {
                                 'id': jsondata['id'],
                               };
 
-                              await _firebaseMessaging.subscribeToTopic('Parents');
+                              await _firebaseMessaging
+                                  .subscribeToTopic('Parents');
                               await _firebaseMessaging.subscribeToTopic('all');
 
-                              Navigator.pushReplacement(context, MaterialPageRoute(
-                                  builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
-                              ));
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => NewsPage(
+                                            data: loginMap,
+                                            newlyCreated: true,
+                                          )));
                               //user shared preference to save data
-                            }else{
+                            } else {
                               _errorText = "Error connecting.";
                               print(jsondata);
                               Navigator.of(context).pop('dialog');
                             }
                           }
-                        }else{
+                        } else {
                           setState(() {
                             _errorText = "wtf?";
                             Navigator.of(context).pop('dialog');
-
                           });
                         }
-
-
 
                         //TODO: Add funtionality to the student register button
                       }
                     },
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                      child: Text(
-                          "Finish",
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                      child: Text("Finish",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -578,21 +577,23 @@ class _SecondPageState extends State<SecondPage> {
                         backgroundColor: ColorsB.yellow500,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
-                        )
-                    ),
+                        )),
                   ),
                 ],
               ),
               SizedBox(
                 height: device.size.height * 0.05,
               ),
-
-              StyledDropdown(containerHeight: _containerHeight, device: device, sopen: open, title: 'We require parents\' and students\' accounts to be linked.',
-                description: 'To keep third-parties from making fake accounts of parents, we require this type of account to be verified.',
+              StyledDropdown(
+                containerHeight: _containerHeight,
+                device: device,
+                sopen: open,
+                title:
+                    'We require parents\' and students\' accounts to be linked.',
+                description:
+                    'To keep third-parties from making fake accounts of parents, we require this type of account to be verified.',
                 controller: _iconController,
               ),
-
-
             ],
           ),
         ),

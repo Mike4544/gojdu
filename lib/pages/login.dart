@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:gojdu/pages/verified.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +16,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:gojdu/others/options.dart';
+
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
 
@@ -25,16 +28,14 @@ class Login extends StatefulWidget {
 FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
 class _LoginState extends State<Login> {
-
   //Username and password 'submiters'
-  final _nameController = ValueNotifier<TextEditingController>(
-      TextEditingController());
-  final _passController = ValueNotifier<TextEditingController>(
-      TextEditingController());
+  final _nameController =
+      ValueNotifier<TextEditingController>(TextEditingController());
+  final _passController =
+      ValueNotifier<TextEditingController>(TextEditingController());
 
   //  <-------------------------  Prefs Files ------------------>
   final Future<SharedPreferences> prefs = SharedPreferences.getInstance();
-
 
   //Transition width and height
   final _tWidth = ValueNotifier<double>(0);
@@ -44,10 +45,8 @@ class _LoginState extends State<Login> {
   //  <------------- Form Key ---------------->
   final _formKey = GlobalKey<FormState>();
 
-
   //  <-----------  Error Strings  ------------>
   late String nameError;
-
 
   //  <-------------- Global size --------------->
   late Size globalSize;
@@ -60,20 +59,15 @@ class _LoginState extends State<Login> {
     nameError = '';
     isLoggingIn = false;
 
-
     FirebaseMessaging.onMessageOpenedApp.listen((message) async {
-
-      if(message.data['type'] == 'Verify'){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const Verified()));
+      if (message.data['type'] == 'Verify') {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const Verified()));
       }
-
     });
 
-
     super.initState();
-
   }
-
 
   @override
   void dispose() {
@@ -90,9 +84,7 @@ class _LoginState extends State<Login> {
     print("building");
 
     var size = MediaQuery.of(context);
-    globalSize = MediaQuery
-        .of(context)
-        .size;
+    globalSize = MediaQuery.of(context).size;
 
     return GestureDetector(
       onTap: () {
@@ -111,32 +103,42 @@ class _LoginState extends State<Login> {
                     vertical: 100, horizontal: 20), //Padding
                 child: Column(
                   children: [
-                    Image.asset('assets/images/Logo.png', height: 300,),
-                    SizedBox(height: size.size.height * 0.10,),
+                    Image.asset(
+                      'assets/images/Logo.png',
+                      height: 300,
+                    ),
+                    SizedBox(
+                      height: size.size.height * 0.10,
+                    ),
                     Form(
                       key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          InputField(fieldName: "Email",
+                          InputField(
+                            fieldName: "Email",
                             isPassword: false,
                             controller: _nameController.value,
                             errorMessage: nameError,
-                            isEmail: true,),
+                            isEmail: true,
+                          ),
 
                           const SizedBox(height: 50),
 
-                          InputField(fieldName: "Password",
+                          InputField(
+                            fieldName: "Password",
                             isPassword: true,
                             controller: _passController.value,
                             errorMessage: nameError,
-                            isEmail: false,),
+                            isEmail: false,
+                          ),
 
                           //TODO: Make the error text pop only on sign-in
 
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(context,
+                              Navigator.push(
+                                  context,
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           const ForgotPassword()));
@@ -159,53 +161,48 @@ class _LoginState extends State<Login> {
                         ],
                       ),
                     ),
-
-
-                    const SizedBox(height: 50,),
-
+                    const SizedBox(
+                      height: 50,
+                    ),
                     ValueListenableBuilder(
                       valueListenable: _passController.value,
-                      builder: (_, value, __) =>
-                          TextButton(
-                            onPressed: (_nameController.value.text
-                                .isNotEmpty &&
-                                _passController.value.text.isNotEmpty) || isLoggingIn
-                                ? login
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 30),
-                              child: !isLoggingIn ? const Text(
-                                  "Sign-in",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.normal,
-                                    fontFamily: 'Nunito',
-                                    letterSpacing: 2.5,
-                                  )
-                              ) :
-                              const CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(ColorsB.gray900),
-                              )
-                            ),
-                            style: TextButton.styleFrom(
-                                backgroundColor: _nameController.value.text
-                                    .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty
+                      builder: (_, value, __) => TextButton(
+                        onPressed: (_nameController.value.text.isNotEmpty &&
+                                    _passController.value.text.isNotEmpty) ||
+                                isLoggingIn
+                            ? login
+                            : null,
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 30),
+                            child: !isLoggingIn
+                                ? const Text("Sign-in",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.normal,
+                                      fontFamily: 'Nunito',
+                                      letterSpacing: 2.5,
+                                    ))
+                                : const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorsB.gray900),
+                                  )),
+                        style: TextButton.styleFrom(
+                            backgroundColor:
+                                _nameController.value.text.isNotEmpty &&
+                                        _passController.value.text.isNotEmpty
                                     ? ColorsB.yellow500
                                     : ColorsB.gray800,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                shadowColor: ColorsB.yellow500.withOpacity(0.25),
-                                elevation: _nameController.value.text
-                                    .isNotEmpty &&
-                                    _passController.value.text.isNotEmpty
-                                    ? 15
-                                    : 0
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
                             ),
-                          ),
+                            shadowColor: ColorsB.yellow500.withOpacity(0.25),
+                            elevation: _nameController.value.text.isNotEmpty &&
+                                    _passController.value.text.isNotEmpty
+                                ? 15
+                                : 0),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -235,39 +232,35 @@ class _LoginState extends State<Login> {
                         ],
                       ),
                     )
-
-
                   ],
                 ),
               ),
             ),
           ),
-
           Center(
               child: ValueListenableBuilder(
-                valueListenable: _tWidth,
-                builder: (_, width, __) =>
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                      width: _tWidth.value,
-                      height: _tHeight.value,
-                      onEnd: () {
-                        Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) => NewsPage(data: loginInfo))
+            valueListenable: _tWidth,
+            builder: (_, width, __) => AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              width: _tWidth.value,
+              height: _tHeight.value,
+              onEnd: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NewsPage(data: loginInfo))
 
-                          //TODO: Remove the hardcoded value
+                    //TODO: Remove the hardcoded value
 
-                        );
-                      },
-                      decoration: BoxDecoration(
-                        color: ColorsB.gray900,
-                        borderRadius: BorderRadius.circular(_radius.value),
-                      ),
-                    ),
-              )
-          ),
-
+                    );
+              },
+              decoration: BoxDecoration(
+                color: ColorsB.gray900,
+                borderRadius: BorderRadius.circular(_radius.value),
+              ),
+            ),
+          )),
         ],
       ),
     );
@@ -284,96 +277,99 @@ class _LoginState extends State<Login> {
     //print(token);
 
     if (_formKey.currentState!.validate()) {
+      try {
+        setState(() {
+          isLoggingIn = true;
+        });
 
-        try {
+        var url = Uri.parse('${Misc.link}/${Misc.appName}/login_gojdu.php');
+        final response = await http.post(url, body: {
+          "email": _nameController.value.text,
+          "password": _passController.value.text,
+          "token": token,
+        }).timeout(const Duration(seconds: 15));
+        if (response.statusCode == 200) {
+          var jsondata = json.decode(response.body);
+          if (jsondata["error"]) {
             setState(() {
-              isLoggingIn = true;
+              isLoggingIn = false;
+              nameError = jsondata["message"];
             });
+          } else {
+            if (jsondata["success"]) {
+              //save the data returned from server
+              //and navigate to home page
+              String fn = jsondata["first_name"].toString();
+              String ln = jsondata["last_name"].toString();
+              String email = jsondata["email"].toString();
+              String acc_type = jsondata["account"].toString();
+              //String acc_type = 'Teacher';
 
-            var url = Uri.parse('https://cnegojdu.ro/GojduApp/login_gojdu.php');
-            final response = await http.post(url, body: {
-              "email": _nameController.value.text,
-              "password": _passController.value.text,
-              "token": token,
-            });
-            if (response.statusCode == 200) {
-              var jsondata = json.decode(response.body);
-              if (jsondata["error"]) {
-                setState(() {
-                  isLoggingIn = false;
-                  nameError = jsondata["message"];
-                });
-              } else {
-                if (jsondata["success"]) {
-                  //save the data returned from server
-                  //and navigate to home page
-                  String fn = jsondata["first_name"].toString();
-                  String ln = jsondata["last_name"].toString();
-                  String email = jsondata["email"].toString();
-                  String acc_type = jsondata["account"].toString();
-                  //String acc_type = 'Teacher';
+              // print(ln);
+              // print(fn);
+              // print(email);
+              print(jsondata["token"]);
 
-                  // print(ln);
-                  // print(fn);
-                  // print(email);
-                  print(jsondata["token"]);
+              await prefs2.setString('email', email);
+              await prefs2.setString('password', _passController.value.text);
+              await prefs2.setString('first_name', fn);
+              await prefs2.setString('last_name', ln);
+              await prefs2.setString('type', acc_type);
 
-                  await prefs2.setString('email', email);
-                  await prefs2.setString('password', _passController.value.text);
-                  await prefs2.setString('first_name', fn);
-                  await prefs2.setString('last_name', ln);
-                  await prefs2.setString('type', acc_type);
-
-                  print("The name is ${_nameController.value
-                      .text} and the password is ${_passController.value.text}");
-                  //TODO: D: Send info to the server - Darius fa-ti magia
-                  //TODO: M: Make page transition animation
-                  /*TODO: M/D: Make a 'remember me' check.
+              print(
+                  "The name is ${_nameController.value.text} and the password is ${_passController.value.text}");
+              //TODO: D: Send info to the server - Darius fa-ti magia
+              //TODO: M: Make page transition animation
+              /*TODO: M/D: Make a 'remember me' check.
                                           We wouldn't want to make the users uncomfy UwU
                                    */
 
-                  await _firebaseMessaging.subscribeToTopic(acc_type + 's');
-                  await _firebaseMessaging.subscribeToTopic('all');
+              await _firebaseMessaging.subscribeToTopic(acc_type + 's');
+              await _firebaseMessaging.subscribeToTopic('all');
 
-                  setState(() {
-                    isLoggingIn = false;
-                  });
-
-                  final loginMap = {
-                    'first_name': fn,
-                    'last_name': ln,
-                    'email': email,
-                    'account': acc_type,
-                    'verification': jsondata['verification'],
-                    'id': jsondata['id'],
-                  };
-
-                  loginInfo = loginMap;
-
-                  _tWidth.value = globalSize.width;
-                  _tHeight.value = globalSize.height;
-                  _radius.value = 0;
-                  //user shared preference to save data
-                } else {
-                  isLoggingIn = false;
-                  nameError = "Something went wrong.";
-                  setState(() {
-
-                  });
-                }
-              }
-            } else {
               setState(() {
                 isLoggingIn = false;
-                nameError = "Error during connecting to server.";
               });
-            }
-          } catch (e) {
-            setState(() {
+
+              final loginMap = {
+                'first_name': fn,
+                'last_name': ln,
+                'email': email,
+                'account': acc_type,
+                'verification': jsondata['verification'],
+                'id': jsondata['id'],
+              };
+
+              loginInfo = loginMap;
+
+              _tWidth.value = globalSize.width;
+              _tHeight.value = globalSize.height;
+              _radius.value = 0;
+              //user shared preference to save data
+            } else {
               isLoggingIn = false;
-              nameError = "Error during connecting to server.";
-            });
+              nameError = "Something went wrong.";
+              setState(() {});
+            }
           }
+        } else {
+          setState(() {
+            isLoggingIn = false;
+            nameError = "Error during connecting to server.";
+          });
         }
+      } on TimeoutException {
+        setState(() {
+          isLoggingIn = false;
+          nameError = "Error during connecting to server.";
+        });
+        throw Future.error('Timeout');
+      } catch (e) {
+        setState(() {
+          isLoggingIn = false;
+          nameError = "Error during connecting to server.";
+        });
       }
+    }
   }
+}

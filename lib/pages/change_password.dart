@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-
+import 'package:gojdu/others/options.dart';
 
 class ChangePassword extends StatefulWidget {
   final String? email;
@@ -23,16 +23,17 @@ class ChangePassword extends StatefulWidget {
 }
 
 class _ChangePasswordState extends State<ChangePassword> {
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String errorMessage1 ='';
+  String errorMessage1 = '';
   String errorMessage2 = '';
 
   // The 3 password controllers: Current, New and Confirm
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -57,15 +58,19 @@ class _ChangePasswordState extends State<ChangePassword> {
           padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
           child: Row(
             children: const [
-              Icon(Icons.password, color: ColorsB.yellow500,),
-              SizedBox(width: 20,),
+              Icon(
+                Icons.password,
+                color: ColorsB.yellow500,
+              ),
+              SizedBox(
+                width: 20,
+              ),
               Text(
                 'Change your password',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 25,
-                    fontWeight: FontWeight.w700
-                ),
+                    fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -79,97 +84,110 @@ class _ChangePasswordState extends State<ChangePassword> {
               padding: const EdgeInsets.all(35.0),
               child: Column(
                 children: [
-                  InputField(fieldName: 'Current Password', isPassword: true, errorMessage: errorMessage1, isEmail: false, controller: _currentPasswordController,),
+                  InputField(
+                    fieldName: 'Current Password',
+                    isPassword: true,
+                    errorMessage: errorMessage1,
+                    isEmail: false,
+                    controller: _currentPasswordController,
+                  ),
                   const SizedBox(height: 25),
-                  InputField(fieldName: 'New Password', isPassword: true, errorMessage: errorMessage2, isEmail: false, controller: _newPasswordController,),
+                  InputField(
+                    fieldName: 'New Password',
+                    isPassword: true,
+                    errorMessage: errorMessage2,
+                    isEmail: false,
+                    controller: _newPasswordController,
+                  ),
                   const SizedBox(height: 25),
-                  InputField(fieldName: 'Confirm Password', isPassword: true, errorMessage: errorMessage2, isEmail: false, controller: _confirmPasswordController,),
+                  InputField(
+                    fieldName: 'Confirm Password',
+                    isPassword: true,
+                    errorMessage: errorMessage2,
+                    isEmail: false,
+                    controller: _confirmPasswordController,
+                  ),
                   const SizedBox(height: 100),
                   clicked == false
                       ? TextButton.icon(
-                      style: TextButton.styleFrom(
-                        backgroundColor: ColorsB.yellow500,
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      icon: const Icon(Icons.upload, color: Colors.white),
-                      label: const Text(
-                        'Change password',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.normal,
-                            letterSpacing: 1.5
-                        ),
-                      ),
-                      onPressed: () async {
-                        //TODO: Make the logic for changing password
-                        setState(() {
-                          errorMessage1 = '';
-                          errorMessage2 = '';
-                          clicked = true;
-                        });
-                        try {
-                          if(_formKey.currentState!.validate()) {
-                            if (_newPasswordController.text !=
-                                _confirmPasswordController.text) {
-                              setState(() {
-                                errorMessage2 = 'Passwords do not match';
-                              });
-                              return;
-                            }
-                            var url = Uri.parse(
-                                'https://cnegojdu.ro/GojduApp/changePassword.php');
-                            final response = await http.post(url, body: {
-                              'action': "RESET",
-                              "npass": _newPasswordController.text,
-                              "email": widget.email,
-                              "cpass": _currentPasswordController.text,
+                          style: TextButton.styleFrom(
+                            backgroundColor: ColorsB.yellow500,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: const Icon(Icons.upload, color: Colors.white),
+                          label: const Text(
+                            'Change password',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.normal,
+                                letterSpacing: 1.5),
+                          ),
+                          onPressed: () async {
+                            //TODO: Make the logic for changing password
+                            setState(() {
+                              errorMessage1 = '';
+                              errorMessage2 = '';
+                              clicked = true;
                             });
-                            if (response.statusCode == 200) {
-                              var jsondata = json.decode(response.body);
-                              print(jsondata);
-                              if(jsondata['success']){
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text(
-                                    'Password changed successfully',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'Nunito'
-                                    ),
-                                  ),
-                                ));
-                              }
-                              if(jsondata['error']){
-                                setState(() {
-                                  errorMessage2 = jsondata['message'];
-                                  errorMessage1 = jsondata['message'];
-                                  clicked = false;
+                            try {
+                              if (_formKey.currentState!.validate()) {
+                                if (_newPasswordController.text !=
+                                    _confirmPasswordController.text) {
+                                  setState(() {
+                                    errorMessage2 = 'Passwords do not match';
+                                  });
+                                  return;
+                                }
+                                var url = Uri.parse(
+                                    '${Misc.link}/${Misc.appName}/changePassword.php');
+                                final response = await http.post(url, body: {
+                                  'action': "RESET",
+                                  "npass": _newPasswordController.text,
+                                  "email": widget.email,
+                                  "cpass": _currentPasswordController.text,
                                 });
+                                if (response.statusCode == 200) {
+                                  var jsondata = json.decode(response.body);
+                                  print(jsondata);
+                                  if (jsondata['success']) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content: Text(
+                                        'Password changed successfully',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Nunito'),
+                                      ),
+                                    ));
+                                  }
+                                  if (jsondata['error']) {
+                                    setState(() {
+                                      errorMessage2 = jsondata['message'];
+                                      errorMessage1 = jsondata['message'];
+                                      clicked = false;
+                                    });
+                                  }
+                                }
                               }
-
-
+                            } catch (e) {
+                              setState(() {
+                                errorMessage2 = 'Something went wrong';
+                                errorMessage1 = 'Something went wrong';
+                                clicked = false;
+                              });
                             }
-                          }
-                        }
-                        catch (e) {
-                          setState(() {
-                            errorMessage2 = 'Something went wrong';
-                            errorMessage1 = 'Something went wrong';
-                            clicked = false;
-                          });
-                        }
-
-                      }
-                  )
+                          })
                       : const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
-                  )
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+                        )
                 ],
-              )
-          ),
+              )),
         ),
       ),
     );

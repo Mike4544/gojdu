@@ -17,6 +17,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:gojdu/others/options.dart';
+
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
 
@@ -25,7 +27,6 @@ class StudentSignUp extends StatefulWidget {
 }
 
 class _StudentSignUpState extends State<StudentSignUp> {
-
   // Firebase Messaging
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
@@ -58,7 +59,6 @@ class _StudentSignUpState extends State<StudentSignUp> {
     _repPassword = TextEditingController();
 
     error = '';
-
   }
 
   @override
@@ -72,16 +72,15 @@ class _StudentSignUpState extends State<StudentSignUp> {
     _password.dispose();
     _repPassword.dispose();
     _schoolCode.dispose();
-
   }
-
 
   @override
   Widget build(BuildContext context) {
-
     var device = MediaQuery.of(context);
 
-    var height = device.size.height < 675 ? MediaQuery.of(context).size.height * .125 : MediaQuery.of(context).size.height * .1;
+    var height = device.size.height < 675
+        ? MediaQuery.of(context).size.height * .125
+        : MediaQuery.of(context).size.height * .1;
 
     return GestureDetector(
       onTap: () {
@@ -107,9 +106,9 @@ class _StudentSignUpState extends State<StudentSignUp> {
                     letterSpacing: 1,
                   ),
                 ),
-
-                const SizedBox(width: 10,),
-
+                const SizedBox(
+                  width: 10,
+                ),
                 Container(
                   color: ColorsB.yellow500,
                   width: 2.5,
@@ -127,10 +126,9 @@ class _StudentSignUpState extends State<StudentSignUp> {
               key: _formKey,
               child: Column(
                 children: [
-
-
-                  SizedBox(height: device.size.height * 0.05,),
-
+                  SizedBox(
+                    height: device.size.height * 0.05,
+                  ),
                   const Text(
                     'Input your details below:',
                     style: TextStyle(
@@ -139,98 +137,129 @@ class _StudentSignUpState extends State<StudentSignUp> {
                       fontSize: 40,
                     ),
                   ),
-
                   const Divider(
                     height: 25,
                     thickness: 2,
                     color: ColorsB.yellow500,
                   ),
-
                   SizedBox(
                     height: device.size.height * 0.075,
                   ),
+                  InputField(
+                      fieldName: 'Email Address',
+                      isPassword: false,
+                      controller: _mail,
+                      label: 'example@example.com',
+                      errorMessage: error,
+                      isEmail: true),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  InputField(
+                    fieldName: 'First Name',
+                    isPassword: false,
+                    controller: _username,
+                    errorMessage: error,
+                    isEmail: false,
+                    label: 'Ex: Mihai',
+                  ),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  InputField(
+                    fieldName: 'Last Name',
+                    isPassword: false,
+                    controller: _lastname,
+                    errorMessage: error,
+                    isEmail: false,
+                    label: 'Ex: Popescu',
+                  ),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  InputField(
+                    fieldName: 'Password',
+                    isPassword: true,
+                    controller: _password,
+                    errorMessage: error,
+                    isEmail: false,
+                  ),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  InputField(
+                    fieldName: 'Repeat Password',
+                    isPassword: true,
+                    controller: _repPassword,
+                    errorMessage: error,
+                    isEmail: false,
+                  ),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  InputField(
+                    fieldName: 'School Code',
+                    isPassword: false,
+                    controller: _schoolCode,
+                    errorMessage: error,
+                    isEmail: false,
+                    label: 'Ex: A1B2C3',
+                  ),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  Row(children: [
+                    Checkbox(
+                      activeColor: ColorsB.yellow500,
+                      value: acceptedTerms,
+                      onChanged: (nvalue) {
+                        setState(() {
+                          acceptedTerms = nvalue!;
 
-                  InputField(fieldName: 'Email Address', isPassword: false, controller: _mail, label: 'example@example.com', errorMessage: error, isEmail: true),
-
-                  const SizedBox(height: 50,),
-
-                  InputField(fieldName: 'First Name', isPassword: false, controller: _username, errorMessage: error, isEmail: false, label: 'Ex: Mihai',),
-
-                  const SizedBox(height: 50,),
-
-                  InputField(fieldName: 'Last Name', isPassword: false, controller: _lastname, errorMessage: error, isEmail: false, label: 'Ex: Popescu',),
-
-                  const SizedBox(height: 50,),
-
-                  InputField(fieldName: 'Password', isPassword: true, controller: _password, errorMessage: error, isEmail: false,),
-
-                  const SizedBox(height: 50,),
-
-                  InputField(fieldName: 'Repeat Password', isPassword: true, controller:  _repPassword, errorMessage: error, isEmail: false,),
-
-                  const SizedBox(height: 50,),
-
-                  InputField(fieldName: 'School Code', isPassword: false, controller: _schoolCode, errorMessage: error, isEmail: false, label: 'Ex: A1B2C3',),
-
-                  const SizedBox(height: 50,),
-
-                  Row(
-                    children: [
-                      Checkbox(
-                        activeColor: ColorsB.yellow500,
-                        value: acceptedTerms,
-                        onChanged: (nvalue) {
-                          setState(() {
-                            acceptedTerms = nvalue!;
-
-                            termsError = "";
-                          });
-                        },
-                      ),
-                      RichText(
-                        text: TextSpan(
+                          termsError = "";
+                        });
+                      },
+                    ),
+                    RichText(
+                      text: TextSpan(
                           text: 'I accept the ',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(.5)
-                          ),
+                          style: TextStyle(color: Colors.white.withOpacity(.5)),
                           children: [
                             TextSpan(
-                              text: 'terms and conditions.',
-                              style: const TextStyle(
-                                color: ColorsB.yellow500,
-                                decoration: TextDecoration.underline
-                              ),
-                              recognizer: TapGestureRecognizer()..onTap = () async {
-                                if(await canLaunchUrl(Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'))){
-                                  await launchUrl(
-                                      Uri.parse('https://cnegojdu.ro/GojduApp/terms.html'), mode: LaunchMode.externalApplication
-                                  );
-                                }
-                              }
-                            )
-                          ]
-                        ),
-                      )
-
-                    ]
+                                text: 'terms and conditions.',
+                                style: const TextStyle(
+                                    color: ColorsB.yellow500,
+                                    decoration: TextDecoration.underline),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () async {
+                                    if (await canLaunchUrl(Uri.parse(
+                                        '${Misc.link}/${Misc.appName}/terms.html'))) {
+                                      await launchUrl(
+                                          Uri.parse(
+                                              '${Misc.link}/${Misc.appName}/terms.html'),
+                                          mode: LaunchMode.externalApplication);
+                                    }
+                                  })
+                          ]),
+                    )
+                  ]),
+                  const SizedBox(
+                    height: 10,
                   ),
-                  const SizedBox(height: 10,),
                   Text(
                     termsError,
-                    style: const TextStyle(
-                      color: Colors.red
-                    ),
+                    style: const TextStyle(color: Colors.red),
                   ),
-
-                  const SizedBox(height: 100,),
-
+                  const SizedBox(
+                    height: 100,
+                  ),
                   TextButton(
                     onPressed: () async {
-                      if(_formKey.currentState!.validate()){
-
-                        if(!acceptedTerms){
+                      if (_formKey.currentState!.validate()) {
+                        if (!acceptedTerms) {
                           setState(() {
-                            termsError = "Please accept the terms and conditions to further continue using the app.";
+                            termsError =
+                                "Please accept the terms and conditions to further continue using the app.";
                           });
 
                           return;
@@ -238,27 +267,24 @@ class _StudentSignUpState extends State<StudentSignUp> {
 
                         termsError = "";
 
-                        setState(() {
+                        setState(() {});
 
-                        });
-
-                        showDialog(context: context,
+                        showDialog(
+                            context: context,
                             barrierDismissible: false,
-                            builder: (_) =>
-                            const Center(
-                              child: SpinKitRing(
-                                color: ColorsB.yellow500,
-                              ),
-                            )
-                        );
-
+                            builder: (_) => const Center(
+                                  child: SpinKitRing(
+                                    color: ColorsB.yellow500,
+                                  ),
+                                ));
 
                         //await Future.delayed(Duration(seconds: 3));
 
                         final _prefs = await SharedPreferences.getInstance();
                         String? token = await _firebaseMessaging.getToken();
 
-                        var url = Uri.parse('https://cnegojdu.ro/GojduApp/register_student.php');
+                        var url = Uri.parse(
+                            '${Misc.link}/${Misc.appName}/register_student.php');
                         final response = await http.post(url, body: {
                           "first_name": _username.value.text,
                           "last_name": _lastname.value.text,
@@ -268,32 +294,32 @@ class _StudentSignUpState extends State<StudentSignUp> {
                           "code": _schoolCode.text,
                           "token": token,
                         });
-                        if(response.statusCode == 200){
+                        if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
                           print(jsondata);
-                          if(jsondata["error"]){
+                          if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];
                               Navigator.of(context).pop('dialog');
                             });
-                          }else{
-                            if(jsondata["success"]){
+                          } else {
+                            if (jsondata["success"]) {
                               //save the data returned from server
                               //and navigate to home page
                               String? user = jsondata["username"];
-                              String? email =  _mail.value.text;
+                              String? email = _mail.value.text;
                               String first_name = _username.value.text;
                               String last_name = _lastname.value.text;
                               String? acc_type = jsondata["account"];
 
                               _prefs.setString('email', email);
                               _prefs.setString('first_name', first_name);
-                              _prefs.setString('password', _password.value.text);
+                              _prefs.setString(
+                                  'password', _password.value.text);
                               _prefs.setString('last_name', last_name);
                               _prefs.setString('type', acc_type!);
 
                               Navigator.of(context).pop('dialog');
-
 
                               final loginMap = {
                                 'first_name': _username.value.text,
@@ -305,190 +331,220 @@ class _StudentSignUpState extends State<StudentSignUp> {
                               };
 
                               showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) {
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    TextEditingController _code =
+                                        TextEditingController();
+                                    GlobalKey _formKey1 =
+                                        GlobalKey<FormState>();
 
-                                  TextEditingController _code = TextEditingController();
-                                  GlobalKey _formKey1 = GlobalKey<FormState>();
-
-
-                                  return  AlertDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      backgroundColor: ColorsB.gray900,
-                                      title: Column(
-                                        children: const [
-                                          Text(
-                                            'Verify your email',
-                                            style: TextStyle(
-                                                color: ColorsB.yellow500,
-                                                fontSize: 15
-                                            ),
-                                          ),
-                                          Divider(
-                                            color: ColorsB.yellow500,
-                                            thickness: 1,
-                                            height: 10,
-                                          )
-                                        ],
-                                      ),
-                                      content: SizedBox(
-                                        height: 250,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              'A code has been sent to your email. Please enter it here and verify your account!',
+                                    return AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        backgroundColor: ColorsB.gray900,
+                                        title: Column(
+                                          children: const [
+                                            Text(
+                                              'Verify your email',
                                               style: TextStyle(
                                                   color: ColorsB.yellow500,
-                                                  fontSize: 15
-                                              ),
+                                                  fontSize: 15),
                                             ),
-                                            const SizedBox(height: 10),
-                                            Form(
-                                              key: _formKey1,
-                                              child: TextFormField(
-                                                cursorColor: ColorsB.yellow500,
-                                                controller: _code,
-                                                decoration: InputDecoration(
-                                                    filled: true,
-                                                    labelText: "Enter Code",
-                                                    floatingLabelBehavior: FloatingLabelBehavior.never,
-                                                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 7.5),
-                                                    fillColor: ColorsB.gray200,
-                                                    border: OutlineInputBorder(
-                                                        borderRadius: BorderRadius.circular(50),
-                                                        borderSide: BorderSide.none
-                                                    )
-                                                ),
-                                                validator: (pwrd){
-                                                  if(pwrd!.isEmpty) {
-                                                    return "This field cannot be empty.";
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            InkWell(
-                                              onTap: () async {
-
-                                                if(_formKey.currentState!.validate()) {
-
-                                                  var url = Uri.parse(
-                                                      'https://cnegojdu.ro/GojduApp/verify_accounts.php');
-                                                  final response = await http.post(url, body: {
-                                                    'email': email,
-                                                    'code': _code.text
-                                                  });
-                                                  print(response.statusCode);
-                                                  if(response.statusCode == 200){
-                                                    var jsondata = json.decode(response.body);
-
-                                                    if(jsondata['success']){
-
-
-                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                        backgroundColor: ColorsB.yellow500,
-                                                        content: Text(
-                                                          'Account verified!',
-                                                          style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontFamily: 'Nunito'
-                                                          ),
-                                                        ),
-                                                      ));
-
-                                                      await Future.delayed(const Duration(milliseconds: 500));
-                                                      await _firebaseMessaging.subscribeToTopic('Students');
-                                                      await _firebaseMessaging.subscribeToTopic('all');
-
-                                                      Navigator.pushReplacement(context, MaterialPageRoute(
-                                                          builder: (context) => NewsPage(data: loginMap, newlyCreated: true,)
-                                                      ));
-
-
-                                                    }
-                                                    if(jsondata['error']){
-                                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                        backgroundColor: Colors.red,
-                                                        content: Text(
-                                                          'The code might be incorrect!',
-                                                          style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontFamily: 'Nunito'
-                                                          ),
-                                                        ),
-                                                      ));
-
-                                                    }
-                                                  }
-                                                  else {
-                                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                      backgroundColor: Colors.red,
-                                                      content: Text(
-                                                        'Something went wrong!',
-                                                        style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontFamily: 'Nunito'
-                                                        ),
-                                                      ),
-                                                    ));
-
-                                                  }
-
-
-
-
-                                                }
-
-                                                //  logoff(context);
-                                              },
-                                              borderRadius: BorderRadius.circular(30),
-                                              child: Ink(
-                                                decoration: BoxDecoration(
-                                                  color: ColorsB.yellow500,
-                                                  borderRadius: BorderRadius.circular(30),
-                                                ),
-                                                height: 50,
-                                                width: 75,
-                                                child: const Icon(
-                                                  Icons.check, color: Colors.white,
-                                                ),
-                                              ),
+                                            Divider(
+                                              color: ColorsB.yellow500,
+                                              thickness: 1,
+                                              height: 10,
                                             )
                                           ],
                                         ),
-                                      )
-                                  );
-                                }
-                              );
+                                        content: SizedBox(
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'A code has been sent to your email. Please enter it here and verify your account!',
+                                                style: TextStyle(
+                                                    color: ColorsB.yellow500,
+                                                    fontSize: 15),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Form(
+                                                key: _formKey1,
+                                                child: TextFormField(
+                                                  cursorColor:
+                                                      ColorsB.yellow500,
+                                                  controller: _code,
+                                                  decoration: InputDecoration(
+                                                      filled: true,
+                                                      labelText: "Enter Code",
+                                                      floatingLabelBehavior:
+                                                          FloatingLabelBehavior
+                                                              .never,
+                                                      contentPadding:
+                                                          const EdgeInsets
+                                                                  .symmetric(
+                                                              vertical: 10,
+                                                              horizontal: 7.5),
+                                                      fillColor:
+                                                          ColorsB.gray200,
+                                                      border:
+                                                          OutlineInputBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          50),
+                                                              borderSide:
+                                                                  BorderSide
+                                                                      .none)),
+                                                  validator: (pwrd) {
+                                                    if (pwrd!.isEmpty) {
+                                                      return "This field cannot be empty.";
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              InkWell(
+                                                onTap: () async {
+                                                  if (_formKey.currentState!
+                                                      .validate()) {
+                                                    var url = Uri.parse(
+                                                        '${Misc.link}/${Misc.appName}/verify_accounts.php');
+                                                    final response = await http
+                                                        .post(url, body: {
+                                                      'email': email,
+                                                      'code': _code.text
+                                                    });
+                                                    print(response.statusCode);
+                                                    if (response.statusCode ==
+                                                        200) {
+                                                      var jsondata =
+                                                          json.decode(
+                                                              response.body);
+
+                                                      if (jsondata['success']) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                                const SnackBar(
+                                                          backgroundColor:
+                                                              ColorsB.yellow500,
+                                                          content: Text(
+                                                            'Account verified!',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontFamily:
+                                                                    'Nunito'),
+                                                          ),
+                                                        ));
+
+                                                        await Future.delayed(
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    500));
+                                                        await _firebaseMessaging
+                                                            .subscribeToTopic(
+                                                                'Students');
+                                                        await _firebaseMessaging
+                                                            .subscribeToTopic(
+                                                                'all');
+
+                                                        Navigator
+                                                            .pushReplacement(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            NewsPage(
+                                                                              data: loginMap,
+                                                                              newlyCreated: true,
+                                                                            )));
+                                                      }
+                                                      if (jsondata['error']) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                                const SnackBar(
+                                                          backgroundColor:
+                                                              Colors.red,
+                                                          content: Text(
+                                                            'The code might be incorrect!',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontFamily:
+                                                                    'Nunito'),
+                                                          ),
+                                                        ));
+                                                      }
+                                                    } else {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              const SnackBar(
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                        content: Text(
+                                                          'Something went wrong!',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontFamily:
+                                                                  'Nunito'),
+                                                        ),
+                                                      ));
+                                                    }
+                                                  }
+
+                                                  //  logoff(context);
+                                                },
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                                child: Ink(
+                                                  decoration: BoxDecoration(
+                                                    color: ColorsB.yellow500,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            30),
+                                                  ),
+                                                  height: 50,
+                                                  width: 75,
+                                                  child: const Icon(
+                                                    Icons.check,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ));
+                                  });
                               //user shared preference to save data
-                            }else{
+                            } else {
                               error = "Error connecting.";
                               Navigator.of(context).pop('dialog');
                             }
                           }
-                        }else{
+                        } else {
                           setState(() {
                             error = "wtf?";
                             Navigator.of(context).pop('dialog');
-
                           });
                         }
 
-
-
                         //TODO: Add funtionality to the student register button
                       }
-
-
-
                     },
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child:Text(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Text(
                         'Register',
                         style: TextStyle(
                           color: Colors.white,
@@ -501,9 +557,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                     style: TextButton.styleFrom(
                         backgroundColor: ColorsB.yellow500,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(360)
-                        )
-                    ),
+                            borderRadius: BorderRadius.circular(360))),
                   )
                 ],
               ),
