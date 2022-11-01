@@ -40,6 +40,10 @@ class _OffersPageState extends State<OffersPage>
 
   late List<OfferContainer> offers;
 
+  
+
+
+
   Future<int> loadOffers() async {
     offers.clear();
 
@@ -229,8 +233,6 @@ class _OffersPageState extends State<OffersPage>
       print(e);
     }
   }
-
-
 
   Widget _offersList() {
     List dummyList = [];
@@ -458,6 +460,7 @@ class _OffersPageState extends State<OffersPage>
 
 class OfferContainer extends StatelessWidget {
   final int id;
+  final int owner_id;
   final Map globalMap;
   final String s_color;
   final String compName;
@@ -485,7 +488,7 @@ class OfferContainer extends StatelessWidget {
       required this.date,
       required this.delete,
       required this.smallDescription,
-      required this.fullDescription})
+      required this.fullDescription, required this.owner_id})
       : super(key: key);
 
   @override
