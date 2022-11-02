@@ -1206,13 +1206,13 @@ class _AnnouncementsState extends State<Announcements>
       isLoading = false;
     }
 
-    _scrollController = ScrollController();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >
-          _scrollController.position.maxScrollExtent * 0.95) {
-        _getMoreData();
-      }
-    });
+    // _scrollController = ScrollController();
+    // _scrollController.addListener(() {
+    //   if (_scrollController.position.pixels >
+    //       _scrollController.position.maxScrollExtent * 0.95) {
+    //     _getMoreData();
+    //   }
+    // });
 
     //print(globalMap['account']);
     _eventCtrl = PageController(initialPage: currSelect);
@@ -1234,11 +1234,11 @@ class _AnnouncementsState extends State<Announcements>
     super.dispose();
   }
 
-  void _getMoreData() {
-    //  TODO: Maybe make it async
-    maxScrollCount += 5;
-    setState(() {});
-  }
+  // void _getMoreData() {
+  //   //  TODO: Maybe make it async
+  //   maxScrollCount += 5;
+  //   setState(() {});
+  // }
 
   void _showWritable() {
     Navigator.push(

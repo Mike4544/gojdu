@@ -38,13 +38,12 @@ class LazyBuilder extends StatefulWidget {
 }
 
 class _LazyBuilderState extends State<LazyBuilder> {
-  late ScrollController _scrollController;
+  //  late ScrollController _scrollController;
 
   // int lastMax = -1; //  INT MAX
   // int maxScrollCount = 10;
   // int turns = 10;
   // int lastID = Misc.INT_MAX;
-
 
   @override
   void initState() {
@@ -53,6 +52,12 @@ class _LazyBuilderState extends State<LazyBuilder> {
     // _scrollController.addListener(widget.lazyLoadCallback);
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    //  _scrollController.dispose();
+    super.dispose();
   }
 
   @override
