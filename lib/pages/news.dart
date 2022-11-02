@@ -1218,6 +1218,7 @@ class _AnnouncementsState extends State<Announcements>
 
   late var _loadEvents = loadEvents();
 
+
   @override
   void dispose() {
     _tabController.dispose();
