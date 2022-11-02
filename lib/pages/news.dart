@@ -46,6 +46,7 @@ import 'package:gojdu/others/floor.dart';
 
 import 'package:gojdu/pages/menus.dart';
 import '../widgets/Event.dart';
+import '../widgets/lazyBuilder.dart';
 import './notes.dart';
 
 import './alertPage.dart';
@@ -1145,6 +1146,8 @@ class _AnnouncementsState extends State<Announcements>
   @override
   void initState() {
     // TODO: implement initState
+    lazyController.addListener(lazyLoadCallback);
+    _loadEvents = loadEvents();
     super.initState();
 
     //  <-------------- Lists ------------->
@@ -1216,7 +1219,7 @@ class _AnnouncementsState extends State<Announcements>
     events = [];
   }
 
-  late var _loadEvents = loadEvents();
+  late Future _loadEvents;
 
 
   @override
@@ -1278,6 +1281,44 @@ class _AnnouncementsState extends State<Announcements>
   final style = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
   late final _eventCtrl;
+
+  void update1({int? lastMax, int? newMax, int? newID, Future? func}) async {
+    maxScrollCountEvents = newMax!;
+    lastMaxEvents = lastMax!;
+    lastIDEvents = newID!;
+
+    //  _loadEvents = func!;
+
+    setState(() {});
+  }
+
+  Future<void> refresh() async {
+    events.clear();
+
+    setState(() {
+      maxScrollCountEvents = turnsEvents;
+      lastMaxEvents = -1;
+
+      lastIDEvents = Misc.INT_MAX;
+
+      _loadEvents = loadEvents();
+      setState(() {});
+      //  widget.future = widget.futureFunction;
+    });
+  }
+
+  void lazyLoadCallback() async {
+    if (lazyController.position.extentAfter == 0 &&
+        lastMaxEvents < maxScrollCountEvents) {
+      print('Haveth reached the end');
+
+      await loadEvents();
+
+      setState(() {});
+    }
+  }
+
+  ScrollController lazyController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -1343,7 +1384,7 @@ class _AnnouncementsState extends State<Announcements>
                     ),
                     teachersBar(),
                     SizedBox(
-                        height: 450,
+                        height: screenHeight * .5,
                         child: TabBarView(
                           physics: const NeverScrollableScrollPhysics(),
                           controller: _tabController,
@@ -1396,117 +1437,19 @@ class _AnnouncementsState extends State<Announcements>
                     const SizedBox(
                       height: 25,
                     ),
-                    Expanded(
-                      child: FutureBuilder(
-                          future: _loadEvents,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return RefreshIndicator(
-                                onRefresh: () async {
-                                  events.clear();
-
-                                  _loadEvents = loadEvents();
-
-                                  setState(() {});
-                                },
-                                child: ListView.builder(
-                                    physics: const BouncingScrollPhysics(
-                                        parent:
-                                            AlwaysScrollableScrollPhysics()),
-                                    shrinkWrap: true,
-                                    itemCount:
-                                        events.length > 1 ? events.length : 1,
-                                    itemBuilder: (context, index) {
-                                      if (events.length > 1) {
-                                        return Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 20),
-                                            child: events[index]);
-                                      } else {
-                                        return Center(
-                                            child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: screenHeight * 0.25,
-                                              child: Image.asset(
-                                                  'assets/images/no_posts.png'),
-                                            ),
-                                            const Text(
-                                              'Wow! Such empty. So class.',
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white),
-                                            ),
-                                            Text(
-                                              "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.white
-                                                    .withOpacity(0.25),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 20,
-                                            ),
-                                            TextButton.icon(
-                                                icon: const Icon(
-                                                  Icons.refresh,
-                                                  color: Colors.white,
-                                                ),
-                                                label: const Text(
-                                                  'Refresh',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                                onPressed: () async {
-                                                  //  _refresh();
-                                                  events.clear();
-
-                                                  _loadEvents = loadEvents();
-
-                                                  setState(() {});
-                                                },
-                                                style: TextButton.styleFrom(
-                                                  backgroundColor:
-                                                      ColorsB.yellow500,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            50),
-                                                  ),
-                                                )),
-                                          ],
-                                        ));
-                                      }
-                                    }),
-                              );
-                            } else {
-                              return ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: 5,
-                                itemBuilder: (_, index) => Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Shimmer.fromColors(
-                                    baseColor: ColorsB.gray800,
-                                    highlightColor: ColorsB.gray700,
-                                    child: Container(
-                                      // Student containers. Maybe get rid of the hero
-                                      height: screenHeight * 3,
-                                      decoration: BoxDecoration(
-                                        color: ColorsB.gray800,
-                                        borderRadius: BorderRadius.circular(50),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                          }),
-                    )
+                    SizedBox(
+                        height: screenHeight * .6,
+                        child: LazyBuilder(
+                            update: update1,
+                            future: _loadEvents,
+                            refresh: refresh,
+                            scrollController: lazyController,
+                            //  futureFunction: loadEvents(),
+                            widgetList: events,
+                            lastMax: lastMaxEvents,
+                            maxScrollCount: maxScrollCountEvents,
+                            lastID: lastIDEvents,
+                            turns: turnsEvents))
                   ])
                 ],
               ),
@@ -1518,34 +1461,60 @@ class _AnnouncementsState extends State<Announcements>
   }
 
   late TabController _tabController;
+  final ScrollController _eventsScrollController = ScrollController();
+
+  int lastMaxEvents = -1; //  INT MAX
+  int maxScrollCountEvents = 10;
+  int turnsEvents = 10;
+  int lastIDEvents = Misc.INT_MAX;
+
+  // Future eventsReload() async {
+  //   events.clear();
+
+  //   lastEventsMax = -1;
+  //   maxScrollCountEvents = 10;
+  //   lastIDEvents = Misc.INT_MAX;
+
+  //   _loadEvents = loadEvents();
+
+  //   setState(() {});
+  // }
+
+  // void lazyLoadCallback() {}
+
   Future<int> loadEvents() async {
-    events.clear();
+    //  events.clear();
 
     //  Maybe rework this a bit.
+    print('events');
+    lastMaxEvents = maxScrollCountEvents;
 
     try {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getEvents.php');
-      final response = await http.post(url, body: {"index": "0"});
+      final response = await http.post(url, body: {
+        'lastID': '$lastIDEvents',
+        'turns': '$turnsEvents',
+      });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
-        if (jsondata["1"]["error"]) {
+        print(jsondata);
+        if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
           });
         } else {
-          if (jsondata["1"]["success"]) {
-            for (int i = 2; i <= jsondata.length; i++) {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
-              int? ownerid = jsondata[i.toString()]["oid"];
-              String location = jsondata[i.toString()]["location"].toString();
-              String date = jsondata[i.toString()]["date"].toString();
-              String link = jsondata[i.toString()]["link"].toString();
-              String mapsLink = jsondata[i.toString()]["glink"].toString();
+          if (jsondata[0]["success"]) {
+            for (int i = 1; i < jsondata.length; i++) {
+              String post = jsondata[i]["post"].toString();
+              String title = jsondata[i]["title"].toString();
+              String owner = jsondata[i]["owner"].toString();
+              int? ownerid = jsondata[i]["oid"];
+              String location = jsondata[i]["location"].toString();
+              String date = jsondata[i]["date"].toString();
+              String link = jsondata[i]["link"].toString();
+              String mapsLink = jsondata[i]["glink"].toString();
 
-              int? id = jsondata[i.toString()]["id"];
+              int? id = jsondata[i]["id"];
 
               if (post != "null" && post != null && ownerid != null) {
                 events.add(Event(
@@ -1566,15 +1535,18 @@ class _AnnouncementsState extends State<Announcements>
                     }));
               }
             }
+            lastIDEvents = jsondata[jsondata.length - 1]['id'];
+            maxScrollCountEvents += turnsEvents;
             //  print(events);
           } else {
             //print(jsondata["1"]["message"]);
           }
-          events.add(SizedBox(height: screenHeight * .25));
+          //  events.add(SizedBox(height: screenHeight * .25));
         }
       }
-    } catch (e) {
+    } catch (e, stack) {
       print(e);
+      print(stack);
     }
 
     return 0;
@@ -1988,7 +1960,7 @@ class _PostsListState extends State<PostsList>
             )));
   }
 
-  void _refresh() async {
+  Future _refresh() async {
     ////print(posts.length);
 
     posts.clear();
@@ -1997,7 +1969,7 @@ class _PostsListState extends State<PostsList>
 
     setState(() {
       maxScrollCount = 10; //  Reset to the original scroll count
-      lastID = 9223372036854775807;
+      lastID = Misc.INT_MAX;
       lastMax = -1;
       _postsLoader = load(widget.channel);
     });
@@ -2007,7 +1979,7 @@ class _PostsListState extends State<PostsList>
   int lastMax = -1; //  INT MAX
   int maxScrollCount = 10;
   int turns = 10;
-  int lastID = 9223372036854775807;
+  int lastID = Misc.INT_MAX;
 
   Future _getMoreData() async {
     //  TODO: Maybe make it async
@@ -2137,9 +2109,9 @@ class _PostsListState extends State<PostsList>
                       physics: const BouncingScrollPhysics(
                           parent: AlwaysScrollableScrollPhysics()),
                       shrinkWrap: false,
-                      itemCount: maxScrollCount < posts.length
-                          ? maxScrollCount + 1
-                          : posts.length,
+                      itemCount: posts.length < maxScrollCount
+                          ? posts.length
+                          : maxScrollCount + 1,
                       itemBuilder: (_, index) {
                         // title = titles[index];
                         // description = descriptions[index];
@@ -2942,7 +2914,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       return Container(
         color: widget.color,
         child: Align(
-          alignment: Alignment.bottomCenter,
+          alignment: Alignment.bottomLeft,
           child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: SizedBox(
@@ -3069,6 +3041,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         ),
         Positioned(
           bottom: 0,
+          left: 0,
           child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: SizedBox(
