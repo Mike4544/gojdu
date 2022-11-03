@@ -10,6 +10,7 @@ import 'package:gojdu/pages/news.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
+import '../widgets/lazyBuilder.dart';
 import 'addOpportunity.dart';
 
 import 'package:http/http.dart' as http;
@@ -131,37 +132,75 @@ class _OpportunitiesListState extends State<OpportunitiesList>
     }
   }
 
-  Future<int> loadOpportunities() async {
+  int lastMaxOpportunities = -1; //  INT MAX
+  int maxScrollCountOpportunities = 10;
+  int turnsOpportunities = 10;
+  int lastIDOpportunities = Misc.INT_MAX;
+
+  Future<void> refresh() async {
     opportunities.clear();
+
+    setState(() {
+      maxScrollCountOpportunities = turnsOpportunities;
+      lastMaxOpportunities = -1;
+
+      lastIDOpportunities = Misc.INT_MAX;
+
+      _getOpportunities = loadOpportunities();
+      setState(() {});
+      //  widget.future = widget.futureFunction;
+    });
+  }
+
+  void lazyLoadCallback() async {
+    if (lazyController.position.extentAfter == 0 &&
+        lastMaxOpportunities < maxScrollCountOpportunities) {
+      print('Haveth reached the end');
+
+      await loadOpportunities();
+
+      setState(() {});
+    }
+  }
+
+  late ScrollController lazyController;
+
+  Future<int> loadOpportunities() async {
+    //  opportunities.clear();
+    lastMaxOpportunities = maxScrollCountOpportunities;
 
     //  Maybe rework this a bit.
 
     try {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getOpportunities.php');
-      final response = await http.post(url, body: {"index": "0"});
+      final response = await http.post(url, body: {
+        "lastID": '$lastIDOpportunities',
+        'turns': '$turnsOpportunities'
+      });
       print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         print(jsondata);
 
-        if (jsondata["1"]["error"]) {
+        if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
           });
         } else {
-          if (jsondata["1"]["success"]) {
-            for (int i = 2; i <= jsondata.length; i++) {
-              String post = jsondata[i.toString()]["post"].toString();
-              String title = jsondata[i.toString()]["title"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
-              String location = jsondata[i.toString()]["location"].toString();
-              String date = jsondata[i.toString()]["date"].toString();
-              String link = jsondata[i.toString()]["link"].toString();
-              String gmaps = jsondata[i.toString()]["mapsLink"].toString();
-              String color = jsondata[i.toString()]["color"].toString();
-              String topic = jsondata[i.toString()]["topic"].toString();
+          if (jsondata[0]["success"]) {
+            for (int i = 1; i < jsondata.length; i++) {
+              String post = jsondata[i]["post"].toString();
+              String title = jsondata[i]["title"].toString();
+              String owner = jsondata[i]["owner"].toString();
+              String location = jsondata[i]["location"].toString();
+              String date = jsondata[i]["date"].toString();
+              String link = jsondata[i]["link"].toString();
+              String gmaps = jsondata[i]["mapsLink"].toString();
+              String color = jsondata[i]["color"].toString();
+              String topic = jsondata[i]["topic"].toString();
 
-              int? id = jsondata[i.toString()]["id"];
+              int? id = jsondata[i]["id"];
+              int? oid = jsondata[i]["ownerID"];
 
               ////print(globalMap['id']);
 
@@ -188,6 +227,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
                 opportunities.add(OpportunityCard(
                   owner: owner,
                   id: id,
+                  ownerID: oid!,
                   dev_height: screenHeight,
                   dev_width: screenWidth,
                   s_color: color,
@@ -199,7 +239,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
                   city: location.split(',').first,
                   date: date,
                   delete: () async {
-                    await deleteEvent(id, i - 2);
+                    await deleteEvent(id, i - 1);
                     setState(() {});
                   },
                   globalMap: globalMap,
@@ -207,21 +247,15 @@ class _OpportunitiesListState extends State<OpportunitiesList>
 
                 print(opportunities.length);
               }
-
-              /* if(post != "null")
-              {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
-              } */
-
             }
 
             //  Add the search terms
+            maxScrollCountOpportunities += turnsOpportunities;
+            lastIDOpportunities = opportunities.last.id;
 
             //  print(events);
           } else {
-            //print(jsondata["1"]["message"]);
+            //print(jsondata[0]["message"]);
           }
         }
       }
@@ -232,14 +266,6 @@ class _OpportunitiesListState extends State<OpportunitiesList>
     return 0;
   }
 
-  Future _refresh() async {
-    opportunities.clear();
-
-    _getOpportunities = loadOpportunities();
-
-    setState(() {});
-  }
-
   late List<OpportunityCard> opportunities;
 
   final searchEditor = TextEditingController();
@@ -247,6 +273,9 @@ class _OpportunitiesListState extends State<OpportunitiesList>
   @override
   void initState() {
     opportunities = [];
+    lazyController = ScrollController();
+
+    lazyController.addListener(lazyLoadCallback);
     super.initState();
   }
 
@@ -276,80 +305,26 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         if (searchEditor.text.isEmpty) {
           dummyList.add(e);
         } else {
-          if (e.title!.contains(searchEditor.text) ||
-              e.category.contains(searchEditor.text)) {
+          if (e.title!
+                  .toLowerCase()
+                  .contains(searchEditor.text.toLowerCase()) ||
+              e.category
+                  .toLowerCase()
+                  .contains(searchEditor.text.toLowerCase())) {
             dummyList.add(e);
           }
         }
       }
 
-      return RefreshIndicator(
-        onRefresh: _refresh,
-        child: Scrollbar(
-          child: ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              itemCount: dummyList.isNotEmpty ? dummyList.length : 1,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                if (dummyList.isNotEmpty) {
-                  return dummyList[index];
-                } else {
-                  return Center(
-                      child: Column(
-                    children: [
-                      SizedBox(
-                        height: screenHeight * 0.25,
-                        child: Image.asset('assets/images/no_posts.png'),
-                      ),
-                      const Text(
-                        'Wow! Such empty. So class.',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      Text(
-                        "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.white.withOpacity(0.25),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextButton.icon(
-                          icon: const Icon(
-                            Icons.refresh,
-                            color: Colors.white,
-                          ),
-                          label: const Text(
-                            'Refresh',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            ),
-                          ),
-                          onPressed: () async {
-                            //  _refresh();
-                            opportunities.clear();
-
-                            _getOpportunities = loadOpportunities();
-
-                            setState(() {});
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: ColorsB.yellow500,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          )),
-                    ],
-                  ));
-                }
-              }),
-        ),
-      );
+      return LazyBuilder(
+          future: _getOpportunities,
+          widgetList: opportunities,
+          lastID: lastIDOpportunities,
+          lastMax: lastMaxOpportunities,
+          maxScrollCount: maxScrollCountOpportunities,
+          refresh: refresh,
+          scrollController: lazyController,
+          turns: turnsOpportunities);
     }
 
     return GestureDetector(
@@ -361,116 +336,45 @@ class _OpportunitiesListState extends State<OpportunitiesList>
             const TriangleBackground(),
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: FutureBuilder(
-                  future: _getOpportunities,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SearchButtonBar(
+                          isAdmin: widget.globalMap['account'] == 'Admin' ||
+                              widget.globalMap['account'] == 'Teacher',
+                          searchController: searchEditor,
                         ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return ListView(
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          Center(
-                              child: Column(
-                            children: [
-                              SizedBox(
-                                height: screenHeight * 0.3,
-                                child: SvgPicture.asset('assets/svgs/404.svg'),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Visibility(
+                            visible: widget.globalMap['account'] == 'Admin' ||
+                                widget.globalMap['account'] == 'Teacher',
+                            child: FloatingActionButton(
+                              elevation: 0,
+                              backgroundColor: ColorsB.gray800,
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) =>
+                                        AddOpportunity(gMap: globalMap)));
+                              },
+                              mini: true,
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
                               ),
-                              const Text(
-                                'Zap! Something went wrong!',
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white),
-                              ),
-                              Text(
-                                "Please retry.",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white.withOpacity(0.25),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextButton.icon(
-                                  icon: const Icon(
-                                    Icons.refresh,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'Refresh',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    _refresh();
-                                  },
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: ColorsB.yellow500,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                  )),
-                            ],
-                          )),
-                          const SizedBox(height: 200),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              SearchButtonBar(
-                                isAdmin: widget.globalMap['account'] ==
-                                        'Admin' ||
-                                    widget.globalMap['account'] == 'Teacher',
-                                searchController: searchEditor,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Visibility(
-                                  visible: widget.globalMap['account'] ==
-                                          'Admin' ||
-                                      widget.globalMap['account'] == 'Teacher',
-                                  child: FloatingActionButton(
-                                    elevation: 0,
-                                    backgroundColor: ColorsB.gray800,
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddOpportunity(
-                                                      gMap: globalMap)));
-                                    },
-                                    mini: true,
-                                    child: const Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Expanded(child: opportunityList()),
-                        ],
-                      );
-                    }
-                  },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Expanded(child: opportunityList()),
+                  ],
                 )),
           ],
         ));
@@ -781,6 +685,7 @@ class BetterChip extends StatelessWidget {
 class OpportunityCard extends StatelessWidget {
   final int id;
   final Map globalMap;
+  final int ownerID;
   final double dev_height;
   final double dev_width;
   final String s_color;
@@ -797,6 +702,7 @@ class OpportunityCard extends StatelessWidget {
   const OpportunityCard(
       {Key? key,
       required this.globalMap,
+      required this.ownerID,
       required this.date,
       required this.owner,
       required this.id,
@@ -1009,10 +915,7 @@ class OpportunityCard extends StatelessWidget {
                     ),
                     Visibility(
                       visible: globalMap['account'] == 'Admin' ||
-                          globalMap['first_name'] +
-                                  ' ' +
-                                  globalMap['last_name'] ==
-                              owner,
+                          globalMap['id'] == ownerID,
                       child: Positioned(
                         bottom: dev_height * .05,
                         right: 25,

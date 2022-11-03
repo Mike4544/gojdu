@@ -253,8 +253,6 @@ class _PostState extends State<Post> {
     }
   }
 
-  
-
   @override
   void initState() {
     _controllerLikes.stream.listen((event) {
@@ -282,11 +280,8 @@ class _PostState extends State<Post> {
 
   Widget _deleteButton() {
     if (widget.admin == 'Admin' || widget.ownerID == globalMap['id']) {
-      return Column(
+      return Row(
         children: [
-          SizedBox(
-            height: screenHeight * .1,
-          ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.white),
             onPressed: () {
@@ -369,6 +364,9 @@ class _PostState extends State<Post> {
                       )));
             },
           ),
+          SizedBox(
+            width: screenWidth * .05,
+          ),
         ],
       );
     } else {
@@ -379,18 +377,19 @@ class _PostState extends State<Post> {
   Widget actionBar() => Visibility(
         visible: globalMap['verification'] != "Pending",
         child: Container(
-          height: 200,
-          constraints: BoxConstraints(maxWidth: screenWidth * .1),
+          height: 50,
+          constraints: BoxConstraints(maxWidth: screenWidth * .5),
           decoration: BoxDecoration(
               color: ColorsB.gray800, borderRadius: BorderRadius.circular(50)),
           child: Padding(
             padding: const EdgeInsets.all(1.5),
             child: FittedBox(
-              child: Column(
+              child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(children: [
+                    _deleteButton(),
+                    Row(children: [
                       //   Like and dislike
                       IconButton(
                         splashRadius: 20,
@@ -430,7 +429,6 @@ class _PostState extends State<Post> {
                           //
                         },
                       ),
-                      _deleteButton()
                     ])
                   ]),
             ),
@@ -442,84 +440,81 @@ class _PostState extends State<Post> {
   Widget build(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: SizedBox(
-                  //  width: screenWidth * 0.75,
-                  height: 200,
-                  child: Container(
-                    // Student containers. Maybe get rid of the hero
-                    //  width: screenWidth * 0.75,
-                    height: 200,
-                    constraints: BoxConstraints(maxWidth: screenWidth * .65),
-                    decoration: BoxDecoration(
-                      color: widget.color,
+            SizedBox(
+                width: screenWidth * 0.75,
+                height: 200,
+                child: Container(
+                  // Student containers. Maybe get rid of the hero
+                  // width: screenWidth * 0.65,
+                  // height: 200,
+                  decoration: BoxDecoration(
+                    color: widget.color,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () => widget.hero(
-                            widget.context,
-                            widget.title,
-                            widget.id,
-                            widget.descriptions,
-                            widget.owners,
-                            widget.ownerID,
-                            widget.color!,
-                            widget.link,
-                            widget.likes,
-                            widget.ids,
-                            widget.dislikes,
-                            widget.likesBool,
-                            _controllerLikes,
-                            _controllerLBool,
-                            _controllerDBool),
-                        child: Padding(
-                          padding: const EdgeInsets.all(25.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.title,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
+                      onTap: () => widget.hero(
+                          widget.context,
+                          widget.title,
+                          widget.id,
+                          widget.descriptions,
+                          widget.owners,
+                          widget.ownerID,
+                          widget.color!,
+                          widget.link,
+                          widget.likes,
+                          widget.ids,
+                          widget.dislikes,
+                          widget.likesBool,
+                          _controllerLikes,
+                          _controllerLBool,
+                          _controllerDBool),
+                      child: Padding(
+                        padding: const EdgeInsets.all(25.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.title,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'by ${widget.owners.split(' ').first} ${widget.owners.split(' ').last[0]}.', //  Hard coded!!
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 25,
+                            ),
+                            Flexible(
+                              child: Text(
+                                widget.descriptions,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                                style: TextStyle(
+                                    color: Colors.white.withOpacity(0.25),
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold),
                               ),
-                              Text(
-                                'by ${widget.owners.split(' ').first} ${widget.owners.split(' ').last[0]}.', //  Hard coded!!
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 25,
-                              ),
-                              Flexible(
-                                child: Text(
-                                  widget.descriptions,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                      color: Colors.white.withOpacity(0.25),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  )),
-            ),
-            const SizedBox(width: 20),
+                  ),
+                )),
+            const SizedBox(height: 20),
             actionBar()
           ],
         ));

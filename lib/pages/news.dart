@@ -1440,7 +1440,6 @@ class _AnnouncementsState extends State<Announcements>
                     SizedBox(
                         height: screenHeight * .6,
                         child: LazyBuilder(
-                            update: update1,
                             future: _loadEvents,
                             refresh: refresh,
                             scrollController: lazyController,
@@ -1530,7 +1529,7 @@ class _AnnouncementsState extends State<Announcements>
                     maps_link: mapsLink,
                     Context: context,
                     delete: () async {
-                      await deleteEvent(id!, i - 2);
+                      await deleteEvent(id!, i - 1);
                       setState(() {});
                     }));
               }
@@ -1810,7 +1809,7 @@ class _PostsListState extends State<PostsList>
                   hero: _hero,
                   admin: globalMap['account'],
                   delete: () async {
-                    await deletePost(id!, i - 2);
+                    await deletePost(id!, i - 1);
                     setState(() {});
                   },
                   globalMap: globalMap,

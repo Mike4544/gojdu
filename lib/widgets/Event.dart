@@ -104,13 +104,14 @@ class Event extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   gradient: LinearGradient(
                       colors: [
-                        Colors.white.withOpacity(.5),
-                        Colors.white.withOpacity(.1)
+                        Colors.indigoAccent.withOpacity(.5),
+                        Colors.indigoAccent.withOpacity(.1)
                       ],
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,
                       stops: const [0, .75]),
-                  border: Border.all(color: Colors.white.withOpacity(.25))),
+                  border:
+                      Border.all(color: Colors.indigoAccent.withOpacity(.25))),
               child: Padding(
                 padding: const EdgeInsets.all(25.0),
                 child: Column(
@@ -137,6 +138,7 @@ class Event extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Flexible(
                                   child: Chip(
@@ -145,14 +147,13 @@ class Event extends StatelessWidget {
                                 avatar: _CircleAvatar(),
                               )),
                               BetterChip(
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.calendar_today_outlined,
                                     color: ColorsB.gray900,
                                   ),
                                   label: date,
                                   isGlass: true)
                             ],
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           ),
                           BetterChip(
                             icon: const Icon(
@@ -341,7 +342,7 @@ class BetterChip extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Flexible(
+                    FittedBox(
                       child: Text(
                         label.length > 15
                             ? '${label.substring(0, 15)}...'

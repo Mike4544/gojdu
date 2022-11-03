@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gojdu/pages/addOffer.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:gojdu/pages/opportunities.dart';
+import 'package:gojdu/widgets/lazyBuilder.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
@@ -40,42 +41,73 @@ class _OffersPageState extends State<OffersPage>
 
   late List<OfferContainer> offers;
 
-  
+  int lastMaxOffers = -1; //  INT MAX
+  int maxScrollCountOffers = 10;
+  int turnsOffers = 10;
+  int lastIDOffers = Misc.INT_MAX;
 
-
-
-  Future<int> loadOffers() async {
+  Future<void> refresh() async {
     offers.clear();
 
+    setState(() {
+      maxScrollCountOffers = turnsOffers;
+      lastMaxOffers = -1;
+
+      lastIDOffers = Misc.INT_MAX;
+
+      _getOffers = loadOffers();
+      setState(() {});
+      //  widget.future = widget.futureFunction;
+    });
+  }
+
+  void lazyLoadCallback() async {
+    if (lazyController.position.extentAfter == 0 &&
+        lastMaxOffers < maxScrollCountOffers) {
+      print('Haveth reached the end');
+
+      await loadOffers();
+
+      setState(() {});
+    }
+  }
+
+  late ScrollController lazyController;
+
+  Future<int> loadOffers() async {
+    //  offers.clear();
+    lastMaxOffers = maxScrollCountOffers;
     //  Maybe rework this a bit.
 
     try {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getOffers.php');
-      final response = await http.post(url, body: {"index": "0"});
+      final response = await http.post(url,
+          body: {"lastID": "$lastIDOffers", "turns": "$turnsOffers"});
       print(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         print(jsondata);
 
-        if (jsondata["1"]["error"]) {
+        if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
           });
         } else {
-          if (jsondata["1"]["success"]) {
-            for (int i = 2; i <= jsondata.length; i++) {
-              int id = jsondata[i.toString()]["id"];
-              String discount = jsondata[i.toString()]["discount"].toString();
-              String short = jsondata[i.toString()]["short"].toString();
-              String long = jsondata[i.toString()]["long"].toString();
-              String owner = jsondata[i.toString()]["owner"].toString();
-              String company = jsondata[i.toString()]["company"].toString();
-              String location = jsondata[i.toString()]["location"].toString();
-              String mapsLink = jsondata[i.toString()]["mapsLink"].toString();
-              String date = jsondata[i.toString()]["date"].toString();
-              String Imlink = jsondata[i.toString()]["link"].toString();
-              String logo = jsondata[i.toString()]["logo"].toString();
-              String color = jsondata[i.toString()]["color"].toString();
+          if (jsondata[0]["success"]) {
+            for (int i = 1; i < jsondata.length; i++) {
+              int id = jsondata[i]["id"];
+              int oid = jsondata[i]['ownerID'];
+              String discount = jsondata[i]["discount"].toString();
+              String short = jsondata[i]["short"].toString();
+              String long = jsondata[i]["long"].toString();
+              String owner = jsondata[i]["owner"].toString();
+              String company = jsondata[i]["company"].toString();
+              String location = jsondata[i]["location"].toString();
+              String mapsLink = jsondata[i]["mapsLink"].toString();
+              String date = jsondata[i]["date"].toString();
+              String Imlink = jsondata[i]["link"].toString();
+              String logo = jsondata[i]["logo"].toString();
+              String color = jsondata[i]["color"].toString();
 
               ////print(globalMap['id']);
 
@@ -86,10 +118,11 @@ class _OffersPageState extends State<OffersPage>
 
                 offers.add(OfferContainer(
                   id: id,
+                  owner_id: oid,
                   compName: company,
                   date: DateTime(year, month, day),
                   delete: () async {
-                    await deleteEvent(id, i - 2);
+                    await deleteEvent(id, i - 1);
                     setState(() {});
                   },
                   discount: discount,
@@ -114,12 +147,12 @@ class _OffersPageState extends State<OffersPage>
               } */
 
             }
-
-            //  Add the search terms
+            maxScrollCountOffers += turnsOffers;
+            lastIDOffers = offers.last.id;
 
             //  print(events);
           } else {
-            //print(jsondata["1"]["message"]);
+            //print(jsondata[0]["message"]);
 
           }
         }
@@ -132,13 +165,13 @@ class _OffersPageState extends State<OffersPage>
     return 0;
   }
 
-  Future _refresh() async {
-    offers.clear();
+  // Future _refresh() async {
+  //   offers.clear();
 
-    _getOffers = loadOffers();
+  //   _getOffers = loadOffers();
 
-    setState(() {});
-  }
+  //   setState(() {});
+  // }
 
   Future<void> deleteEvent(int Id, int index) async {
     try {
@@ -241,82 +274,27 @@ class _OffersPageState extends State<OffersPage>
       if (searchEditor.text.isEmpty) {
         dummyList.add(e);
       } else {
-        if (e.compName.contains(searchEditor.text) ||
-            e.discount.contains(searchEditor.text) ||
+        if (e.compName
+                .toLowerCase()
+                .contains(searchEditor.text.toLowerCase()) ||
+            e.discount
+                .toLowerCase()
+                .contains(searchEditor.text.toLowerCase()) ||
             e.smallDescription.contains(searchEditor.text)) {
           dummyList.add(e);
         }
       }
     }
 
-    return Scrollbar(
-      child: RefreshIndicator(
-        onRefresh: _refresh,
-        child: ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics()),
-            itemCount: dummyList.isNotEmpty ? dummyList.length : 1,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              if (dummyList.isEmpty) {
-                return Center(
-                    child: Column(
-                  children: [
-                    SizedBox(
-                      height: screenHeight * 0.25,
-                      child: Image.asset('assets/images/no_posts.png'),
-                    ),
-                    const Text(
-                      'Wow! Such empty. So class.',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                    Text(
-                      "It seems the only thing here is a lonely Doge. Pet it or begone!",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.25),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    TextButton.icon(
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Refresh',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          ),
-                        ),
-                        onPressed: () async {
-                          //  _refresh();
-                          offers.clear();
-
-                          _getOffers = loadOffers();
-
-                          setState(() {});
-                        },
-                        style: TextButton.styleFrom(
-                          backgroundColor: ColorsB.yellow500,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        )),
-                  ],
-                ));
-              } else {
-                return dummyList[index];
-              }
-            }),
-      ),
-    );
+    return LazyBuilder(
+        future: _getOffers,
+        widgetList: offers,
+        lastID: lastIDOffers,
+        lastMax: lastMaxOffers,
+        maxScrollCount: maxScrollCountOffers,
+        refresh: refresh,
+        scrollController: lazyController,
+        turns: turnsOffers);
   }
 
   late Future _getOffers = loadOffers();
@@ -326,6 +304,7 @@ class _OffersPageState extends State<OffersPage>
   @override
   void initState() {
     offers = [];
+    lazyController = ScrollController()..addListener(lazyLoadCallback);
     super.initState();
   }
 
@@ -345,112 +324,45 @@ class _OffersPageState extends State<OffersPage>
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: FutureBuilder(
-            future: _getOffers,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation(ColorsB.yellow500),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SearchButtonBar(
+                    isAdmin: widget.globalMap['account'] == 'Admin' ||
+                        widget.globalMap['account'] == 'Teacher',
+                    searchController: searchEditor,
                   ),
-                );
-              } else if (snapshot.hasError) {
-                return ListView(
-                  physics: const BouncingScrollPhysics(),
-                  children: [
-                    Center(
-                        child: Column(
-                      children: [
-                        SizedBox(
-                          height: screenHeight * 0.3,
-                          child: SvgPicture.asset('assets/svgs/404.svg'),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Visibility(
+                      visible: widget.globalMap['account'] == 'Admin' ||
+                          widget.globalMap['account'] == 'Teacher',
+                      child: FloatingActionButton(
+                        elevation: 0,
+                        backgroundColor: ColorsB.gray800,
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  AddOffer(gMap: widget.globalMap)));
+                        },
+                        mini: true,
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
                         ),
-                        const Text(
-                          'Zap! Something went wrong!',
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                        Text(
-                          "Please retry.",
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white.withOpacity(0.25),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        TextButton.icon(
-                            icon: const Icon(
-                              Icons.refresh,
-                              color: Colors.white,
-                            ),
-                            label: const Text(
-                              'Refresh',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                              ),
-                            ),
-                            onPressed: () {
-                              _refresh();
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: ColorsB.yellow500,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                            )),
-                      ],
-                    )),
-                    const SizedBox(height: 200),
-                  ],
-                );
-              } else {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SearchButtonBar(
-                          isAdmin: widget.globalMap['account'] == 'Admin' ||
-                              widget.globalMap['account'] == 'Teacher',
-                          searchController: searchEditor,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Visibility(
-                            visible: widget.globalMap['account'] == 'Admin' ||
-                                widget.globalMap['account'] == 'Teacher',
-                            child: FloatingActionButton(
-                              elevation: 0,
-                              backgroundColor: ColorsB.gray800,
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddOffer(gMap: widget.globalMap)));
-                              },
-                              mini: true,
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Expanded(child: _offersList())
-                  ],
-                );
-              }
-            },
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Expanded(child: _offersList())
+            ],
           ),
         )
       ],
@@ -488,7 +400,8 @@ class OfferContainer extends StatelessWidget {
       required this.date,
       required this.delete,
       required this.smallDescription,
-      required this.fullDescription, required this.owner_id})
+      required this.fullDescription,
+      required this.owner_id})
       : super(key: key);
 
   @override
@@ -641,8 +554,7 @@ class OfferContainer extends StatelessWidget {
               ),
               Visibility(
                 visible: globalMap['account'] == 'Admin' ||
-                    '${globalMap['first_name']} ${globalMap['last_name']}' ==
-                        owner,
+                    globalMap['id'] == owner_id,
                 child: Positioned(
                   bottom: 10,
                   right: 10,

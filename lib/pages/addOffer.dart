@@ -631,6 +631,7 @@ class _AddOfferState extends State<AddOffer> {
                                   "limg":
                                       "${Misc.link}/${Misc.appName}/imgs/${companyName.text.replaceAll(' ', '_').replaceAll('\'', '')}.png",
                                   "col": choosenColor.toString(),
+                                  "ownerID": widget.gMap['id'].toString()
                                 });
                               } else {
                                 response = await http.post(url, body: {
@@ -650,6 +651,7 @@ class _AddOfferState extends State<AddOffer> {
                                   "limg":
                                       "${Misc.link}/${Misc.appName}/imgs/${companyName.text.replaceAll(' ', '_').replaceAll('\'', '')}.png",
                                   "col": choosenColor.toString(),
+                                  "ownerID": widget.gMap['id'].toString()
                                 });
                               }
                               print(response.statusCode);
@@ -701,7 +703,7 @@ class _AddOfferState extends State<AddOffer> {
                                         Navigator.of(context).pop();
                                       }
                                     } catch (e) {
-                                      //print(e);
+                                      print(e);
                                     }
 
                                     //  Navigator.of(context).pop();

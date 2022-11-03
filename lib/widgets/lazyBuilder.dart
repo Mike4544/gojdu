@@ -10,7 +10,7 @@ class LazyBuilder extends StatefulWidget {
   //  Future futureFunction;
   List<dynamic> widgetList;
   //  Widget loaderWidget;
-  Function({int? lastMax, int? newMax, int? newID, Future? func}) update;
+  //  Function({int? lastMax, int? newMax, int? newID, Future? func}) update;
   Function refresh;
   ScrollController scrollController;
   int lastMax;
@@ -25,7 +25,7 @@ class LazyBuilder extends StatefulWidget {
       required this.widgetList,
       //  required this.loaderWidget,
       required this.lastID,
-      required this.update,
+      //  required this.update,
       required this.lastMax,
       required this.maxScrollCount,
       required this.refresh,
@@ -37,7 +37,9 @@ class LazyBuilder extends StatefulWidget {
   State<LazyBuilder> createState() => _LazyBuilderState();
 }
 
-class _LazyBuilderState extends State<LazyBuilder> {
+class _LazyBuilderState extends State<LazyBuilder>
+    with AutomaticKeepAliveClientMixin {
+  bool get wantKeepAlive => true;
   //  late ScrollController _scrollController;
 
   // int lastMax = -1; //  INT MAX
@@ -62,6 +64,7 @@ class _LazyBuilderState extends State<LazyBuilder> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
