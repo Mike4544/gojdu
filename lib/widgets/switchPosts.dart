@@ -5,68 +5,56 @@ class PostsSwitcher extends StatefulWidget {
   int index;
   final PageController ctrl;
   final Function(int value) update;
+  final List<String> labels;
+  final List<IconData> icons;
 
-
-  PostsSwitcher({Key? key, required this.index, required this.ctrl, required this.update}) : super(key: key);
+  PostsSwitcher(
+      {Key? key,
+      required this.index,
+      required this.ctrl,
+      required this.update,
+      required this.labels,
+      required this.icons})
+      : super(key: key);
 
   @override
   State<PostsSwitcher> createState() => _PostsSwitcherState();
 }
 
-class _PostsSwitcherState extends State<PostsSwitcher>{
-
-
-  void anim(int value){
-
+class _PostsSwitcherState extends State<PostsSwitcher> {
+  void anim(int value) {
     widget.update(value);
 
-    widget.ctrl.animateToPage(value, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-
-
+    widget.ctrl.animateToPage(value,
+        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
-
 
   @override
   void initState() {
-
-
     super.initState();
   }
 
   @override
   void dispose() {
-
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
 
-    const inactiveStyle = TextStyle(
-      color: ColorsB.gray700
-    );
+    const inactiveStyle = TextStyle(color: ColorsB.gray700);
 
-    const activeStyle = TextStyle(
-        color: ColorsB.yellow500
-    );
+    const activeStyle = TextStyle(color: ColorsB.yellow500);
 
     final cActive = BoxDecoration(
         borderRadius: BorderRadius.circular(360),
         color: ColorsB.gray700,
-      boxShadow: const [
-        BoxShadow(color: Colors.black26, blurRadius: 15)
-      ]
-    );
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 15)]);
 
     final cInactive = BoxDecoration(
-        borderRadius: BorderRadius.circular(360),
-        color: ColorsB.gray800
-    );
-
+        borderRadius: BorderRadius.circular(360), color: ColorsB.gray800);
 
     return Padding(
       padding: const EdgeInsets.all(10.0),
@@ -88,34 +76,34 @@ class _PostsSwitcherState extends State<PostsSwitcher>{
                       clipBehavior: Clip.hardEdge,
                       curve: Curves.ease,
                       duration: const Duration(milliseconds: 500),
-                      decoration: widget.index == 0
-                          ? cActive
-                          : cInactive,
+                      decoration: widget.index == 0 ? cActive : cInactive,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 7.5, horizontal: 10),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 7.5, horizontal: 10),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(
                                 width: height * .03,
                                 height: height * .03,
                                 child: FittedBox(
-                                    child: Icon(Icons.announcement, color: widget.index == 0 ? ColorsB.yellow500 : ColorsB.gray700,)
-                                )
+                                    child: Icon(
+                                  widget.icons[0],
+                                  color: widget.index == 0
+                                      ? ColorsB.yellow500
+                                      : ColorsB.gray700,
+                                ))),
+                            const SizedBox(
+                              width: 5,
                             ),
-                            const SizedBox(width: 5,),
-                            SizedBox(
-                              height: height * .025,
-                              width:  width * .25,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
-                                child: Text(
-                                  'Announcements',
-                                  overflow: TextOverflow.fade,
-                                  style: widget.index == 0
-                                      ? activeStyle
-                                      : inactiveStyle,
-                                ),
+                            FittedBox(
+                              fit: BoxFit.contain,
+                              child: Text(
+                                widget.labels[0],
+                                overflow: TextOverflow.fade,
+                                style: widget.index == 0
+                                    ? activeStyle
+                                    : inactiveStyle,
                               ),
                             )
                           ],
@@ -134,47 +122,47 @@ class _PostsSwitcherState extends State<PostsSwitcher>{
                       clipBehavior: Clip.hardEdge,
                       curve: Curves.ease,
                       duration: const Duration(milliseconds: 500),
-                      decoration: widget.index == 1
-                          ? cActive
-                          : cInactive,
+                      decoration: widget.index == 1 ? cActive : cInactive,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 7.5, horizontal: 10),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 7.5, horizontal: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             SizedBox(
-                            height: height * .025,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
-                              child: Text(
-                                'Events',
-                                overflow: TextOverflow.fade,
-                                style: widget.index == 1
-                                    ? activeStyle
-                                    : inactiveStyle,
+                              height: height * .025,
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: Text(
+                                  widget.labels[1],
+                                  overflow: TextOverflow.fade,
+                                  style: widget.index == 1
+                                      ? activeStyle
+                                      : inactiveStyle,
+                                ),
                               ),
                             ),
-                          ),
-                            const SizedBox(width: 5,),
+                            const SizedBox(
+                              width: 5,
+                            ),
                             SizedBox(
                                 width: height * .03,
                                 height: height * .03,
                                 child: FittedBox(
-                                  child: Icon(Icons.event, color: widget.index == 1 ? ColorsB.yellow500 : ColorsB.gray700,),
-                                )
-                            ),
-
-
+                                  child: Icon(
+                                    widget.icons[1],
+                                    color: widget.index == 1
+                                        ? ColorsB.yellow500
+                                        : ColorsB.gray700,
+                                  ),
+                                )),
                           ],
                         ),
                       ),
                     ),
                   ),
                 ),
-
-
               ],
-
             ),
           ),
         ),

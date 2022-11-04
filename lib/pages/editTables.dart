@@ -13,9 +13,10 @@ import 'package:gojdu/others/options.dart';
 
 class EditFloors extends StatefulWidget {
   List<Floor> floors;
+  String? type;
   final ValueChanged<List<Floor>> update;
 
-  EditFloors({Key? key, required this.floors, required this.update})
+  EditFloors({Key? key, required this.floors, required this.update, this.type})
       : super(key: key);
 
   @override
@@ -33,11 +34,22 @@ class _EditFloorsState extends State<EditFloors> {
   String? format;
 
   Future<void> uploadTable(Map<String, dynamic> data) async {
+    String? url1;
+    Map postBody;
+
+    widget.type == null
+        ? url1 = '${Misc.link}/${Misc.appName}/insertfloor.php'
+        : url1 = '${Misc.link}/${Misc.appName}/insertTimetable.php';
+
+    widget.type == null
+        ? postBody = {
+            "data": jsonEncode(data).toString(),
+          }
+        : postBody = {"data": jsonEncode(data).toString(), "type": widget.type};
+
     try {
-      var url = Uri.parse('${Misc.link}/${Misc.appName}/insertfloor.php');
-      final response = await http.post(url, body: {
-        "data": jsonEncode(data).toString(),
-      });
+      var url = Uri.parse(url1);
+      final response = await http.post(url, body: postBody);
 
       print(response.statusCode);
 
@@ -150,6 +162,7 @@ class _EditFloorsState extends State<EditFloors> {
 
   @override
   void initState() {
+    print(widget.type.toString());
     for (int i = 0; i < widget.floors.length; ++i) {
       temporary.add(widget.floors[i].clone());
       // print('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
@@ -507,18 +520,20 @@ class _EditFloorsState extends State<EditFloors> {
           flexibleSpace: Padding(
             padding: const EdgeInsets.fromLTRB(35, 50, 0, 0),
             child: Row(
-              children: const [
-                Icon(
+              children: [
+                const Icon(
                   Icons.edit,
                   color: ColorsB.yellow500,
                   size: 40,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 Text(
-                  'Edit current floors',
-                  style: TextStyle(
+                  widget.type == null
+                      ? 'Edit current floors'
+                      : 'Edit timetables',
+                  style: const TextStyle(
                       fontSize: 25,
                       color: Colors.white,
                       fontWeight: FontWeight.w700),
@@ -589,10 +604,12 @@ class _EditFloorsState extends State<EditFloors> {
                 ),
               )
             else
-              const Center(
+              Center(
                 child: Text(
-                  'No floors added. Why not add one?',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+                  widget.type == null
+                      ? 'No floors added. Why not add one?'
+                      : "No timetables added. Why not add one?",
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
                 ),
               ),
             Padding(
@@ -604,10 +621,12 @@ class _EditFloorsState extends State<EditFloors> {
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(color: ColorsB.gray800, width: 2)),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Add a floor',
-                          style: TextStyle(
+                          widget.type == null
+                              ? 'Add a floor'
+                              : 'Add a timetable',
+                          style: const TextStyle(
                               color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -841,9 +860,9 @@ class _EditFloorsState extends State<EditFloors> {
                     Icons.check,
                     color: Colors.white,
                   ),
-                  label: const Text(
-                    'Update Floors',
-                    style: TextStyle(
+                  label: Text(
+                    widget.type == null ? 'Update Floors' : 'Update Timetables',
+                    style: const TextStyle(
                       color: Colors.white,
                     ),
                   ),

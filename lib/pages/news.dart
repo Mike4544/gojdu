@@ -618,7 +618,25 @@ class _NewsPageState extends State<NewsPage> {
         resizeToAvoidBottomInset: false,
         key: _scaffoldKey,
         appBar: CurvedAppbar(
-          names: const ['News', 'Activities', 'Offers', 'Menus'],
+          descriptions: const [
+            PageDescription(
+                title: 'News',
+                description:
+                    'Here you are able to see the latest school anouncements and events!'),
+            PageDescription(
+                title: 'Activities',
+                description:
+                    'See the latest local activities available to you, as well as special opportunities such as internships!'),
+            PageDescription(
+                title: 'Trends & Offers',
+                description:
+                    'Be the first to know about the latest products companies are ready to show you.'),
+            PageDescription(
+                title: 'Menus',
+                description:
+                    'Navigate through the plethora of other settings the app has.'),
+          ],
+          names: const ['News', 'Activities', 'Trends & Offers', 'Menus'],
           nameIndex: _currentIndex,
           accType: globalMap['account'] + ' account',
           position: 1,
@@ -651,7 +669,9 @@ class _NewsPageState extends State<NewsPage> {
                 const Calendar(key: ValueKey(3)),
                 const Notes(),
                 AlertPage(gMap: globalMap),
-                const MyTimetable(),
+                MyTimetable(
+                  globalMap: globalMap,
+                ),
                 const FeedbackPage(),
               ],
               map: globalMap,
@@ -747,7 +767,7 @@ class _NewsPageState extends State<NewsPage> {
                         color: _currentIndex == 2
                             ? ColorsB.yellow500
                             : Colors.white),
-                    Text('Offers',
+                    Text('Trends & Offers',
                         style: TextStyle(
                             color: _currentIndex == 2
                                 ? ColorsB.yellow500
@@ -1221,7 +1241,6 @@ class _AnnouncementsState extends State<Announcements>
 
   late Future _loadEvents;
 
-
   @override
   void dispose() {
     _tabController.dispose();
@@ -1336,6 +1355,8 @@ class _AnnouncementsState extends State<Announcements>
             PostsSwitcher(
                 index: currSelect,
                 ctrl: _eventCtrl,
+                labels: const ['Announcements', 'Events'],
+                icons: const [Icons.announcement, Icons.calendar_month],
                 update: (val) {
                   setState(() => currSelect = val);
                 }),

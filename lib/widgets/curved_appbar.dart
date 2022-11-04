@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:animations/animations.dart';
@@ -17,6 +18,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
   final int position;
   final Map map;
   final VoidCallback? update;
+  final List<PageDescription> descriptions;
 
   CurvedAppbar(
       {Key? key,
@@ -25,6 +27,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
       this.accType,
       required this.position,
       required this.map,
+      required this.descriptions,
       this.update})
       : preferredSize = Size.fromHeight(
             screenHeight < 675 ? screenHeight * .175 : screenHeight * .15),
@@ -205,12 +208,81 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
         alignment: Alignment.centerLeft,
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(
-            widget.names[widget.nameIndex],
-            style: const TextStyle(
-                fontSize: 22.5,
-                fontWeight: FontWeight.bold,
-                color: ColorsB.gray900),
+          child: Row(
+            children: [
+              Text(
+                widget.names[widget.nameIndex],
+                style: const TextStyle(
+                    fontSize: 22.5,
+                    fontWeight: FontWeight.bold,
+                    color: ColorsB.gray900),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            backgroundColor: ColorsB.gray900,
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'Close',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            ],
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                            content: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.descriptions[widget.nameIndex].title,
+                                    style: TextStyle(
+                                        color: ColorsB.yellow500,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 25.sp),
+                                  ),
+                                  Divider(
+                                    color: ColorsB.yellow500,
+                                  ),
+                                  const SizedBox(
+                                    height: 25,
+                                  ),
+                                  Text(
+                                    widget.descriptions[widget.nameIndex]
+                                        .description,
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15.sp),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ));
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                      color: ColorsB.gray900, shape: BoxShape.circle),
+                  child: const Padding(
+                    padding: EdgeInsets.all(2.0),
+                    child: Icon(
+                      Icons.question_mark,
+                      color: ColorsB.yellow500,
+                      size: 15,
+                    ),
+                  ),
+                ),
+              )
+            ],
           ),
         ),
       ),
@@ -240,6 +312,13 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
       ],
     );
   }
+}
+
+class PageDescription {
+  final String title;
+  final String description;
+
+  const PageDescription({required this.title, required this.description});
 }
 
 class CustomShape extends ContinuousRectangleBorder {
