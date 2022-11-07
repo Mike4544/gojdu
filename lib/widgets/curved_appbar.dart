@@ -252,7 +252,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 25.sp),
                                   ),
-                                  Divider(
+                                  const Divider(
                                     color: ColorsB.yellow500,
                                   ),
                                   const SizedBox(

@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class Misc {
   static String appName = "GojduApp";
   static String link = "http://teenstarapps.com";

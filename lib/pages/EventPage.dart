@@ -62,6 +62,7 @@ class _PostEventState extends State<PostEvent> {
     _postController.dispose();
     _postTitleController.dispose();
     _locationController.dispose();
+    _customLocation.dispose();
     super.dispose();
   }
 
@@ -119,6 +120,9 @@ class _PostEventState extends State<PostEvent> {
 
   String locationButton = 'Please select a location';
   late LatLng coordsForLink;
+
+  bool isCustom = false;
+  final TextEditingController _customLocation = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +205,7 @@ class _PostEventState extends State<PostEvent> {
                       fillColor: Colors.white,
                       errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.red,
                           )),
                       filled: true,
@@ -217,7 +221,8 @@ class _PostEventState extends State<PostEvent> {
                       if (!choosen) {
                         return 'Please choose a date.';
                       }
-                      if (locationButton == 'Please select a location') {
+                      if (locationButton == 'Please select a location' &&
+                          !isCustom) {
                         return 'Please select a location.';
                       }
                     },
@@ -234,32 +239,80 @@ class _PostEventState extends State<PostEvent> {
                   const SizedBox(
                     height: 10,
                   ),
-                  TextButton.icon(
-                    icon: Icon(
-                      Icons.location_on_outlined,
-                      color: choosen ? ColorsB.yellow500 : Colors.white,
-                    ),
-                    label: Text(
-                      locationButton,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const FullScreenMap()));
+                  !isCustom
+                      ? TextButton.icon(
+                          icon: Icon(
+                            Icons.location_on_outlined,
+                            color: choosen ? ColorsB.yellow500 : Colors.white,
+                          ),
+                          label: Text(
+                            locationButton,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 15),
+                          ),
+                          onPressed: () async {
+                            final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const FullScreenMap()));
 
-                      if (!mounted) return;
+                            if (!mounted) return;
 
-                      if (result == null) return;
+                            if (result == null) return;
 
-                      locationButton = result['location'];
-                      coordsForLink = result['coords'];
+                            locationButton = result['location'];
+                            coordsForLink = result['coords'];
 
-                      setState(() {});
+                            setState(() {});
 
-                      print(locationButton);
-                      print(coordsForLink);
-                    },
+                            print(locationButton);
+                            print(coordsForLink);
+                          },
+                        )
+                      : TextFormField(
+                          controller: _customLocation,
+                          maxLines: 1,
+                          keyboardType: TextInputType.name,
+                          cursorColor: ColorsB.yellow500,
+                          decoration: InputDecoration(
+                            fillColor: Colors.white,
+                            hintText: 'Ex: Casa de Cultura',
+                            errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                )),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Field cannot be empty.';
+                            }
+                            if (!choosen) {
+                              return 'Please choose a date.';
+                            }
+                            if (locationButton == 'Please select a location' &&
+                                !isCustom) {
+                              return 'Please select a location.';
+                            }
+                          },
+                        ),
+                  Row(
+                    children: <Widget>[
+                      Checkbox(
+                        activeColor: ColorsB.yellow500,
+                        shape: const RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.white)),
+                        value: isCustom,
+                        onChanged: (value) => setState(() => isCustom = value!),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text('Custom Location',
+                          style: TextStyle(color: Colors.white)),
+                    ],
                   ),
                   const SizedBox(
                     height: 50,
@@ -394,6 +447,14 @@ class _PostEventState extends State<PostEvent> {
                                 await uploadImage(_file, name);
                                 imgSub = true;
                               }
+
+                              var finalLocation = isCustom
+                                  ? _customLocation.text
+                                  : locationButton;
+
+                              String mapsLink = isCustom
+                                  ? ""
+                                  : "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}";
                               //print(channels[i]);
 
                               //print(_file);
@@ -404,7 +465,7 @@ class _PostEventState extends State<PostEvent> {
                               if (_file != null) {
                                 response = await http.post(url, body: {
                                   "title": _postTitleController.value.text,
-                                  "location": locationButton,
+                                  "location": finalLocation,
                                   "date": DateFormat('dd/MM/yyyy')
                                       .format(pickedDate),
                                   "body": _postController.value.text,
@@ -414,13 +475,13 @@ class _PostEventState extends State<PostEvent> {
                                   "owid": owid.toString(),
                                   "link":
                                       "${Misc.link}/${Misc.appName}/imgs/$name.$format",
-                                  "maps_link":
-                                      "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
+                                  'dateTime': pickedDate.toIso8601String(),
+                                  "maps_link": mapsLink
                                 });
                               } else {
                                 response = await http.post(url, body: {
                                   "title": _postTitleController.value.text,
-                                  "location": locationButton,
+                                  "location": finalLocation,
                                   "date": DateFormat('dd/MM/yyyy')
                                       .format(pickedDate),
                                   "body": _postController.value.text,
@@ -429,8 +490,8 @@ class _PostEventState extends State<PostEvent> {
                                       widget.gMap["last_name"],
                                   "owid": owid.toString(),
                                   "link": "",
-                                  "maps_link":
-                                      "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
+                                  'dateTime': pickedDate.toIso8601String(),
+                                  "maps_link": mapsLink
                                 });
                               }
                               print(response.statusCode);
@@ -625,7 +686,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select a location'),
+        title: const Text('Select a location'),
         elevation: 0,
       ),
       body: Column(

@@ -89,6 +89,9 @@ class _AddOpportunityState extends State<AddOpportunity> {
   int? checkedIndex;
   late LatLng coordsForLink;
 
+  bool isCustom = false;
+  final TextEditingController _customLocation = TextEditingController();
+
   Color? choosenColor;
 
   String generateString() {
@@ -226,7 +229,8 @@ class _AddOpportunityState extends State<AddOpportunity> {
                       if (!choosen) {
                         return 'Please choose a date.';
                       }
-                      if (locationButton == 'Please select a location') {
+                      if (locationButton == 'Please select a location' &&
+                          !isCustom) {
                         return 'Please select a location.';
                       }
                       if (tag == null) {
@@ -235,43 +239,96 @@ class _AddOpportunityState extends State<AddOpportunity> {
                     },
                   ),
                   const SizedBox(height: 50),
-                  const Text(
-                    'Choose a location',
-                    style: TextStyle(
+                  Text(
+                    isCustom
+                        ? 'Choose a location (1st part, 2nd part etc.)'
+                        : 'Choose a location',
+                    style: const TextStyle(
                       fontFamily: 'Nunito',
                       color: ColorsB.yellow500,
                       fontSize: 20,
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextButton.icon(
-                    icon: Icon(
-                      Icons.location_on_outlined,
-                      color: choosen ? ColorsB.yellow500 : Colors.white,
-                    ),
-                    label: Text(
-                      locationButton,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const FullScreenMap()));
+                  const SizedBox(height: 10),
+                  !isCustom
+                      ? TextButton.icon(
+                          icon: Icon(
+                            Icons.location_on_outlined,
+                            color: choosen ? ColorsB.yellow500 : Colors.white,
+                          ),
+                          label: Text(
+                            locationButton,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 15),
+                          ),
+                          onPressed: () async {
+                            final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const FullScreenMap()));
 
-                      if (!mounted) return;
+                            if (!mounted) return;
 
-                      if (result == null) return;
+                            if (result == null) return;
 
-                      locationButton = result['location'];
-                      coordsForLink = result['coords'];
+                            locationButton = result['location'];
+                            coordsForLink = result['coords'];
 
-                      setState(() {});
+                            setState(() {});
 
-                      print(locationButton);
-                      print(coordsForLink);
-                    },
+                            print(locationButton);
+                            print(coordsForLink);
+                          },
+                        )
+                      : TextFormField(
+                          controller: _customLocation,
+                          maxLines: 1,
+                          keyboardType: TextInputType.name,
+                          cursorColor: ColorsB.yellow500,
+                          decoration: InputDecoration(
+                            fillColor: Colors.white,
+                            hintText: 'Ex: Oradea, Str. XYZ',
+                            errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                )),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) {
+                            //  final regEX = RegExp(",[A-Za-z0-9]+");
+
+                            if (value!.isEmpty) {
+                              return 'Field cannot be empty.';
+                            }
+
+                            if (!choosen) {
+                              return 'Please choose a date.';
+                            }
+                            if (locationButton == 'Please select a location' &&
+                                !isCustom) {
+                              return 'Please select a location.';
+                            } else if (!_customLocation.text.contains(',')) {
+                              return "Incorrect format. Please include ',' after each part of the location.";
+                            }
+                          },
+                        ),
+                  Row(
+                    children: <Widget>[
+                      Checkbox(
+                        activeColor: ColorsB.yellow500,
+                        shape: const RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.white)),
+                        value: isCustom,
+                        onChanged: (value) => setState(() => isCustom = value!),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text('Custom Location',
+                          style: TextStyle(color: Colors.white)),
+                    ],
                   ),
                   const SizedBox(
                     height: 50,
@@ -499,43 +556,37 @@ class _AddOpportunityState extends State<AddOpportunity> {
 
                               //print(_file);
 
+                              var finalLocation = isCustom
+                                  ? _customLocation.text
+                                  : locationButton;
+
+                              String mapsLink = isCustom
+                                  ? ""
+                                  : "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}";
+
+                              String imgLink = _file != null
+                                  ? "${Misc.link}/${Misc.appName}/imgs/$name.$format"
+                                  : "";
+
                               var url = Uri.parse(
                                   '${Misc.link}/${Misc.appName}/postOpportunity.php');
                               final response;
-                              if (_file != null) {
-                                response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": locationButton,
-                                  "date": DateFormat('dd/MM/yyyy')
-                                      .format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] +
-                                      " " +
-                                      widget.gMap["last_name"],
-                                  "link":
-                                      "${Misc.link}/${Misc.appName}/imgs/$name.$format",
-                                  "color": choosenColor.toString(),
-                                  "topic": tag,
-                                  "maps_link":
-                                      "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
-                                });
-                              } else {
-                                response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": locationButton,
-                                  "date": DateFormat('dd/MM/yyyy')
-                                      .format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] +
-                                      " " +
-                                      widget.gMap["last_name"],
-                                  "link": "",
-                                  "color": choosenColor.toString(),
-                                  "topic": tag,
-                                  "maps_link":
-                                      "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}"
-                                });
-                              }
+                              response = await http.post(url, body: {
+                                "title": _postTitleController.value.text,
+                                "ownerID": widget.gMap['id'].toString(),
+                                "location": finalLocation,
+                                'dateTime': pickedDate.toIso8601String(),
+                                "date":
+                                    DateFormat('dd/MM/yyyy').format(pickedDate),
+                                "body": _postController.value.text,
+                                "owner": widget.gMap["first_name"] +
+                                    " " +
+                                    widget.gMap["last_name"],
+                                "link": imgLink,
+                                "color": choosenColor.toString(),
+                                "topic": tag,
+                                "maps_link": mapsLink
+                              });
                               print(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);

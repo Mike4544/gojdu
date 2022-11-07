@@ -554,7 +554,7 @@ class Comment extends StatefulWidget {
         id: json['id'],
         likes: json['likes'],
         likesBool: json['lby'] != null
-            ? (json['lby'] as String).contains(gMap['id'].toString())
+            ? (json['lby'] as String).split(';').contains(gMap['id'].toString())
             : false,
         ownerId: json['ownerID'],
         owner: json['owner'],

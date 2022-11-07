@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/settings.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -21,11 +20,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:animations/animations.dart';
 //import 'package:gojdu/others/event.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
 
 //  Connectivity
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:connectivity_plus/connectivity_plus.dart' as con;
 
 // SVG
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,8 +33,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'dart:async';
 
 import 'package:gojdu/widgets/post.dart';
 
@@ -54,7 +49,7 @@ import './alertPage.dart';
 import '../databases/alertsdb.dart';
 import '../widgets/Alert.dart';
 
-import 'package:flutter/services.dart'; // For vibration
+// For vibration
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/switchPosts.dart';
@@ -66,8 +61,6 @@ import './myTimetable.dart';
 import './opportunities.dart';
 
 import './offersPage.dart';
-
-import 'dart:math' as math;
 
 import './sendFeedback.dart';
 
@@ -136,21 +129,19 @@ class _NewsPageState extends State<NewsPage> {
       ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
         content: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          child: Container(
-            child: Row(
-              children: const [
-                Icon(
-                  Icons.error,
-                  color: Colors.white,
-                  size: 17,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  "No internet connection",
-                  style: TextStyle(fontFamily: 'Nunito', fontSize: 10),
-                ),
-              ],
-            ),
+          child: Row(
+            children: const [
+              Icon(
+                Icons.error,
+                color: Colors.white,
+                size: 17,
+              ),
+              SizedBox(width: 10),
+              Text(
+                "No internet connection",
+                style: TextStyle(fontFamily: 'Nunito', fontSize: 10),
+              ),
+            ],
           ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -464,6 +455,39 @@ class _NewsPageState extends State<NewsPage> {
 
     //  <-----------  Loaded  ------------------>
     loaded = false;
+
+    pages = [
+      Announcements(
+        key: _announcementsKey,
+      ),
+      OpportunitiesList(globalMap: globalMap),
+      OffersPage(
+        globalMap: globalMap,
+      ),
+      MenuTabs(
+        pages: [
+          SettingsPage(
+            type: globalMap['account'],
+            key: const ValueKey(1),
+            context: context,
+          ),
+          const MapPage(key: ValueKey(2)),
+          const Calendar(key: ValueKey(3)),
+          const Notes(),
+          AlertPage(gMap: globalMap),
+          MyTimetable(
+            globalMap: globalMap,
+          ),
+          const FeedbackPage(),
+        ],
+        map: globalMap,
+        notif: haveNew,
+        update: () {
+          setState(() {});
+        },
+        key2: bar2Key,
+      )
+    ];
     //Initialising the navbar icons -
   }
 
@@ -492,10 +516,10 @@ class _NewsPageState extends State<NewsPage> {
   }
 
   // Lists for the pending users
-  List<String> _names = [];
-  List<String> _emails = [];
-  List<String> _types = [];
-  List<String> _tokens = [];
+  final List<String> _names = [];
+  final List<String> _emails = [];
+  final List<String> _types = [];
+  final List<String> _tokens = [];
 
   void updateRedButton() async {
     setState(() {});
@@ -606,6 +630,8 @@ class _NewsPageState extends State<NewsPage> {
     }
   }
 
+  late List<Widget> pages;
+
   @override
   Widget build(BuildContext context) {
     var device = MediaQuery.of(context);
@@ -615,7 +641,7 @@ class _NewsPageState extends State<NewsPage> {
     // }
 
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         key: _scaffoldKey,
         appBar: CurvedAppbar(
           descriptions: const [
@@ -650,40 +676,92 @@ class _NewsPageState extends State<NewsPage> {
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
-          children: [
-            Announcements(
-              key: _announcementsKey,
-            ),
-            OpportunitiesList(globalMap: globalMap),
-            OffersPage(
-              globalMap: globalMap,
-            ),
-            MenuTabs(
-              pages: [
-                SettingsPage(
-                  type: globalMap['account'],
-                  key: const ValueKey(1),
-                  context: context,
-                ),
-                const MapPage(key: ValueKey(2)),
-                const Calendar(key: ValueKey(3)),
-                const Notes(),
-                AlertPage(gMap: globalMap),
-                MyTimetable(
-                  globalMap: globalMap,
-                ),
-                const FeedbackPage(),
-              ],
-              map: globalMap,
-              notif: haveNew,
-              update: () {
-                setState(() {});
-              },
-              key2: bar2Key,
-            )
-          ],
+          children: pages,
         ));
   }
+
+  // Future swap(int first, int second) async {
+  //   //  List<Widget> newPages = [];
+
+  //   //  newPages.addAll(list);
+
+  //   if (first != second) {
+  //     //  list[first] = list[second];
+
+  //     setState(() {
+  //       pages[first] = pages[second];
+  //     });
+  //   }
+
+  //   //  setState(() {});
+  // }
+
+  // // void reset() {
+  // //   setState(() {
+  // //     pages = [
+  // //       Announcements(
+  // //         key: _announcementsKey,
+  // //       ),
+  // //       OpportunitiesList(globalMap: globalMap),
+  // //       OffersPage(
+  // //         globalMap: globalMap,
+  // //       ),
+  // //       MenuTabs(
+  // //         pages: [
+  // //           SettingsPage(
+  // //             type: globalMap['account'],
+  // //             key: const ValueKey(1),
+  // //             context: context,
+  // //           ),
+  // //           const MapPage(key: ValueKey(2)),
+  // //           const Calendar(key: ValueKey(3)),
+  // //           const Notes(),
+  // //           AlertPage(gMap: globalMap),
+  // //           MyTimetable(
+  // //             globalMap: globalMap,
+  // //           ),
+  // //           const FeedbackPage(),
+  // //         ],
+  // //         map: globalMap,
+  // //         notif: haveNew,
+  // //         update: () {
+  // //           setState(() {});
+  // //         },
+  // //         key2: bar2Key,
+  // //       )
+  // //     ];
+  // //   });
+  // // }
+
+  // void flashAnimateToPage(List<Widget> pages, int newIndex) async {
+  //   int currentIndex = _pageController.page!.round();
+
+  //   int nextIndex =
+  //       newIndex > currentIndex ? currentIndex + 1 : currentIndex - 1;
+
+  //   await swap(pages, nextIndex, newIndex);
+
+  //   debugPrint('\x1B[35mCURRENT INDEX: $currentIndex\x1B[35m');
+  //   debugPrint('\x1B[35mNEXT INDEX: $nextIndex\x1B[35m');
+  //   debugPrint('\x1B[35mNEW INDEX: $newIndex\x1B[35m');
+
+  //   debugPrint('\x1B[37mPRINTED: $pages\x1B[37m');
+
+  //   //  setState(() {});
+
+  //   _pageController
+  //       .animateToPage(nextIndex,
+  //           duration: const Duration(milliseconds: 500), curve: Curves.ease)
+  //       .then((e) => swap(nextIndex, newIndex));
+
+  //   //  _pageController.jumpToPage(newIndex);
+
+  //   // WidgetsBinding.instance.addPostFrameCallback((t) {
+  //   //   reset();
+  //   //   debugPrint('\x1B[33mBACK:$pages\x1B[33m');
+  //   // });
+  //   //  _pageController.jumpToPage(nextIndex);
+  // }
 
   Widget _bottomNavBar() {
     List<Widget> _buttons = [
@@ -708,15 +786,22 @@ class _NewsPageState extends State<NewsPage> {
                                     : Colors.white,
                                 fontSize: 7.5)),
                       ]),
-                  onTap: () {
+                  onTap: () async {
                     //  _mapExpandAnim(_announcementsInput);
                     setState(() {
                       _currentIndex = 0;
                       //  changeColors(_currentIndex);
                     });
-                    _pageController.animateToPage(_currentIndex,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.ease);
+
+                    await Future.delayed(const Duration(milliseconds: 100));
+
+                    _pageController.jumpToPage(
+                      _currentIndex,
+                      // duration: const Duration(milliseconds: 500),
+                      // curve: Curves.ease
+                    );
+
+                    // flashAnimateToPage(pages, _currentIndex);
                   }),
             ),
           ),
@@ -741,15 +826,19 @@ class _NewsPageState extends State<NewsPage> {
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       _currentIndex = 1;
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.ease);
+                    await Future.delayed(const Duration(milliseconds: 100));
+
+                    _pageController.jumpToPage(
+                      _currentIndex,
+                      // duration: const Duration(milliseconds: 500),
+                      // curve: Curves.ease
+                    );
                   }),
             ),
           ),
@@ -774,15 +863,19 @@ class _NewsPageState extends State<NewsPage> {
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       _currentIndex = 2;
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.ease);
+                    await Future.delayed(const Duration(milliseconds: 100));
+
+                    _pageController.jumpToPage(
+                      _currentIndex,
+                      // duration: const Duration(milliseconds: 500),
+                      // curve: Curves.ease
+                    );
                   }),
             ),
           ),
@@ -807,15 +900,19 @@ class _NewsPageState extends State<NewsPage> {
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       _currentIndex = 3;
                       //  changeColors(_currentIndex);
                     });
 
-                    _pageController.animateToPage(_currentIndex,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.ease);
+                    await Future.delayed(const Duration(milliseconds: 100));
+
+                    _pageController.jumpToPage(
+                      _currentIndex,
+                      // duration: const Duration(milliseconds: 500),
+                      // curve: Curves.ease
+                    );
                   }),
             ),
           ),
@@ -831,6 +928,7 @@ class _NewsPageState extends State<NewsPage> {
               padding: const EdgeInsets.all(10.0),
               child: SizedBox(
                 child: FittedBox(
+                  fit: BoxFit.contain,
                   child: GestureDetector(
                     child: SizedBox(
                       child: Column(
@@ -1071,7 +1169,6 @@ class _NewsPageState extends State<NewsPage> {
                           });
                     },
                   ),
-                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -1166,8 +1263,6 @@ class _AnnouncementsState extends State<Announcements>
   @override
   void initState() {
     // TODO: implement initState
-    lazyController.addListener(lazyLoadCallback);
-    _loadEvents = loadEvents();
     super.initState();
 
     //  <-------------- Lists ------------->
@@ -1236,7 +1331,6 @@ class _AnnouncementsState extends State<Announcements>
 
     //print(globalMap['account']);
     _eventCtrl = PageController(initialPage: currSelect);
-    events = [];
   }
 
   late Future _loadEvents;
@@ -1271,18 +1365,6 @@ class _AnnouncementsState extends State<Announcements>
                 )));
   }
 
-  void _showWritableEvent() {
-    Navigator.push(
-        context,
-        PageRouteBuilder(
-            pageBuilder: (context, a1, a2) => SlideTransition(
-                  position: Tween<Offset>(
-                          begin: const Offset(0, 1), end: Offset.zero)
-                      .animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
-                  child: PostEvent(gMap: globalMap),
-                )));
-  }
-
   // ---------- Placeholder title ------------
   String title = '';
   String description = '';
@@ -1300,44 +1382,6 @@ class _AnnouncementsState extends State<Announcements>
   final style = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
   late final _eventCtrl;
-
-  void update1({int? lastMax, int? newMax, int? newID, Future? func}) async {
-    maxScrollCountEvents = newMax!;
-    lastMaxEvents = lastMax!;
-    lastIDEvents = newID!;
-
-    //  _loadEvents = func!;
-
-    setState(() {});
-  }
-
-  Future<void> refresh() async {
-    events.clear();
-
-    setState(() {
-      maxScrollCountEvents = turnsEvents;
-      lastMaxEvents = -1;
-
-      lastIDEvents = Misc.INT_MAX;
-
-      _loadEvents = loadEvents();
-      setState(() {});
-      //  widget.future = widget.futureFunction;
-    });
-  }
-
-  void lazyLoadCallback() async {
-    if (lazyController.position.extentAfter == 0 &&
-        lastMaxEvents < maxScrollCountEvents) {
-      print('Haveth reached the end');
-
-      await loadEvents();
-
-      setState(() {});
-    }
-  }
-
-  ScrollController lazyController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -1421,56 +1465,7 @@ class _AnnouncementsState extends State<Announcements>
                         )),
                     const SizedBox(height: 200)
                   ]),
-                  Column(children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Events',
-                          style: TextStyle(
-                              color: ColorsB.yellow500,
-                              fontSize: 25,
-                              fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Visibility(
-                          visible: globalMap['account'] == 'Teacher' ||
-                              globalMap['account'] == 'Admin',
-                          child: GestureDetector(
-                            onTap: _showWritableEvent,
-                            child: const Icon(
-                              Icons.add_circle_outline,
-                              size: 40,
-                              color: ColorsB.gray800,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Container(
-                            height: 2,
-                            color: ColorsB.gray800,
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    SizedBox(
-                        height: screenHeight * .6,
-                        child: LazyBuilder(
-                            future: _loadEvents,
-                            refresh: refresh,
-                            scrollController: lazyController,
-                            //  futureFunction: loadEvents(),
-                            widgetList: events,
-                            lastMax: lastMaxEvents,
-                            maxScrollCount: maxScrollCountEvents,
-                            lastID: lastIDEvents,
-                            turns: turnsEvents))
-                  ])
+                  const EventsPage(),
                 ],
               ),
             )
@@ -1481,12 +1476,6 @@ class _AnnouncementsState extends State<Announcements>
   }
 
   late TabController _tabController;
-  final ScrollController _eventsScrollController = ScrollController();
-
-  int lastMaxEvents = -1; //  INT MAX
-  int maxScrollCountEvents = 10;
-  int turnsEvents = 10;
-  int lastIDEvents = Misc.INT_MAX;
 
   // Future eventsReload() async {
   //   events.clear();
@@ -1499,80 +1488,9 @@ class _AnnouncementsState extends State<Announcements>
 
   //   setState(() {});
   // }
+  final ScrollController _eventsScrollController = ScrollController();
 
   // void lazyLoadCallback() {}
-
-  Future<int> loadEvents() async {
-    //  events.clear();
-
-    //  Maybe rework this a bit.
-    print('events');
-    lastMaxEvents = maxScrollCountEvents;
-
-    try {
-      var url = Uri.parse('${Misc.link}/${Misc.appName}/getEvents.php');
-      final response = await http.post(url, body: {
-        'lastID': '$lastIDEvents',
-        'turns': '$turnsEvents',
-      });
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
-        print(jsondata);
-        if (jsondata[0]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata[0]["success"]) {
-            for (int i = 1; i < jsondata.length; i++) {
-              String post = jsondata[i]["post"].toString();
-              String title = jsondata[i]["title"].toString();
-              String owner = jsondata[i]["owner"].toString();
-              int? ownerid = jsondata[i]["oid"];
-              String location = jsondata[i]["location"].toString();
-              String date = jsondata[i]["date"].toString();
-              String link = jsondata[i]["link"].toString();
-              String mapsLink = jsondata[i]["glink"].toString();
-
-              int? id = jsondata[i]["id"];
-
-              if (post != "null" && post != null && ownerid != null) {
-                events.add(Event(
-                    title: title,
-                    id: id,
-                    body: post,
-                    owner: owner,
-                    ownerID: ownerid,
-                    link: link,
-                    date: date,
-                    location: location,
-                    gMap: globalMap,
-                    maps_link: mapsLink,
-                    Context: context,
-                    delete: () async {
-                      await deleteEvent(id!, i - 1);
-                      setState(() {});
-                    }));
-              }
-            }
-            lastIDEvents = jsondata[jsondata.length - 1]['id'];
-            maxScrollCountEvents += turnsEvents;
-            //  print(events);
-          } else {
-            //print(jsondata["1"]["message"]);
-          }
-          //  events.add(SizedBox(height: screenHeight * .25));
-        }
-      }
-    } catch (e, stack) {
-      print(e);
-      print(stack);
-    }
-
-    return 0;
-  }
-
-  late List<Widget> events;
 
   Widget teachersBar() {
     if (globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
@@ -1641,6 +1559,90 @@ class _AnnouncementsState extends State<Announcements>
   }
 
   //  <------------------- Hardcoded loader ------------------>
+
+  void update() {
+    setState(() {});
+  }
+}
+
+class EventsPage extends StatefulWidget {
+  const EventsPage({Key? key}) : super(key: key);
+
+  @override
+  State<EventsPage> createState() => _EventsPageState();
+}
+
+class _EventsPageState extends State<EventsPage>
+    with AutomaticKeepAliveClientMixin {
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    events = [];
+
+    lazyController.addListener(lazyLoadCallback);
+    _loadEvents = loadEvents();
+
+    super.initState();
+  }
+
+  int lastMaxEvents = -1; //  INT MAX
+  int maxScrollCountEvents = 10;
+  int turnsEvents = 10;
+  int lastIDEvents = Misc.INT_MAX;
+
+  ScrollController lazyController = ScrollController();
+  late Future _loadEvents;
+
+  late List<Widget> events;
+
+  void _showWritableEvent() {
+    Navigator.push(
+        context,
+        PageRouteBuilder(
+            pageBuilder: (context, a1, a2) => SlideTransition(
+                  position: Tween<Offset>(
+                          begin: const Offset(0, 1), end: Offset.zero)
+                      .animate(CurvedAnimation(parent: a1, curve: Curves.ease)),
+                  child: PostEvent(gMap: globalMap),
+                )));
+  }
+
+  void update1({int? lastMax, int? newMax, int? newID, Future? func}) async {
+    maxScrollCountEvents = newMax!;
+    lastMaxEvents = lastMax!;
+    lastIDEvents = newID!;
+
+    //  _loadEvents = func!;
+
+    setState(() {});
+  }
+
+  Future<void> refresh() async {
+    events.clear();
+
+    setState(() {
+      maxScrollCountEvents = turnsEvents;
+      lastMaxEvents = -1;
+
+      lastIDEvents = Misc.INT_MAX;
+
+      _loadEvents = loadEvents();
+      setState(() {});
+      //  widget.future = widget.futureFunction;
+    });
+  }
+
+  void lazyLoadCallback() async {
+    if (lazyController.position.extentAfter == 0 &&
+        lastMaxEvents < maxScrollCountEvents) {
+      print('Haveth reached the end');
+
+      await loadEvents();
+
+      setState(() {});
+    }
+  }
 
   Future<void> deleteEvent(int Id, int index) async {
     try {
@@ -1726,8 +1728,129 @@ class _AnnouncementsState extends State<Announcements>
     }
   }
 
-  void update() {
-    setState(() {});
+  Future<int> loadEvents() async {
+    //  events.clear();
+
+    //  Maybe rework this a bit.
+    print('events');
+    lastMaxEvents = maxScrollCountEvents;
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/getEvents.php');
+      final response = await http.post(url, body: {
+        'lastID': '$lastIDEvents',
+        'turns': '$turnsEvents',
+      });
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        debugPrint(jsondata.toString());
+        if (jsondata[0]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata[0]["success"]) {
+            for (int i = 1; i < jsondata.length; i++) {
+              String post = jsondata[i]["post"].toString();
+              String title = jsondata[i]["title"].toString();
+              String owner = jsondata[i]["owner"].toString();
+              int? ownerid = jsondata[i]["oid"];
+              String location = jsondata[i]["location"].toString();
+              DateTime date = DateTime.parse(jsondata[i]["timeDate"]);
+              String link = jsondata[i]["link"].toString();
+              String mapsLink = jsondata[i]["glink"].toString();
+
+              int? id = jsondata[i]["id"];
+
+              if (post != "null" && post != null && ownerid != null) {
+                events.add(Event(
+                    title: title,
+                    id: id,
+                    body: post,
+                    owner: owner,
+                    ownerID: ownerid,
+                    link: link,
+                    date: date,
+                    location: location,
+                    gMap: globalMap,
+                    maps_link: mapsLink,
+                    Context: context,
+                    delete: () async {
+                      await deleteEvent(id!, i - 1);
+                      setState(() {});
+                    }));
+              }
+            }
+            lastIDEvents = jsondata[jsondata.length - 1]['id'];
+            maxScrollCountEvents += turnsEvents;
+            //  print(events);
+          } else {
+            //print(jsondata["1"]["message"]);
+          }
+          //  events.add(SizedBox(height: screenHeight * .25));
+        }
+      }
+    } catch (e, stack) {
+      print(e);
+      print(stack);
+    }
+
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Column(children: [
+      Row(
+        children: [
+          const Text(
+            'Events',
+            style: TextStyle(
+                color: ColorsB.yellow500,
+                fontSize: 25,
+                fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Visibility(
+            visible: globalMap['account'] == 'Teacher' ||
+                globalMap['account'] == 'Admin',
+            child: GestureDetector(
+              onTap: _showWritableEvent,
+              child: const Icon(
+                Icons.add_circle_outline,
+                size: 40,
+                color: ColorsB.gray800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 2,
+              color: ColorsB.gray800,
+            ),
+          )
+        ],
+      ),
+      const SizedBox(
+        height: 25,
+      ),
+      SizedBox(
+          height: screenHeight * .6,
+          child: LazyBuilder(
+              future: _loadEvents,
+              refresh: refresh,
+              scrollController: lazyController,
+              //  futureFunction: loadEvents(),
+              widgetList: events,
+              lastMax: lastMaxEvents,
+              maxScrollCount: maxScrollCountEvents,
+              lastID: lastIDEvents,
+              turns: turnsEvents))
+    ]);
   }
 }
 
@@ -1825,12 +1948,12 @@ class _PostsListState extends State<PostsList>
                   ids: id,
                   descriptions: post,
                   owners: owner,
-                  ownerID: ownerID!,
+                  ownerID: ownerID,
                   link: link,
                   hero: _hero,
                   admin: globalMap['account'],
                   delete: () async {
-                    await deletePost(id!, i - 1);
+                    await deletePost(id, i - 1);
                     setState(() {});
                   },
                   globalMap: globalMap,
@@ -2515,18 +2638,18 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     );
   }
 
-  ScrollController _commentScrollController = ScrollController();
+  final ScrollController _commentScrollController = ScrollController();
   int _commentMaxIndex = 20;
   //  StreamController _commentsStream = StreamController.broadcast();
 
-  Future? _loadedComments = null;
+  final Future? _loadedComments = null;
   List<Comment> comments = [];
   //  bool isLoading = false;
-  StreamController _commentsStream = StreamController.broadcast();
+  final StreamController _commentsStream = StreamController.broadcast();
   //  GlobalKey _builderKey = GlobalKey();
   int lastLoaded = 0;
   int lastMax = -1;
-  int _turnsToLoad = 20;
+  final int _turnsToLoad = 20;
 
   Future<int> getComments() async {
     lastMax = _commentMaxIndex;
@@ -2930,9 +3053,54 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   Widget topPage() {
     //print(imageLink);
 
-    if (widget.imageLink == 'null' || widget.imageLink == '') {
-      return Container(
-        color: widget.color,
+    BoxDecoration woImage = BoxDecoration(color: widget.color);
+
+    BoxDecoration wImage = BoxDecoration(
+      image: DecorationImage(
+          image: Image.network(
+            widget.imageLink!,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+
+              return const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
+            },
+          ).image,
+          fit: BoxFit.cover),
+    );
+
+    return GestureDetector(
+      onTap: (widget.imageLink == 'null' || widget.imageLink == '')
+          ? null
+          : () {
+              showDialog(
+                  context: context,
+                  builder: (context) => Material(
+                      color: Colors.transparent,
+                      child: Stack(children: [
+                        Center(
+                          child: InteractiveViewer(
+                              clipBehavior: Clip.none,
+                              child: Image.network(widget.imageLink!)),
+                        ),
+                        Positioned(
+                            top: 10,
+                            right: 10,
+                            child: IconButton(
+                                tooltip: 'Close',
+                                splashRadius: 25,
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                }))
+                      ])));
+            },
+      child: Container(
+        //  color: widget.color,
+        decoration: (widget.imageLink == 'null' || widget.imageLink == '')
+            ? woImage
+            : wImage,
         child: Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
@@ -2982,127 +3150,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                     ],
                   ))),
         ),
-      );
-    } else {
-      // Uint8List imagBytes = base64Decode(imageString!);
-
-      return Stack(children: [
-        GestureDetector(
-          onTap: () {
-            showDialog(
-                context: context,
-                builder: (context) => Material(
-                    color: Colors.transparent,
-                    child: Stack(children: [
-                      Center(
-                        child: InteractiveViewer(
-                            clipBehavior: Clip.none,
-                            child: Image.network(widget.imageLink!)),
-                      ),
-                      Positioned(
-                          top: 10,
-                          right: 10,
-                          child: IconButton(
-                              tooltip: 'Close',
-                              splashRadius: 25,
-                              icon:
-                                  const Icon(Icons.close, color: Colors.white),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              }))
-                    ])));
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: Image.network(widget.imageLink!).image,
-                  fit: BoxFit.cover),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          child: GestureDetector(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) => Material(
-                      color: Colors.transparent,
-                      child: Stack(children: [
-                        Center(
-                          child: InteractiveViewer(
-                              clipBehavior: Clip.none,
-                              child: Image.network(widget.imageLink!)),
-                        ),
-                        Positioned(
-                            top: 10,
-                            right: 10,
-                            child: IconButton(
-                                tooltip: 'Close',
-                                splashRadius: 25,
-                                icon: const Icon(Icons.close,
-                                    color: Colors.white),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                }))
-                      ])));
-            },
-            child: Container(
-              width: screenWidth,
-              height: screenHeight * 0.5,
-              decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Colors.black, Colors.transparent],
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      stops: [0, 0.9])),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: SizedBox(
-                  height: screenHeight * .3,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        constraints:
-                            BoxConstraints(maxHeight: screenHeight * .2),
-                        decoration: BoxDecoration(
-                            color: ColorsB.gray900,
-                            borderRadius: BorderRadius.circular(30)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              widget.title.length > 30
-                                  ? widget.title.substring(0, 30) + '...'
-                                  : widget.title,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Chip(
-                        backgroundColor: ColorsB.gray200,
-                        avatar: _CircleAvatar(),
-                        label: Text(
-                            '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'),
-                      )
-                    ],
-                  ))),
-        ),
-      ]);
-    }
+      ),
+    );
   }
 }
 
@@ -3164,7 +3213,7 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  late Future _getFloors = getFloors().then((value) => placeMaps());
+  late final Future _getFloors = getFloors().then((value) => placeMaps());
 
   // <---------- Function to switch the floor (placeholder) -------------------->
   void _mapUpdate(int newFloor) {

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gojdu/pages/news.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
@@ -193,11 +194,14 @@ class _OpportunitiesListState extends State<OpportunitiesList>
               String title = jsondata[i]["title"].toString();
               String owner = jsondata[i]["owner"].toString();
               String location = jsondata[i]["location"].toString();
-              String date = jsondata[i]["date"].toString();
+              String date = jsondata[i]["timeDate"].toString();
               String link = jsondata[i]["link"].toString();
               String gmaps = jsondata[i]["mapsLink"].toString();
               String color = jsondata[i]["color"].toString();
               String topic = jsondata[i]["topic"].toString();
+
+              // print(date);
+              // print('Index $i');
 
               int? id = jsondata[i]["id"];
               int? oid = jsondata[i]["ownerID"];
@@ -237,7 +241,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
                   description: post,
                   title: title,
                   city: location.split(',').first,
-                  date: date,
+                  date: DateTime.tryParse(date) ?? DateTime(1970, 1, 1),
                   delete: () async {
                     await deleteEvent(id, i - 1);
                     setState(() {});
@@ -696,7 +700,7 @@ class OpportunityCard extends StatelessWidget {
   final String gmaps_link;
   final String? headerImageLink;
   final String owner;
-  final String date;
+  final DateTime date;
   final delete;
 
   const OpportunityCard(
@@ -855,7 +859,8 @@ class OpportunityCard extends StatelessWidget {
                                             child: BetterChip(
                                               icon:
                                                   Icons.calendar_today_outlined,
-                                              label: date,
+                                              label: DateFormat("dd/MM/yyyy")
+                                                  .format(date),
                                               isGlass: true,
                                               bgColor: Colors.white,
                                               width: dev_width * .33,
@@ -905,7 +910,7 @@ class OpportunityCard extends StatelessWidget {
                                     title: title!,
                                     description: description!,
                                     color: color,
-                                    date: date,
+                                    date: DateFormat("dd/MM/yyyy").format(date),
                                     location: city!,
                                     imageString: headerImageLink,
                                     gMapsLink: gmaps_link,
@@ -1080,174 +1085,85 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
+    BoxDecoration woImage = BoxDecoration(color: widget.color);
+
+    BoxDecoration wImage = BoxDecoration(
+      image: DecorationImage(
+          image: Image.network(
+            widget.imageString!,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+
+              return const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
+            },
+          ).image,
+          fit: BoxFit.cover),
+    );
+
     //print(imageLink);
 
-    if (widget.imageString == 'null' || widget.imageString == '') {
-      return Hero(
-        tag: 'title-rectangle',
-        child: Container(
-          width: screenWidth,
-          color: widget.color,
-          child: Align(
-            alignment: Alignment.bottomLeft,
-            child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: SizedBox(
-                  height: screenHeight * .3,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              widget.title,
-                              maxLines: 1,
-                              style: TextStyle(
-                                  color: ThemeData.estimateBrightnessForColor(
-                                              widget.color!) ==
-                                          Brightness.light
-                                      ? ColorsB.gray900
-                                      : Colors.white,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                                onTap: () async {
-                                  if (await canLaunchUrl(
-                                      Uri.parse(widget.gMapsLink!))) {
-                                    await launchUrl(
-                                        Uri.parse(widget.gMapsLink!));
-                                  } else {
-                                    print('Can\'t do it chief');
-                                  }
-                                },
-                                child: Row(
-                                  children: [
-                                    BetterChip(
-                                      width: screenWidth * .5,
-                                      height: screenHeight * .05,
-                                      bgColor: ColorsB.gray200,
-                                      icon: Icons.location_on_outlined,
-                                      label: widget.location,
-                                      isGlass: true,
-                                      secIcon: Icons.view_in_ar,
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'Open in Google Maps',
-                                      style: TextStyle(
-                                          color: ThemeData
-                                                      .estimateBrightnessForColor(
-                                                          widget.color!) ==
-                                                  Brightness.light
-                                              ? ColorsB.gray900
-                                              : Colors.white,
-                                          fontSize: 12.5.sp),
-                                    )
-                                  ],
-                                )),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: BetterChip(
-                                width: screenWidth * .33,
-                                height: screenHeight * .05,
-                                bgColor: ColorsB.gray200,
-                                icon: Icons.calendar_today_outlined,
-                                label: widget.date,
-                                isGlass: true),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                )),
-          ),
-        ),
-      );
-    } else {
-      // Uint8List imagBytes = base64Decode(imageString!);
-
-      return Hero(
-          tag: 'title-rectangle',
-          child: Stack(children: [
-            GestureDetector(
-              onTap: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => Material(
-                        color: Colors.transparent,
-                        child: Stack(children: [
-                          Center(
-                            child: InteractiveViewer(
-                                clipBehavior: Clip.none,
-                                child: Image.network(widget.imageString!)),
-                          ),
-                          Positioned(
-                              top: 10,
-                              right: 10,
-                              child: IconButton(
-                                  tooltip: 'Close',
-                                  splashRadius: 25,
-                                  icon: const Icon(Icons.close,
-                                      color: Colors.white),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  }))
-                        ])));
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: Image.network(widget.imageString!).image,
-                      fit: BoxFit.cover),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              child: Container(
-                width: screenWidth,
-                height: screenHeight * 0.25,
-                decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [Colors.black, Colors.transparent],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        stops: [0, 0.9])),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: SizedBox(
-                    height: screenHeight * .3,
-                    child: Column(
+    return GestureDetector(
+      onTap: (widget.imageString == 'null' || widget.imageString == '')
+          ? null
+          : () {
+              showDialog(
+                  context: context,
+                  builder: (context) => Material(
+                      color: Colors.transparent,
+                      child: Stack(children: [
+                        Center(
+                          child: InteractiveViewer(
+                              clipBehavior: Clip.none,
+                              child: Image.network(widget.imageString!)),
+                        ),
+                        Positioned(
+                            top: 10,
+                            right: 10,
+                            child: IconButton(
+                                tooltip: 'Close',
+                                splashRadius: 25,
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                }))
+                      ])));
+            },
+      child: Container(
+        width: screenWidth,
+        decoration: (widget.imageString == 'null' || widget.imageString == '')
+            ? woImage
+            : wImage,
+        child: Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: SizedBox(
+                height: screenHeight * .3,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
+                        Container(
+                          constraints:
+                              BoxConstraints(maxHeight: screenHeight * .2),
+                          decoration: BoxDecoration(
+                              color: ColorsB.gray900,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black12,
+                                    offset: Offset(4, 4),
+                                    blurRadius: 10)
+                              ]),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 widget.title,
@@ -1262,70 +1178,71 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                     fontWeight: FontWeight.bold),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: GestureDetector(
-                                  onTap: () async {
-                                    if (await canLaunchUrl(
-                                        Uri.parse(widget.gMapsLink!))) {
-                                      await launchUrl(
-                                          Uri.parse(widget.gMapsLink!));
-                                    } else {
-                                      print('Can\'t do it chief');
-                                    }
-                                  },
-                                  child: Row(
-                                    children: [
-                                      BetterChip(
-                                        width: screenWidth * .5,
-                                        height: screenHeight * .05,
-                                        bgColor: ColorsB.gray200,
-                                        icon: Icons.location_on_outlined,
-                                        label: widget.location,
-                                        isGlass: true,
-                                        secIcon: Icons.view_in_ar,
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Text(
-                                        'Open in Google Maps',
-                                        style: TextStyle(
-                                            color: ThemeData
-                                                        .estimateBrightnessForColor(
-                                                            widget.color!) ==
-                                                    Brightness.light
-                                                ? ColorsB.gray900
-                                                : Colors.white,
-                                            fontSize: 12.5.sp),
-                                      )
-                                    ],
-                                  )),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: BetterChip(
-                                  width: screenWidth * .33,
-                                  height: screenHeight * .05,
-                                  bgColor: ColorsB.gray200,
-                                  icon: Icons.calendar_today_outlined,
-                                  label: widget.date,
-                                  isGlass: true),
-                            )
-                          ],
-                        )
                       ],
                     ),
-                  )),
-            ),
-          ]));
-    }
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: GestureDetector(
+                              onTap: () async {
+                                if (await canLaunchUrl(
+                                    Uri.parse(widget.gMapsLink!))) {
+                                  await launchUrl(Uri.parse(widget.gMapsLink!));
+                                } else {
+                                  print('Can\'t do it chief');
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Chip(
+                                      backgroundColor: Colors.grey[200],
+                                      avatar: const Icon(
+                                        Icons.location_on_outlined,
+                                      ),
+                                      label: Text(widget.location)),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Visibility(
+                                    visible: widget.gMapsLink!.isNotEmpty,
+                                    child: Text(
+                                      'Open in Google Maps',
+                                      style: TextStyle(
+                                          color: ThemeData
+                                                      .estimateBrightnessForColor(
+                                                          widget.color!) ==
+                                                  Brightness.light
+                                              ? ColorsB.gray900
+                                              : Colors.white,
+                                          fontSize: 12.5.sp),
+                                    ),
+                                  )
+                                ],
+                              )),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Chip(
+                            backgroundColor: Colors.grey[200],
+                            avatar: const Icon(
+                              Icons.calendar_today_outlined,
+                            ),
+                            label: Text(widget.date),
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              )),
+        ),
+      ),
+    );
   }
 
   @override
