@@ -1455,13 +1455,10 @@ class _AnnouncementsState extends State<Announcements>
                           controller: _tabController,
                           // controller: _announcementsController,
                           // physics: const NeverScrollableScrollPhysics(),
-                          children: const [
-                            PostsList(
-                                color: ColorsB.gray800, channel: 'Students'),
-                            PostsList(color: Colors.amber, channel: 'Teachers'),
-                            PostsList(
-                                color: Colors.indigoAccent, channel: 'Parents'),
-                          ],
+                          children: Misc.categories.entries
+                              .map((e) =>
+                                  PostsList(color: e.value, channel: e.key))
+                              .toList(),
                         )),
                     const SizedBox(height: 200)
                   ]),
@@ -1514,40 +1511,21 @@ class _AnnouncementsState extends State<Announcements>
                           const BorderSide(color: ColorsB.yellow500, width: 3),
                       insets: EdgeInsets.fromLTRB(
                           screenWidth * .1, 0, screenWidth * .1, 10)),
-                  tabs: const [
-                    material.Tab(
-                      child: SizedBox.expand(
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: Text(
-                            'Students',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ),
-                    material.Tab(
-                      child: SizedBox.expand(
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: Text(
-                            'Teachers',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ),
-                    material.Tab(
-                        child: SizedBox.expand(
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: Text(
-                          'Parents ',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ))
-                  ]),
+                  tabs: Misc.categories.entries
+                      .map((e) => material.Tab(
+                            child: SizedBox.expand(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  e.key,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20.sp),
+                                ),
+                              ),
+                            ),
+                          ))
+                      .toList()),
             )),
       );
     } else {
@@ -1879,6 +1857,7 @@ class _PostsListState extends State<PostsList>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/selectposts.php');
       final response = await http.post(url, body: {
         "lastID": lastID.toString(),
+        "userID": globalMap['id'].toString(),
         "maxTurns": turns.toString(),
         "channel": widget.channel,
       });
@@ -1904,11 +1883,11 @@ class _PostsListState extends State<PostsList>
               String? dislikedPpl = jsondata[i]["dppl"].toString();
               int? id = jsondata[i]["id"];
 
-              List<String> liked = likedPpl.split(';');
-              List<String> disliked = dislikedPpl.split(';');
+              // List<String> liked = likedPpl.split(';');
+              // List<String> disliked = dislikedPpl.split(';');
 
-              bool likedbool;
-              bool dislikedbool;
+              bool likedbool = jsondata[i]['userLikes'] >= 1;
+              bool dislikedbool = jsondata[i]['userDislikes'] >= 1;
               Color? color;
 
               switch (channel) {
@@ -1924,18 +1903,18 @@ class _PostsListState extends State<PostsList>
               }
 
               if (post != "null" && post != null && ownerID != null) {
-                if (liked.contains(globalMap['id'].toString())) {
-                  likedbool = true;
-                  //print('a');
-                } else {
-                  likedbool = false;
-                }
+                // if (liked.contains(globalMap['id'].toString())) {
+                //   likedbool = true;
+                //   //print('a');
+                // } else {
+                //   likedbool = false;
+                // }
 
-                if (disliked.contains(globalMap['id'].toString())) {
-                  dislikedbool = true;
-                } else {
-                  dislikedbool = false;
-                }
+                // if (disliked.contains(globalMap['id'].toString())) {
+                //   dislikedbool = true;
+                // } else {
+                //   dislikedbool = false;
+                // }
 
                 print('da');
                 posts.add(Post(
@@ -2647,7 +2626,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   //  bool isLoading = false;
   final StreamController _commentsStream = StreamController.broadcast();
   //  GlobalKey _builderKey = GlobalKey();
-  int lastLoaded = 0;
+  int lastLoaded = Misc.INT_MAX;
   int lastMax = -1;
   final int _turnsToLoad = 20;
 
@@ -2661,6 +2640,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       final response = await http.post(url, body: {
         "post_id": widget.id.toString(),
         "lastID": lastLoaded.toString(),
+        'userID': globalMap['id'].toString(),
         "maxLoaded": _turnsToLoad.toString()
       });
 
@@ -5453,78 +5433,33 @@ class _PostItPageState extends State<PostItPage> {
                   // Make 3 checkboxes for the 3 channels
                   Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Row(children: [
-                          Checkbox(
-                            activeColor: ColorsB.yellow500,
-                            shape: const CircleBorder(
-                                side:
-                                    BorderSide(color: Colors.white, width: 1)),
-                            side:
-                                const BorderSide(color: Colors.white, width: 1),
-                            value: classes[0],
-                            onChanged: (value) {
-                              setState(() {
-                                classes[0] = value;
-                                if (value!) {
-                                  channels.add("Students");
-                                } else {
-                                  channels.remove("Students");
-                                }
-                                //print(channels);
-                              });
-                            },
-                          ),
-                          const Text('Students',
-                              style: TextStyle(color: Colors.white))
-                        ]),
-                        Row(children: [
-                          Checkbox(
-                            activeColor: ColorsB.yellow500,
-                            shape: const CircleBorder(),
-                            side:
-                                const BorderSide(color: Colors.white, width: 1),
-                            value: classes[1],
-                            onChanged: (value) {
-                              setState(() {
-                                classes[1] = value;
-
-                                if (value!) {
-                                  channels.add("Teachers");
-                                } else {
-                                  channels.remove("Teachers");
-                                }
-                                //print(channels);
-                              });
-                            },
-                          ),
-                          const Text('Teachers',
-                              style: TextStyle(color: Colors.white))
-                        ]),
-                        Row(children: [
-                          Checkbox(
-                            activeColor: ColorsB.yellow500,
-                            shape: const CircleBorder(),
-                            side:
-                                const BorderSide(color: Colors.white, width: 1),
-                            value: classes[2],
-                            onChanged: (value) {
-                              setState(() {
-                                classes[2] = value;
-
-                                if (value!) {
-                                  channels.add("Parents");
-                                } else {
-                                  channels.remove("Parents");
-                                }
-                                //print(channels);
-                              });
-                            },
-                          ),
-                          const Text('Parents',
-                              style: TextStyle(color: Colors.white))
-                        ]),
-                      ]),
+                      children: Misc.categories.entries
+                          .map((e) => Row(children: [
+                                Checkbox(
+                                  activeColor: ColorsB.yellow500,
+                                  shape: const CircleBorder(
+                                      side: BorderSide(
+                                          color: Colors.white, width: 1)),
+                                  side: const BorderSide(
+                                      color: Colors.white, width: 1),
+                                  value: channels.contains(e.key),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      //  classes[0] = value;
+                                      if (value!) {
+                                        channels.add(e.key);
+                                        print('Added ${e.key}');
+                                      } else {
+                                        channels.remove(e.key);
+                                      }
+                                      //print(channels);
+                                    });
+                                  },
+                                ),
+                                Text(e.key,
+                                    style: const TextStyle(color: Colors.white))
+                              ]))
+                          .toList()),
                   const SizedBox(height: 10),
                   Text(
                     errorText,
@@ -5617,7 +5552,11 @@ class _PostItPageState extends State<PostItPage> {
 
                             bool imgSub = false;
 
-                            for (int i = 0; i < channels.length; i++) {
+                            String imgLink = _file != null
+                                ? "${Misc.link}/${Misc.appName}/imgs/$name.$format"
+                                : "";
+
+                            for (String channel in channels) {
                               try {
                                 if (!imgSub && _file != null) {
                                   await uploadImage(_file, name);
@@ -5630,30 +5569,18 @@ class _PostItPageState extends State<PostItPage> {
                                 var url = Uri.parse(
                                     '${Misc.link}/${Misc.appName}/insertposts.php');
                                 final response;
-                                if (_file != null) {
-                                  response = await http.post(url, body: {
-                                    "title": _postTitleController.value.text,
-                                    "channel": channels[i],
-                                    "body": _postController.value.text,
-                                    "owner": globalMap["first_name"] +
-                                        " " +
-                                        globalMap["last_name"],
-                                    "owid": globalMap['id'].toString(),
-                                    "link":
-                                        "${Misc.link}/${Misc.appName}/imgs/$name.$format"
-                                  });
-                                } else {
-                                  response = await http.post(url, body: {
-                                    "title": _postTitleController.value.text,
-                                    "channel": channels[i],
-                                    "body": _postController.value.text,
-                                    "owner": globalMap["first_name"] +
-                                        " " +
-                                        globalMap["last_name"],
-                                    "owid": globalMap['id'].toString(),
-                                    "link": ""
-                                  });
-                                }
+
+                                response = await http.post(url, body: {
+                                  "title": _postTitleController.value.text,
+                                  "channel": channel,
+                                  "body": _postController.value.text,
+                                  "owner": globalMap["first_name"] +
+                                      " " +
+                                      globalMap["last_name"],
+                                  "owid": globalMap['id'].toString(),
+                                  "link": imgLink
+                                });
+
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
                                   if (jsondata["error"]) {
@@ -5669,7 +5596,7 @@ class _PostItPageState extends State<PostItPage> {
                                             '${Misc.link}/${Misc.appName}/notifications.php');
                                         final response2 =
                                             await http.post(ulr2, body: {
-                                          "channel": channels[i],
+                                          "channel": channel,
                                           "owner": globalMap["first_name"] +
                                               " " +
                                               globalMap["last_name"],

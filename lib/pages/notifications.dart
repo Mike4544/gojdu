@@ -421,6 +421,8 @@ class AlertContainer extends StatelessWidget {
                           Container(
                             height: 30,
                             width: 30,
+                            decoration: const BoxDecoration(
+                                shape: BoxShape.circle, color: ColorsB.gray800),
                             child: const Center(
                               child: FittedBox(
                                 child: Icon(
@@ -429,8 +431,6 @@ class AlertContainer extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            decoration: const BoxDecoration(
-                                shape: BoxShape.circle, color: ColorsB.gray800),
                           )
                       ],
                     ),

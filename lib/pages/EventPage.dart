@@ -455,6 +455,10 @@ class _PostEventState extends State<PostEvent> {
                               String mapsLink = isCustom
                                   ? ""
                                   : "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}";
+
+                              String imgLink = _file != null
+                                  ? "${Misc.link}/${Misc.appName}/imgs/$name.$format"
+                                  : '';
                               //print(channels[i]);
 
                               //print(_file);
@@ -462,38 +466,20 @@ class _PostEventState extends State<PostEvent> {
                               var url = Uri.parse(
                                   '${Misc.link}/${Misc.appName}/insertEvent.php');
                               final response;
-                              if (_file != null) {
-                                response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": finalLocation,
-                                  "date": DateFormat('dd/MM/yyyy')
-                                      .format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] +
-                                      " " +
-                                      widget.gMap["last_name"],
-                                  "owid": owid.toString(),
-                                  "link":
-                                      "${Misc.link}/${Misc.appName}/imgs/$name.$format",
-                                  'dateTime': pickedDate.toIso8601String(),
-                                  "maps_link": mapsLink
-                                });
-                              } else {
-                                response = await http.post(url, body: {
-                                  "title": _postTitleController.value.text,
-                                  "location": finalLocation,
-                                  "date": DateFormat('dd/MM/yyyy')
-                                      .format(pickedDate),
-                                  "body": _postController.value.text,
-                                  "owner": widget.gMap["first_name"] +
-                                      " " +
-                                      widget.gMap["last_name"],
-                                  "owid": owid.toString(),
-                                  "link": "",
-                                  'dateTime': pickedDate.toIso8601String(),
-                                  "maps_link": mapsLink
-                                });
-                              }
+                              response = await http.post(url, body: {
+                                "title": _postTitleController.value.text,
+                                "location": finalLocation,
+                                "date":
+                                    DateFormat('dd/MM/yyyy').format(pickedDate),
+                                "body": _postController.value.text,
+                                "owner": widget.gMap["first_name"] +
+                                    " " +
+                                    widget.gMap["last_name"],
+                                "owid": owid.toString(),
+                                "link": imgLink,
+                                'dateTime': pickedDate.toIso8601String(),
+                                "maps_link": mapsLink
+                              });
                               print(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);

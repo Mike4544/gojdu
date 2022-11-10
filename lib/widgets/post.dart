@@ -553,9 +553,7 @@ class Comment extends StatefulWidget {
   static Comment fromJson(Map json, Map gMap, Function delete) => Comment(
         id: json['id'],
         likes: json['likes'],
-        likesBool: json['lby'] != null
-            ? (json['lby'] as String).split(';').contains(gMap['id'].toString())
-            : false,
+        likesBool: json['userLiked'] >= 1,
         ownerId: json['ownerID'],
         owner: json['owner'],
         body: json['body'],

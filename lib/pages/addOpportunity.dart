@@ -62,6 +62,7 @@ class _AddOpportunityState extends State<AddOpportunity> {
 
   @override
   void dispose() {
+    _customLocation.dispose();
     _postController.dispose();
     _postTitleController.dispose();
     _locationController.dispose();
