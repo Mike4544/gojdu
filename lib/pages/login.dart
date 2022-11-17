@@ -289,26 +289,209 @@ class _LoginState extends State<Login> {
           "token": token,
         }).timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
-          var jsondata = json.decode(response.body);
-          if (jsondata["error"]) {
-            setState(() {
-              isLoggingIn = false;
-              nameError = jsondata["message"];
-            });
+          var jsondata1 = json.decode(response.body);
+          print(jsondata1);
+          if (jsondata1["error"]) {
+            if (jsondata1['message'] ==
+                'Your account is still pending. Check your email and activate it.') {
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    TextEditingController _code = TextEditingController();
+                    GlobalKey _formKey1 = GlobalKey<FormState>();
+
+                    return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        backgroundColor: ColorsB.gray900,
+                        title: Column(
+                          children: const [
+                            Text(
+                              'Verify your email',
+                              style: TextStyle(
+                                  color: ColorsB.yellow500, fontSize: 15),
+                            ),
+                            Divider(
+                              color: ColorsB.yellow500,
+                              thickness: 1,
+                              height: 10,
+                            )
+                          ],
+                        ),
+                        content: SizedBox(
+                          height: 250,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'A code has been sent to your email. Please enter it here and verify your account!',
+                                style: TextStyle(
+                                    color: ColorsB.yellow500, fontSize: 15),
+                              ),
+                              const SizedBox(height: 10),
+                              Form(
+                                key: _formKey1,
+                                child: TextFormField(
+                                  cursorColor: ColorsB.yellow500,
+                                  controller: _code,
+                                  decoration: InputDecoration(
+                                      filled: true,
+                                      labelText: "Enter Code",
+                                      floatingLabelBehavior:
+                                          FloatingLabelBehavior.never,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 7.5),
+                                      fillColor: ColorsB.gray200,
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(50),
+                                          borderSide: BorderSide.none)),
+                                  validator: (pwrd) {
+                                    if (pwrd!.isEmpty) {
+                                      return "This field cannot be empty.";
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              InkWell(
+                                onTap: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    var url = Uri.parse(
+                                        '${Misc.link}/${Misc.appName}/verify_accounts.php');
+                                    final response = await http.post(url,
+                                        body: {
+                                          'email': _nameController.value.text,
+                                          'code': _code.text
+                                        });
+                                    print(response.statusCode);
+                                    if (response.statusCode == 200) {
+                                      var jsondata = json.decode(response.body);
+                                      //  print(jsondata);
+                                      if (jsondata['success']) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          backgroundColor: ColorsB.yellow500,
+                                          content: Text(
+                                            'Account verified!',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontFamily: 'Nunito'),
+                                          ),
+                                        ));
+
+                                        await Future.delayed(
+                                            const Duration(milliseconds: 500));
+                                        await _firebaseMessaging
+                                            .subscribeToTopic(
+                                                jsondata["account"].toString());
+                                        await _firebaseMessaging
+                                            .subscribeToTopic('all');
+
+                                        String fn =
+                                            jsondata1["first_name"].toString();
+                                        String ln =
+                                            jsondata1["last_name"].toString();
+                                        String email =
+                                            jsondata1["email"].toString();
+                                        String acc_type =
+                                            jsondata1["account"].toString();
+
+                                        final loginMap = {
+                                          'first_name': fn,
+                                          'last_name': ln,
+                                          'email': email,
+                                          'account': acc_type,
+                                          'verification': 'Verified',
+                                          'id': jsondata['id'],
+                                        };
+
+                                        await prefs2.setString('email', email);
+                                        await prefs2.setString('password',
+                                            _passController.value.text);
+                                        await prefs2.setString(
+                                            'first_name', fn);
+                                        await prefs2.setString('last_name', ln);
+                                        await prefs2.setString(
+                                            'type', acc_type);
+
+                                        Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => NewsPage(
+                                                      data: loginMap,
+                                                      newlyCreated: true,
+                                                    )));
+                                      }
+                                      if (jsondata['error']) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          backgroundColor: Colors.red,
+                                          content: Text(
+                                            'The code might be incorrect!',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontFamily: 'Nunito'),
+                                          ),
+                                        ));
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                        backgroundColor: Colors.red,
+                                        content: Text(
+                                          'Something went wrong!',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontFamily: 'Nunito'),
+                                        ),
+                                      ));
+                                    }
+                                  }
+
+                                  //  logoff(context);
+                                },
+                                borderRadius: BorderRadius.circular(30),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    color: ColorsB.yellow500,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  height: 50,
+                                  width: 75,
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ));
+                  });
+            } else {
+              setState(() {
+                isLoggingIn = false;
+                nameError = jsondata1["message"];
+              });
+            }
           } else {
-            if (jsondata["success"]) {
+            if (jsondata1["success"]) {
               //save the data returned from server
               //and navigate to home page
-              String fn = jsondata["first_name"].toString();
-              String ln = jsondata["last_name"].toString();
-              String email = jsondata["email"].toString();
-              String acc_type = jsondata["account"].toString();
+              String fn = jsondata1["first_name"].toString();
+              String ln = jsondata1["last_name"].toString();
+              String email = jsondata1["email"].toString();
+              String acc_type = jsondata1["account"].toString();
               //String acc_type = 'Teacher';
 
               // print(ln);
               // print(fn);
               // print(email);
-              print(jsondata["token"]);
+              print(jsondata1["token"]);
 
               await prefs2.setString('email', email);
               await prefs2.setString('password', _passController.value.text);
@@ -318,13 +501,8 @@ class _LoginState extends State<Login> {
 
               print(
                   "The name is ${_nameController.value.text} and the password is ${_passController.value.text}");
-              //TODO: D: Send info to the server - Darius fa-ti magia
-              //TODO: M: Make page transition animation
-              /*TODO: M/D: Make a 'remember me' check.
-                                          We wouldn't want to make the users uncomfy UwU
-                                   */
 
-              await _firebaseMessaging.subscribeToTopic(acc_type + 's');
+              await _firebaseMessaging.subscribeToTopic('${acc_type}s');
               await _firebaseMessaging.subscribeToTopic('all');
 
               setState(() {
@@ -336,8 +514,8 @@ class _LoginState extends State<Login> {
                 'last_name': ln,
                 'email': email,
                 'account': acc_type,
-                'verification': jsondata['verification'],
-                'id': jsondata['id'],
+                'verification': jsondata1['verification'],
+                'id': jsondata1['id'],
               };
 
               loginInfo = loginMap;

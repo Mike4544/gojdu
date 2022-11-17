@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/settings.dart';
+import 'package:gojdu/pages/threads.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -120,9 +121,7 @@ class _NewsPageState extends State<NewsPage> {
   ConnectivityResult? connectionStatus, lastConnectionStatus;
   late StreamSubscription subscription;
 
-  final PageController _pageController = PageController(
-    initialPage: 0,
-  );
+  late final PageController _pageController;
 
   void checkConnectivity() {
     if (connectionStatus == ConnectivityResult.none) {
@@ -316,6 +315,9 @@ class _NewsPageState extends State<NewsPage> {
     await AlertDatabase.instance.create(alert);
   }
 
+  late List<String> curvedAppBarLabels;
+  late List<PageDescription> curvedAppBarDescriptions;
+
   @override
   void initState() {
     //  refreshAlerts();
@@ -445,8 +447,6 @@ class _NewsPageState extends State<NewsPage> {
 
     //  _loaded = false;
 
-    super.initState();
-
     // Listening for the notifications
 
     // <---------- Load the acc type -------------->
@@ -488,6 +488,47 @@ class _NewsPageState extends State<NewsPage> {
         key2: bar2Key,
       )
     ];
+
+    curvedAppBarLabels = globalMap['account'] != 'Student'
+        ? ['News', 'Activities', 'Trends & Offers', 'Menus']
+        : ['Threads', 'News', 'Activities', 'Trends & Offers', 'Menus'];
+
+    //  @threads thingys
+    curvedAppBarDescriptions = [
+      const PageDescription(
+          title: 'News',
+          description:
+              'Here you are able to see the latest school anouncements and events!'),
+      const PageDescription(
+          title: 'Activities',
+          description:
+              'See the latest local activities available to you, as well as special opportunities such as internships!'),
+      const PageDescription(
+          title: 'Trends & Offers',
+          description:
+              'Be the first to know about the latest products companies are ready to show you.'),
+      const PageDescription(
+          title: 'Menus',
+          description:
+              'Navigate through the plethora of other settings the app has.'),
+    ];
+
+    startingIndex = 0;
+
+    if (globalMap['account'] == 'Student') {
+      startingIndex = 1;
+      pages.insert(0, const Threads());
+      curvedAppBarDescriptions.insert(
+          0, const PageDescription(title: 'Threads', description: 'TBA'));
+    }
+
+    _currentIndex = startingIndex;
+
+    _pageController = PageController(
+      initialPage: startingIndex,
+    );
+
+    super.initState();
     //Initialising the navbar icons -
   }
 
@@ -644,25 +685,8 @@ class _NewsPageState extends State<NewsPage> {
         resizeToAvoidBottomInset: true,
         key: _scaffoldKey,
         appBar: CurvedAppbar(
-          descriptions: const [
-            PageDescription(
-                title: 'News',
-                description:
-                    'Here you are able to see the latest school anouncements and events!'),
-            PageDescription(
-                title: 'Activities',
-                description:
-                    'See the latest local activities available to you, as well as special opportunities such as internships!'),
-            PageDescription(
-                title: 'Trends & Offers',
-                description:
-                    'Be the first to know about the latest products companies are ready to show you.'),
-            PageDescription(
-                title: 'Menus',
-                description:
-                    'Navigate through the plethora of other settings the app has.'),
-          ],
-          names: const ['News', 'Activities', 'Trends & Offers', 'Menus'],
+          descriptions: curvedAppBarDescriptions,
+          names: curvedAppBarLabels,
           nameIndex: _currentIndex,
           accType: globalMap['account'] + ' account',
           position: 1,
@@ -680,88 +704,7 @@ class _NewsPageState extends State<NewsPage> {
         ));
   }
 
-  // Future swap(int first, int second) async {
-  //   //  List<Widget> newPages = [];
-
-  //   //  newPages.addAll(list);
-
-  //   if (first != second) {
-  //     //  list[first] = list[second];
-
-  //     setState(() {
-  //       pages[first] = pages[second];
-  //     });
-  //   }
-
-  //   //  setState(() {});
-  // }
-
-  // // void reset() {
-  // //   setState(() {
-  // //     pages = [
-  // //       Announcements(
-  // //         key: _announcementsKey,
-  // //       ),
-  // //       OpportunitiesList(globalMap: globalMap),
-  // //       OffersPage(
-  // //         globalMap: globalMap,
-  // //       ),
-  // //       MenuTabs(
-  // //         pages: [
-  // //           SettingsPage(
-  // //             type: globalMap['account'],
-  // //             key: const ValueKey(1),
-  // //             context: context,
-  // //           ),
-  // //           const MapPage(key: ValueKey(2)),
-  // //           const Calendar(key: ValueKey(3)),
-  // //           const Notes(),
-  // //           AlertPage(gMap: globalMap),
-  // //           MyTimetable(
-  // //             globalMap: globalMap,
-  // //           ),
-  // //           const FeedbackPage(),
-  // //         ],
-  // //         map: globalMap,
-  // //         notif: haveNew,
-  // //         update: () {
-  // //           setState(() {});
-  // //         },
-  // //         key2: bar2Key,
-  // //       )
-  // //     ];
-  // //   });
-  // // }
-
-  // void flashAnimateToPage(List<Widget> pages, int newIndex) async {
-  //   int currentIndex = _pageController.page!.round();
-
-  //   int nextIndex =
-  //       newIndex > currentIndex ? currentIndex + 1 : currentIndex - 1;
-
-  //   await swap(pages, nextIndex, newIndex);
-
-  //   debugPrint('\x1B[35mCURRENT INDEX: $currentIndex\x1B[35m');
-  //   debugPrint('\x1B[35mNEXT INDEX: $nextIndex\x1B[35m');
-  //   debugPrint('\x1B[35mNEW INDEX: $newIndex\x1B[35m');
-
-  //   debugPrint('\x1B[37mPRINTED: $pages\x1B[37m');
-
-  //   //  setState(() {});
-
-  //   _pageController
-  //       .animateToPage(nextIndex,
-  //           duration: const Duration(milliseconds: 500), curve: Curves.ease)
-  //       .then((e) => swap(nextIndex, newIndex));
-
-  //   //  _pageController.jumpToPage(newIndex);
-
-  //   // WidgetsBinding.instance.addPostFrameCallback((t) {
-  //   //   reset();
-  //   //   debugPrint('\x1B[33mBACK:$pages\x1B[33m');
-  //   // });
-  //   //  _pageController.jumpToPage(nextIndex);
-  // }
+  late int startingIndex;
 
   Widget _bottomNavBar() {
     List<Widget> _buttons = [
@@ -776,12 +719,12 @@ class _NewsPageState extends State<NewsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Icon(Icons.announcement,
-                            color: _currentIndex == 0
+                            color: _currentIndex == startingIndex
                                 ? ColorsB.yellow500
                                 : Colors.white),
                         Text('News',
                             style: TextStyle(
-                                color: _currentIndex == 0
+                                color: _currentIndex == startingIndex
                                     ? ColorsB.yellow500
                                     : Colors.white,
                                 fontSize: 7.5)),
@@ -789,7 +732,7 @@ class _NewsPageState extends State<NewsPage> {
                   onTap: () async {
                     //  _mapExpandAnim(_announcementsInput);
                     setState(() {
-                      _currentIndex = 0;
+                      _currentIndex = startingIndex;
                       //  changeColors(_currentIndex);
                     });
 
@@ -816,19 +759,19 @@ class _NewsPageState extends State<NewsPage> {
               child: GestureDetector(
                   child: Column(children: [
                     Icon(Icons.apartment_rounded,
-                        color: _currentIndex == 1
+                        color: _currentIndex == startingIndex + 1
                             ? ColorsB.yellow500
                             : Colors.white),
                     Text('Activities',
                         style: TextStyle(
-                            color: _currentIndex == 1
+                            color: _currentIndex == startingIndex + 1
                                 ? ColorsB.yellow500
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
                   onTap: () async {
                     setState(() {
-                      _currentIndex = 1;
+                      _currentIndex = startingIndex + 1;
                       //  changeColors(_currentIndex);
                     });
 
@@ -853,19 +796,19 @@ class _NewsPageState extends State<NewsPage> {
               child: GestureDetector(
                   child: Column(children: [
                     Icon(Icons.local_activity_rounded,
-                        color: _currentIndex == 2
+                        color: _currentIndex == startingIndex + 2
                             ? ColorsB.yellow500
                             : Colors.white),
                     Text('Trends & Offers',
                         style: TextStyle(
-                            color: _currentIndex == 2
+                            color: _currentIndex == startingIndex + 2
                                 ? ColorsB.yellow500
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
                   onTap: () async {
                     setState(() {
-                      _currentIndex = 2;
+                      _currentIndex = startingIndex + 2;
                       //  changeColors(_currentIndex);
                     });
 
@@ -890,19 +833,19 @@ class _NewsPageState extends State<NewsPage> {
               child: GestureDetector(
                   child: Column(children: [
                     Icon(Icons.apps,
-                        color: _currentIndex == 3
+                        color: _currentIndex == startingIndex + 3
                             ? ColorsB.yellow500
                             : Colors.white),
                     Text('Menus',
                         style: TextStyle(
-                            color: _currentIndex == 3
+                            color: _currentIndex == startingIndex + 3
                                 ? ColorsB.yellow500
                                 : Colors.white,
                             fontSize: 7.5))
                   ]),
                   onTap: () async {
                     setState(() {
-                      _currentIndex = 3;
+                      _currentIndex = startingIndex + 3;
                       //  changeColors(_currentIndex);
                     });
 
@@ -1169,6 +1112,51 @@ class _NewsPageState extends State<NewsPage> {
                           });
                     },
                   ),
+                ),
+              ),
+            ),
+          ));
+    } else if (globalMap['account'] == 'Student') {
+      _buttons.insert(
+          0,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: SizedBox(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: GestureDetector(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Icon(Icons.add_comment_rounded,
+                                color: _currentIndex == startingIndex - 1
+                                    ? ColorsB.yellow500
+                                    : Colors.white),
+                            Text('News',
+                                style: TextStyle(
+                                    color: _currentIndex == startingIndex - 1
+                                        ? ColorsB.yellow500
+                                        : Colors.white,
+                                    fontSize: 7.5)),
+                          ]),
+                      onTap: () async {
+                        //  _mapExpandAnim(_announcementsInput);
+                        setState(() {
+                          _currentIndex = 0;
+                          //  changeColors(_currentIndex);
+                        });
+
+                        await Future.delayed(const Duration(milliseconds: 100));
+
+                        _pageController.jumpToPage(
+                          _currentIndex,
+                          // duration: const Duration(milliseconds: 500),
+                          // curve: Curves.ease
+                        );
+
+                        // flashAnimateToPage(pages, _currentIndex);
+                      }),
                 ),
               ),
             ),

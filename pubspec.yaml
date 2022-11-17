@@ -72,6 +72,10 @@ dependencies:
   rxdart: ^0.27.5
   back_button_interceptor: ^6.0.2
   timeago: ^3.3.0
+  lottie: ^2.0.0
+  flutter_gif: ^0.0.4
+  video_player: ^2.4.7
+  native_video_view: ^1.0.5
 
 flutter_native_splash:
   color: '#1A202C'
