@@ -17,25 +17,20 @@ class Threads extends StatefulWidget {
 class _ThreadsState extends State<Threads> with SingleTickerProviderStateMixin {
   late final AssetImage _placeholder;
 
-  late Tween<Offset> _floatIn;
-  late Animation<Offset> _anim;
-  late AnimationController _animationCtrl;
+  late double position;
 
   Future _startAnim() async {
     await Future.delayed(const Duration(seconds: 7));
-    _animationCtrl.forward();
+    setState(() {
+      position = MediaQuery.of(context).size.height * .1;
+    });
   }
 
   @override
   void initState() {
     _placeholder = const AssetImage("assets/threadsHolder.gif");
 
-    _floatIn =
-        Tween<Offset>(begin: const Offset(0, 20), end: const Offset(0, 3.25));
-    _animationCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
-    _anim = _floatIn.animate(
-        CurvedAnimation(parent: _animationCtrl, curve: Curves.decelerate));
+    position = -500;
 
     super.initState();
 
@@ -45,7 +40,7 @@ class _ThreadsState extends State<Threads> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _placeholder.evict();
-    _animationCtrl.dispose();
+
     super.dispose();
   }
 
@@ -62,8 +57,10 @@ class _ThreadsState extends State<Threads> with SingleTickerProviderStateMixin {
                 image: _placeholder,
               ),
             ),
-            SlideTransition(
-              position: _anim,
+            AnimatedPositioned(
+              bottom: position,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOut,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 100),
                 child: LoadingBar(
@@ -128,9 +125,9 @@ class _LoadingBarState extends State<LoadingBar> {
                         color: Colors.white,
                         boxShadow: const [
                           BoxShadow(
-                              color: Colors.black,
+                              color: Colors.black54,
                               offset: Offset(0, -3),
-                              blurRadius: 10)
+                              blurRadius: 25)
                         ]),
                     child: Padding(
                       padding: const EdgeInsets.all(7.5),

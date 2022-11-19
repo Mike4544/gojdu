@@ -47,6 +47,15 @@ import './local_notif_service.dart';
 String type = '';
 
 Future<void> main() async {
+
+  SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+
+
+
+
   final LocalNotificationService _locNotifs = LocalNotificationService();
   WidgetsFlutterBinding.ensureInitialized();
 

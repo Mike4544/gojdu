@@ -776,37 +776,56 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  height: screenHeight * .05,
-                                  width: screenHeight * .05,
-                                  child: ColorFiltered(
-                                    colorFilter: const ColorFilter.mode(
-                                        Colors.white, BlendMode.srcATop),
-                                    child: Image.network(widget.logoLink),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Text(
-                                  widget.title,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                      color:
-                                          ThemeData.estimateBrightnessForColor(
-                                                      widget.color!) ==
+                        Container(
+                          constraints:
+                              BoxConstraints(maxHeight: screenHeight * .2),
+                          decoration: BoxDecoration(
+                              color: ColorsB.gray900,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black12,
+                                    offset: Offset(4, 4),
+                                    blurRadius: 10)
+                              ]),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: SizedBox(
+                                        height: screenHeight * .05,
+                                        width: screenHeight * .05,
+                                        child: ColorFiltered(
+                                          colorFilter: const ColorFilter.mode(
+                                              Colors.white, BlendMode.srcATop),
+                                          child: Image.network(widget.logoLink),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      widget.title,
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                          color: ThemeData
+                                                      .estimateBrightnessForColor(
+                                                          widget.color!) ==
                                                   Brightness.light
                                               ? ColorsB.gray900
                                               : Colors.white,
-                                      fontSize: 30.sp,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            )),
+                                          fontSize: 30.sp,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                )),
+                          ),
+                        ),
                       ],
                     ),
                     Column(

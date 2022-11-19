@@ -84,7 +84,9 @@ late bool loaded;
 
 late Map globalMap;
 
-final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+int currSelect = 0;
+
+GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 // List<Floor> floors = [
 //   // Floor(floor: 'parter', file: 'parter.png'),
@@ -100,8 +102,8 @@ List<String> sizes = [];
 List<Alert>? alerts;
 bool haveNew = false;
 
-final bar1Key = GlobalKey();
-final bar2Key = GlobalKey();
+var bar1Key = GlobalKey();
+var bar2Key = GlobalKey();
 
 // <---------- Height and width outside of context -------------->
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
@@ -315,8 +317,8 @@ class _NewsPageState extends State<NewsPage> {
     await AlertDatabase.instance.create(alert);
   }
 
-  late List<String> curvedAppBarLabels;
-  late List<PageDescription> curvedAppBarDescriptions;
+  // late List<String> curvedAppBarLabels;
+  // late List<PageDescription> curvedAppBarDescriptions;
 
   @override
   void initState() {
@@ -432,6 +434,15 @@ class _NewsPageState extends State<NewsPage> {
         }
       }
 
+      if (message.data['type'] == 'Event') {
+        if (_announcementsKey.currentState != null) {
+          setState(() {
+            currSelect = 1;
+            _eventCtrl.jumpToPage(currSelect);
+          });
+        }
+      }
+
       if (message.data['type'] == 'Report') {
         await setBall(true);
 
@@ -456,81 +467,65 @@ class _NewsPageState extends State<NewsPage> {
     //  <-----------  Loaded  ------------------>
     loaded = false;
 
-    pages = [
-      Announcements(
-        key: _announcementsKey,
-      ),
-      OpportunitiesList(globalMap: globalMap),
-      OffersPage(
-        globalMap: globalMap,
-      ),
-      MenuTabs(
-        pages: [
-          SettingsPage(
-            type: globalMap['account'],
-            key: const ValueKey(1),
-            context: context,
-          ),
-          const MapPage(key: ValueKey(2)),
-          const Calendar(key: ValueKey(3)),
-          const Notes(),
-          AlertPage(gMap: globalMap),
-          MyTimetable(
-            globalMap: globalMap,
-          ),
-          const FeedbackPage(),
-        ],
-        map: globalMap,
-        notif: haveNew,
-        update: () {
-          setState(() {});
-        },
-        key2: bar2Key,
-      )
-    ];
-
-    curvedAppBarLabels = globalMap['account'] != 'Student'
-        ? ['News', 'Activities', 'Trends & Offers', 'Menus']
-        : ['Threads', 'News', 'Activities', 'Trends & Offers', 'Menus'];
-
-    //  @threads thingys
-    curvedAppBarDescriptions = [
-      const PageDescription(
-          title: 'News',
-          description:
-              'Here you are able to see the latest school anouncements and events!'),
-      const PageDescription(
-          title: 'Activities',
-          description:
-              'See the latest local activities available to you, as well as special opportunities such as internships!'),
-      const PageDescription(
-          title: 'Trends & Offers',
-          description:
-              'Be the first to know about the latest products companies are ready to show you.'),
-      const PageDescription(
-          title: 'Menus',
-          description:
-              'Navigate through the plethora of other settings the app has.'),
-    ];
+    // curvedAppBarLabels = globalMap['account'] != 'Student'
+    //     ? ['News', 'Activities', 'Trends & Offers', 'Menus']
+    //     : ['Threads', 'News', 'Activities', 'Trends & Offers', 'Menus'];
 
     startingIndex = 0;
 
-    if (globalMap['account'] == 'Student') {
-      startingIndex = 1;
-      pages.insert(0, const Threads());
-      curvedAppBarDescriptions.insert(
-          0, const PageDescription(title: 'Threads', description: 'TBA'));
-    }
+    // if (globalMap['account'] == 'Student') {
+    //   //  pages.insert(0, const Threads());
+    //   curvedAppBarDescriptions.insert(
+    //       0, const PageDescription(title: 'Threads', description: 'TBA'));
+    // }
 
+    //  @PLACEHOLDER STUDENTS
+
+    startingIndex = 1;
     _currentIndex = startingIndex;
 
     _pageController = PageController(
       initialPage: startingIndex,
     );
 
+    currSelect = 0;
+
+    _eventCtrl = PageController(initialPage: currSelect);
+
     super.initState();
     //Initialising the navbar icons -
   }
+
+  //  @threads thingys
+  final List<PageDescription> curvedAppBarDescriptions = [
+    const PageDescription(title: 'Threads', description: 'TBA'),
+    const PageDescription(
+        title: 'News',
+        description:
+            'Here you are able to see the latest school anouncements and events!'),
+    const PageDescription(
+        title: 'Activities',
+        description:
+            'See the latest local activities available to you, as well as special opportunities such as internships!'),
+    const PageDescription(
+        title: 'Trends & Offers',
+        description:
+            'Be the first to know about the latest products companies are ready to show you.'),
+    const PageDescription(
+        title: 'Menus',
+        description:
+            'Navigate through the plethora of other settings the app has.'),
+  ];
+
+  final List<String> curvedAppBarLabels = [
+    'Threads',
+    'News',
+    'Activities',
+    'Trends & Offers',
+    'Menus'
+  ];
+
+  late final PageController _eventCtrl;
 
   //  late bool _loaded;
 
@@ -543,6 +538,7 @@ class _NewsPageState extends State<NewsPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _eventCtrl.dispose();
     globalMap.clear();
     lastConnectionStatus = null;
     connectionStatus = null;
@@ -671,7 +667,7 @@ class _NewsPageState extends State<NewsPage> {
     }
   }
 
-  late List<Widget> pages;
+  //  late List<Widget> pages;
 
   @override
   Widget build(BuildContext context) {
@@ -683,7 +679,7 @@ class _NewsPageState extends State<NewsPage> {
 
     return Scaffold(
         resizeToAvoidBottomInset: true,
-        key: _scaffoldKey,
+        //  key: _scaffoldKey,
         appBar: CurvedAppbar(
           descriptions: curvedAppBarDescriptions,
           names: curvedAppBarLabels,
@@ -700,7 +696,40 @@ class _NewsPageState extends State<NewsPage> {
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
-          children: pages,
+          children: [
+            const Threads(),
+            Announcements(
+              eventCtrl: _eventCtrl,
+              key: _announcementsKey,
+            ),
+            OpportunitiesList(globalMap: globalMap),
+            OffersPage(
+              globalMap: globalMap,
+            ),
+            MenuTabs(
+              pages: [
+                SettingsPage(
+                  type: globalMap['account'],
+                  key: const ValueKey(1),
+                  context: context,
+                ),
+                const MapPage(key: ValueKey(2)),
+                MyTimetable(
+                  globalMap: globalMap,
+                ),
+                AlertPage(gMap: globalMap),
+                const Calendar(key: ValueKey(3)),
+                const Notes(),
+                const FeedbackPage(),
+              ],
+              map: globalMap,
+              notif: haveNew,
+              update: () {
+                setState(() {});
+              },
+              key2: bar2Key,
+            )
+          ],
         ));
   }
 
@@ -708,6 +737,48 @@ class _NewsPageState extends State<NewsPage> {
 
   Widget _bottomNavBar() {
     List<Widget> _buttons = [
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: SizedBox(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: GestureDetector(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(Icons.add_comment_rounded,
+                            color: _currentIndex == startingIndex - 1
+                                ? ColorsB.yellow500
+                                : Colors.white),
+                        Text('Threads',
+                            style: TextStyle(
+                                color: _currentIndex == startingIndex - 1
+                                    ? ColorsB.yellow500
+                                    : Colors.white,
+                                fontSize: 7.5)),
+                      ]),
+                  onTap: () async {
+                    //  _mapExpandAnim(_announcementsInput);
+                    setState(() {
+                      _currentIndex = 0;
+                      //  changeColors(_currentIndex);
+                    });
+
+                    await Future.delayed(const Duration(milliseconds: 150));
+
+                    _pageController.jumpToPage(
+                      _currentIndex,
+                      // duration: const Duration(milliseconds: 500),
+                      // curve: Curves.ease
+                    );
+
+                    // flashAnimateToPage(pages, _currentIndex);
+                  }),
+            ),
+          ),
+        ),
+      ),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -736,7 +807,7 @@ class _NewsPageState extends State<NewsPage> {
                       //  changeColors(_currentIndex);
                     });
 
-                    await Future.delayed(const Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 150));
 
                     _pageController.jumpToPage(
                       _currentIndex,
@@ -775,7 +846,7 @@ class _NewsPageState extends State<NewsPage> {
                       //  changeColors(_currentIndex);
                     });
 
-                    await Future.delayed(const Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 150));
 
                     _pageController.jumpToPage(
                       _currentIndex,
@@ -812,7 +883,7 @@ class _NewsPageState extends State<NewsPage> {
                       //  changeColors(_currentIndex);
                     });
 
-                    await Future.delayed(const Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 150));
 
                     _pageController.jumpToPage(
                       _currentIndex,
@@ -849,7 +920,7 @@ class _NewsPageState extends State<NewsPage> {
                       //  changeColors(_currentIndex);
                     });
 
-                    await Future.delayed(const Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 150));
 
                     _pageController.jumpToPage(
                       _currentIndex,
@@ -1116,51 +1187,6 @@ class _NewsPageState extends State<NewsPage> {
               ),
             ),
           ));
-    } else if (globalMap['account'] == 'Student') {
-      _buttons.insert(
-          0,
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: SizedBox(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: GestureDetector(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(Icons.add_comment_rounded,
-                                color: _currentIndex == startingIndex - 1
-                                    ? ColorsB.yellow500
-                                    : Colors.white),
-                            Text('News',
-                                style: TextStyle(
-                                    color: _currentIndex == startingIndex - 1
-                                        ? ColorsB.yellow500
-                                        : Colors.white,
-                                    fontSize: 7.5)),
-                          ]),
-                      onTap: () async {
-                        //  _mapExpandAnim(_announcementsInput);
-                        setState(() {
-                          _currentIndex = 0;
-                          //  changeColors(_currentIndex);
-                        });
-
-                        await Future.delayed(const Duration(milliseconds: 100));
-
-                        _pageController.jumpToPage(
-                          _currentIndex,
-                          // duration: const Duration(milliseconds: 500),
-                          // curve: Curves.ease
-                        );
-
-                        // flashAnimateToPage(pages, _currentIndex);
-                      }),
-                ),
-              ),
-            ),
-          ));
     }
 
     double navHeight = screenHeight * .075 >= 60 ? 60 : screenHeight * .075;
@@ -1198,11 +1224,13 @@ class _NewsPageState extends State<NewsPage> {
 }
 
 // Global key
-final GlobalKey<_AnnouncementsState> _announcementsKey =
+GlobalKey<_AnnouncementsState> _announcementsKey =
     GlobalKey<_AnnouncementsState>();
 
 class Announcements extends StatefulWidget {
-  const Announcements({Key? key}) : super(key: key);
+  //  int currSelect;
+  PageController eventCtrl;
+  Announcements({Key? key, required this.eventCtrl}) : super(key: key);
 
   @override
   _AnnouncementsState createState() => _AnnouncementsState();
@@ -1216,6 +1244,7 @@ int maximumCount = 0;
 
 class _AnnouncementsState extends State<Announcements>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  @override
   bool get wantKeepAlive => true;
 
   var selectedColorS = Colors.white;
@@ -1246,8 +1275,6 @@ class _AnnouncementsState extends State<Announcements>
 
   List<Widget> posts = [];
 
-  late int currSelect;
-
   @override
   void initState() {
     // TODO: implement initState
@@ -1256,7 +1283,7 @@ class _AnnouncementsState extends State<Announcements>
     //  <-------------- Lists ------------->
     posts = [];
 
-    currSelect = 0;
+    //  widget.currSelect = 0;
 
     maximumCount = 0;
     isError = false;
@@ -1296,7 +1323,7 @@ class _AnnouncementsState extends State<Announcements>
           currentChannel = labels[_tabController.index];
         });
       }
-      //  await Future.delayed(Duration(milliseconds:100));
+      //  await Future.delayed(Duration(milliseconds:150));
     });
 
     _currentAnnouncement = 1;
@@ -1318,7 +1345,7 @@ class _AnnouncementsState extends State<Announcements>
     // });
 
     //print(globalMap['account']);
-    _eventCtrl = PageController(initialPage: currSelect);
+    //  widget.eventCtrl = PageController(initialPage: widget.currSelect);
   }
 
   late Future _loadEvents;
@@ -1369,8 +1396,6 @@ class _AnnouncementsState extends State<Announcements>
 
   final style = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
-  late final _eventCtrl;
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -1386,7 +1411,7 @@ class _AnnouncementsState extends State<Announcements>
           children: [
             PostsSwitcher(
                 index: currSelect,
-                ctrl: _eventCtrl,
+                ctrl: widget.eventCtrl,
                 labels: const ['Announcements', 'Events'],
                 icons: const [Icons.announcement, Icons.calendar_month],
                 update: (val) {
@@ -1395,7 +1420,7 @@ class _AnnouncementsState extends State<Announcements>
             SizedBox(
               height: MediaQuery.of(context).size.height,
               child: PageView(
-                controller: _eventCtrl,
+                controller: widget.eventCtrl,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   Column(children: [
@@ -3866,7 +3891,7 @@ class _CalPag1State extends State<CalPag1> {
                           TextEditingController();
 
                       //  Form key
-                      final formKey = GlobalKey<FormState>();
+                      var formKey = GlobalKey<FormState>();
                       var size, errorText;
                       bool clicked = false;
 
@@ -5234,7 +5259,7 @@ class _PostItPageState extends State<PostItPage> {
   late String? _className;
 
   // <---------------  Form key -------------->
-  late final GlobalKey<FormState> _formKey;
+  late GlobalKey<FormState> _formKey;
 
   // Firebase stuff
 

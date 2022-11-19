@@ -21,8 +21,10 @@ import 'package:gojdu/others/options.dart';
 
 class NotifPage extends StatefulWidget {
   final VoidCallback? updateFP;
+  final bool isAdmin;
 
-  const NotifPage({Key? key, this.updateFP}) : super(key: key);
+  const NotifPage({Key? key, this.updateFP, required this.isAdmin})
+      : super(key: key);
 
   @override
   State<NotifPage> createState() => _NotifPageState();
@@ -182,6 +184,7 @@ class _NotifPageState extends State<NotifPage> {
                       itemBuilder: (context, index) {
                         if (alerts!.isNotEmpty) {
                           return AlertContainer(
+                            isAdmin: widget.isAdmin,
                             alert: alerts![index],
                             callback: () async {
                               update(alerts![index]);
@@ -230,12 +233,14 @@ class AlertContainer extends StatelessWidget {
   final Alert alert;
   final VoidCallback callback;
   final VoidCallback share;
+  final bool isAdmin;
 
   const AlertContainer(
       {Key? key,
       required this.alert,
       required this.callback,
-      required this.share})
+      required this.share,
+      required this.isAdmin})
       : super(key: key);
 
   @override
@@ -393,7 +398,7 @@ class AlertContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (!shared)
+                        if (!shared && isAdmin)
                           FittedBox(
                             child: TextButton.icon(
                               icon: const Icon(
@@ -468,28 +473,81 @@ class BigNewsContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget topPage() {
+      BoxDecoration woImage = BoxDecoration(color: color);
+
+      BoxDecoration wImage = BoxDecoration(
+        image: DecorationImage(
+            image: Image.network(
+              imageString!,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+
+                return const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
+              },
+            ).image,
+            fit: BoxFit.cover),
+      );
+
       //print(imageLink);
 
-      if (imageString == 'null') {
-        return Hero(
-          tag: 'title-rectangle',
-          child: Container(
-            width: screenWidth,
-            height: screenHeight * 0.5,
-            color: color,
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
+      return GestureDetector(
+        onTap: imageString == 'null'
+            ? null
+            : () {
+                showDialog(
+                    context: context,
+                    builder: (context) => Material(
+                        color: Colors.transparent,
+                        child: Stack(children: [
+                          Center(
+                            child: InteractiveViewer(
+                                clipBehavior: Clip.none,
+                                child: Image.network(imageString!)),
+                          ),
+                          Positioned(
+                              top: 10,
+                              right: 10,
+                              child: IconButton(
+                                  tooltip: 'Close',
+                                  splashRadius: 25,
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  }))
+                        ])));
+              },
+        child: Container(
+          width: screenWidth,
+          height: screenHeight * 0.5,
+          decoration: imageString == 'null' ? woImage : wImage,
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          constraints:
+                              BoxConstraints(maxHeight: screenHeight * .2),
+                          decoration: BoxDecoration(
+                              color: ColorsB.gray900,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black12,
+                                    offset: Offset(4, 4),
+                                    blurRadius: 10)
+                              ]),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
                             child: Text(
                               title,
                               style: const TextStyle(
@@ -498,98 +556,19 @@ class BigNewsContainer extends StatelessWidget {
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
-                          Text("Alerted by " + author,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                              ))
-                        ],
-                      ),
-                    ],
-                  )),
-            ),
+                        ),
+                        Text("Alerted by " + author,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ))
+                      ],
+                    ),
+                  ],
+                )),
           ),
-        );
-      } else {
-        // Uint8List imagBytes = base64Decode(imageString!);
-
-        return Hero(
-            tag: 'title-rectangle',
-            child: Stack(children: [
-              GestureDetector(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => Material(
-                          color: Colors.transparent,
-                          child: Stack(children: [
-                            Center(
-                              child: InteractiveViewer(
-                                  clipBehavior: Clip.none,
-                                  child: Image.network(imageString!)),
-                            ),
-                            Positioned(
-                                top: 10,
-                                right: 10,
-                                child: IconButton(
-                                    tooltip: 'Close',
-                                    splashRadius: 25,
-                                    icon: const Icon(Icons.close,
-                                        color: Colors.white),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    }))
-                          ])));
-                },
-                child: Container(
-                  width: screenWidth,
-                  height: screenHeight * 0.5,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: Image.network(imageString!).image,
-                        fit: BoxFit.cover),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                child: Container(
-                  width: screenWidth,
-                  height: screenHeight * 0.25,
-                  decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                          colors: [Colors.black, Colors.transparent],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          stops: [0, 0.9])),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text("by " + author,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          ))
-                    ],
-                  ),
-                ),
-              ),
-            ]));
-      }
+        ),
+      );
     }
 
     var device = MediaQuery.of(context);

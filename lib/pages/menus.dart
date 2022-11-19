@@ -78,13 +78,29 @@ class _MenuTabsState extends State<MenuTabs> {
         index: 2,
         update: update,
       ),
+       Tab(
+        color: Colors.teal[200],
+        image: "assets/images/orar.png",
+        description: "Access your school's timetables with a single tap!",
+        title: "Timetables",
+        index: 3,
+        update: update,
+      ),
+      Tab(
+        color: Colors.amber[700],
+        image: "assets/images/Alert.png",
+        description: "The place to notify a teacher about any trouble.",
+        title: "Report a school problem",
+        index: 4,
+        update: update,
+      ),
       Tab(
         color: ColorsB.gray700,
         image: "assets/images/Calendar.png",
         description:
             "Reserve a hall according to your needs.",
         title: "Book a Hall",
-        index: 3,
+        index: 5,
         update: update,
       ),
       Tab(
@@ -93,22 +109,6 @@ class _MenuTabsState extends State<MenuTabs> {
         description:
             "Use this section to remember important matters.",
         title: "School Notes",
-        index: 4,
-        update: update,
-      ),
-      Tab(
-        color: Colors.amber[700],
-        image: "assets/images/Alert.png",
-        description: "The place to notify a teacher about any trouble.",
-        title: "Report a school problem",
-        index: 5,
-        update: update,
-      ),
-      Tab(
-        color: Colors.teal[200],
-        image: "assets/images/orar.png",
-        description: "Access your school's timetables with a single tap!",
-        title: "Timetables",
         index: 6,
         update: update,
       ),

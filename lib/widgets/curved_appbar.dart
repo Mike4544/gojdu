@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/colors.dart';
+import 'package:gojdu/pages/news.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:animations/animations.dart';
 import '../others/options.dart';
@@ -77,7 +78,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
       return GestureDetector(
         onTap: () {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => const NotifPage()));
+              .push(MaterialPageRoute(builder: (context) => NotifPage(isAdmin: globalMap['account'] == 'Admin',)));
         },
         child: SizedBox(
           height: size,
@@ -90,14 +91,14 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
                 Visibility(
                   visible: isActive == true && isActive != null,
                   child: Positioned(
+                    bottom: 0,
+                    right: 0,
                     child: Container(
                       width: size / 2.5 > 10 ? 10 : size / 2.5,
                       height: size / 2.5 > 10 ? 10 : size / 2.5,
                       decoration: const BoxDecoration(
                           color: Colors.red, shape: BoxShape.circle),
                     ),
-                    bottom: 0,
-                    right: 0,
                   ),
                 )
               ],

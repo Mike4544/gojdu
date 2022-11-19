@@ -834,7 +834,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.owner,
+                    '${widget.owner.split(' ').first} ${widget.owner.split(' ').last[0]}.',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.sp,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
+import 'package:gojdu/pages/signup/parent/admin.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
 
 //Importing the signup pages
@@ -115,6 +116,35 @@ class SignupSelect extends StatelessWidget {
                   },
                   child: const Text(
                     'Teacher',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w100,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                      fontSize: 30,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                      backgroundColor: ColorsB.yellow500,
+                      padding: const EdgeInsets.all(12.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      )
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 75,),
+
+
+              SizedBox(
+                width: device.size.width*0.75,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(context, SlideRightRoute(page: AdminSignUp()));
+                  },
+                  child: const Text(
+                    'Admin',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w100,
