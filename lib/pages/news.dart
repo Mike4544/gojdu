@@ -341,100 +341,93 @@ class _NewsPageState extends State<NewsPage> {
       print(message.data['type']);
       print(message.data['type'] == 'Report');
 
-      if (_scaffoldKey.currentState != null) {
-        ScaffoldMessenger.of(context)
-            .hideCurrentSnackBar();
-      }
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       switch (message.data['type']) {
-          case 'Post':
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(
-              content: Row(
-                children: const [
-                  Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'New posts available!',
-                    style: TextStyle(fontFamily: 'Nunito'),
-                  ),
-                ],
-              ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: ColorsB.yellow500,
-            ));
-            break;
+        case 'Post':
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                  size: 17,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'New posts available!',
+                  style: TextStyle(fontFamily: 'Nunito'),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: ColorsB.yellow500,
+          ));
+          break;
 
-          case 'Verify':
-            setState(() {
-              globalMap['verification'] = 'Verified';
-            });
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(
-              content: Row(
-                children: const [
-                  Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'Account verified!',
-                    style: TextStyle(fontFamily: 'Nunito'),
-                  ),
-                ],
-              ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.green,
-            ));
-            break;
+        case 'Verify':
+          setState(() {
+            globalMap['verification'] = 'Verified';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 17,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Account verified!',
+                  style: TextStyle(fontFamily: 'Nunito'),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ));
+          break;
 
-          case 'Report':
-            print('a');
-            await setBall(true);
+        case 'Report':
+          print('a');
+          await setBall(true);
 
-            setState(() {
-              addAlert(message);
-            });
+          setState(() {
+            addAlert(message);
+          });
 
-            HapticFeedback.mediumImpact();
+          HapticFeedback.mediumImpact();
 
-            //  refreshAlerts();
+          //  refreshAlerts();
 
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(
-              content: Row(
-                children: const [
-                  Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'Uh-oh! Somebody used the alert system!',
-                    style: TextStyle(fontFamily: 'Nunito'),
-                  ),
-                ],
-              ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.red,
-            ));
-            break;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 17,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Uh-oh! Somebody used the alert system!',
+                  style: TextStyle(fontFamily: 'Nunito'),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ));
+          break;
 
-          default:
-            print('DEFAULT');
-            break;
-        }
-
+        default:
+          print('DEFAULT');
+          break;
+      }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) async {
