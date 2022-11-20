@@ -610,35 +610,32 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                               print('Can\'t do it chief');
                             }
                           },
-                          child: Flexible(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Chip(
-                                  backgroundColor: ColorsB.gray200,
-                                  label: Text(widget.location),
-                                  avatar:
-                                      const Icon(Icons.location_on_outlined),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Chip(
+                                backgroundColor: ColorsB.gray200,
+                                label: Text(widget.location),
+                                avatar: const Icon(Icons.location_on_outlined),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Visibility(
+                                visible: widget.mapsLink.isNotEmpty,
+                                child: Text(
+                                  'Open in Google Maps',
+                                  style: TextStyle(
+                                      color:
+                                          ThemeData.estimateBrightnessForColor(
+                                                      widget.color!) ==
+                                                  Brightness.light
+                                              ? ColorsB.gray900
+                                              : Colors.white,
+                                      fontSize: 12.5.sp),
                                 ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Visibility(
-                                  visible: widget.mapsLink.isNotEmpty,
-                                  child: Text(
-                                    'Open in Google Maps',
-                                    style: TextStyle(
-                                        color: ThemeData
-                                                    .estimateBrightnessForColor(
-                                                        widget.color!) ==
-                                                Brightness.light
-                                            ? ColorsB.gray900
-                                            : Colors.white,
-                                        fontSize: 12.5.sp),
-                                  ),
-                                )
-                              ],
-                            ),
+                              )
+                            ],
                           ),
                         ),
                         Chip(
