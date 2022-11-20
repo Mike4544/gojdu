@@ -47,14 +47,10 @@ import './local_notif_service.dart';
 String type = '';
 
 Future<void> main() async {
-
-  SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-
-
-
+  // SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.portraitUp,
+  //   DeviceOrientation.portraitDown,
+  // ]);
 
   final LocalNotificationService _locNotifs = LocalNotificationService();
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +68,8 @@ Future<void> main() async {
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final Widget homeWidget = await getPage();
+
+  print('TYPE: $type');
 
   //  await _locNotifs.init();
 

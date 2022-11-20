@@ -338,93 +338,103 @@ class _NewsPageState extends State<NewsPage> {
     });
 
     FirebaseMessaging.onMessage.listen((message) async {
+      print(message.data['type']);
+      print(message.data['type'] == 'Report');
+
       if (_scaffoldKey.currentState != null) {
-        ScaffoldMessenger.of(_scaffoldKey.currentContext!)
+        ScaffoldMessenger.of(context)
             .hideCurrentSnackBar();
-
-        if (message.data['type'] == 'Post') {
-          ScaffoldMessenger.of(_scaffoldKey.currentContext!)
-              .showSnackBar(SnackBar(
-            content: Row(
-              children: const [
-                Icon(
-                  Icons.notifications,
-                  color: Colors.white,
-                  size: 17,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'New posts available!',
-                  style: TextStyle(fontFamily: 'Nunito'),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: ColorsB.yellow500,
-          ));
-        }
-
-        if (message.data['type'] == 'Verify') {
-          //_scaffoldKey.currentState!.hideCurrentSnackBar();
-          setState(() {
-            globalMap['verification'] = 'Verified';
-          });
-          ScaffoldMessenger.of(_scaffoldKey.currentContext!)
-              .showSnackBar(SnackBar(
-            content: Row(
-              children: const [
-                Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 17,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'Account verified!',
-                  style: TextStyle(fontFamily: 'Nunito'),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.green,
-          ));
-        }
-
-        if (message.data['type'] == 'Report') {
-          await setBall(true);
-
-          setState(() {
-            addAlert(message);
-          });
-
-          HapticFeedback.mediumImpact();
-
-          //  refreshAlerts();
-
-          ScaffoldMessenger.of(_scaffoldKey.currentContext!)
-              .showSnackBar(SnackBar(
-            content: Row(
-              children: const [
-                Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 17,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'Uh-oh! Somebody used the alert system!',
-                  style: TextStyle(fontFamily: 'Nunito'),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red,
-          ));
-        }
       }
+
+      switch (message.data['type']) {
+          case 'Post':
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(
+              content: Row(
+                children: const [
+                  Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                    size: 17,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'New posts available!',
+                    style: TextStyle(fontFamily: 'Nunito'),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: ColorsB.yellow500,
+            ));
+            break;
+
+          case 'Verify':
+            setState(() {
+              globalMap['verification'] = 'Verified';
+            });
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(
+              content: Row(
+                children: const [
+                  Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 17,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Account verified!',
+                    style: TextStyle(fontFamily: 'Nunito'),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.green,
+            ));
+            break;
+
+          case 'Report':
+            print('a');
+            await setBall(true);
+
+            setState(() {
+              addAlert(message);
+            });
+
+            HapticFeedback.mediumImpact();
+
+            //  refreshAlerts();
+
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(
+              content: Row(
+                children: const [
+                  Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 17,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Uh-oh! Somebody used the alert system!',
+                    style: TextStyle(fontFamily: 'Nunito'),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+            ));
+            break;
+
+          default:
+            print('DEFAULT');
+            break;
+        }
+
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) async {
