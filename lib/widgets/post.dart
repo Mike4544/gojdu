@@ -100,7 +100,7 @@ class _PostState extends State<Post> {
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -142,7 +142,7 @@ class _PostState extends State<Post> {
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -191,7 +191,7 @@ class _PostState extends State<Post> {
 
         if (jsondata['success']) {
           debugPrint(id.toString());
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -234,7 +234,7 @@ class _PostState extends State<Post> {
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -574,7 +574,7 @@ class Comment extends StatefulWidget {
         debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata);
+        //  debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           debugPrint('Errored');
@@ -666,7 +666,7 @@ class Comment extends StatefulWidget {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
 
         return jsondata['id']['ID'];
       }
@@ -711,7 +711,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -732,7 +732,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
     //debugPrint(ids);
 
     setState(() {
-      widget.likes = widget.likes- 1;
+      widget.likes = widget.likes - 1;
       widget.likesBool = false;
 
       //widget.update();
@@ -753,7 +753,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata);
+          debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -1171,7 +1171,7 @@ class _CommentBarState extends State<CommentBar> {
 
                   if (response.statusCode == 200) {
                     var jsondata = json.decode(response.body);
-                    debugPrint(jsondata);
+                    debugPrint(jsondata.toString());
 
                     if (jsondata['success']) {
                       int commentId = await Comment.getMaxId();

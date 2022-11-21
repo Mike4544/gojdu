@@ -149,7 +149,7 @@ class _AlertPageState extends State<AlertPage> {
             if (response.statusCode == 200) {
               var jsondata = jsonDecode(response.body);
 
-              debugPrint(jsondata);
+              debugPrint(jsondata.toString());
 
               //  Navigator.of(context).pop();
             } else {

@@ -716,7 +716,7 @@ Future<void> deleteAccount(BuildContext context, String email) async {
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
-      debugPrint(jsondata);
+      debugPrint(jsondata.toString());
 
       Navigator.of(context).pop();
 

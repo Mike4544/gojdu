@@ -480,7 +480,7 @@ class _PostEventState extends State<PostEvent> {
                               debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                debugPrint(jsondata);
+                                debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -495,7 +495,8 @@ class _PostEventState extends State<PostEvent> {
                                             "${globalMap['first_name']} ${globalMap["last_name"]}"
                                       });
 
-                                      debugPrint(response2.statusCode.toString());
+                                      debugPrint(
+                                          response2.statusCode.toString());
 
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =

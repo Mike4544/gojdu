@@ -101,7 +101,7 @@ class ClassTableState extends State<ClassTable>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
@@ -490,7 +490,7 @@ class _TeacherSearchState extends State<TeacherSearch>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {

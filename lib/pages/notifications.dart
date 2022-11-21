@@ -69,14 +69,14 @@ class _NotifPageState extends State<NotifPage> {
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
           });
         } else {
-          if (jsondata[0]["success"]) {
+          if (jsondata[0]["success"] && jsondata[1] != null) {
             for (int i = 1; i < jsondata.length; i++) {
               //  alerts.add(Alert.fromJson(jsondata));
               final currAlert = Alert.fromJson(jsondata[i]);
@@ -95,7 +95,8 @@ class _NotifPageState extends State<NotifPage> {
             //  Add the search terms
             maxScrollCountAlerts += turnsAlerts;
             lastIDAlerts = alerts.last.alert.id!;
-            debugPrint(lastIDAlerts.toString());
+            debugPrint(maxScrollCountAlerts.toString());
+            debugPrint(lastMaxAlerts.toString());
 
             //  debugPrint(events);
           } else {
@@ -172,7 +173,7 @@ class _NotifPageState extends State<NotifPage> {
           if (response.statusCode == 200) {
             var jsondata = jsonDecode(response.body);
 
-            debugPrint(jsondata);
+            debugPrint(jsondata.toString());
 
             //  Navigator.of(context).pop();
           } else {

@@ -545,7 +545,7 @@ class _NewsPageState extends State<NewsPage> {
       //debugPrint(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata);
+        //  debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -1615,7 +1615,7 @@ class _EventsPageState extends State<EventsPage>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata);
+        //  debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -1850,7 +1850,7 @@ class _PostsListState extends State<PostsList>
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
         if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
@@ -2386,7 +2386,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
 
         if (jsondata['success']) {
-          //debugPrint(jsondata);
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -2431,7 +2431,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
 
         if (jsondata['success']) {
-          //debugPrint(jsondata);
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -2483,7 +2483,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
 
         if (jsondata['success']) {
-          //debugPrint(jsondata);
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -2529,7 +2529,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
 
         if (jsondata['success']) {
-          //debugPrint(jsondata);
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -3145,7 +3145,7 @@ class _MapPageState extends State<MapPage> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
@@ -4127,7 +4127,7 @@ class _CalPag1State extends State<CalPag1> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata);
+        //  debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -4216,7 +4216,7 @@ class _CalPag1State extends State<CalPag1> {
       //debugPrint('Gojdu: ${response.statusCode}');
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata);
+        //debugPrint(jsondata.toString());
         if (jsondata['1']['success']) {
           for (int i = 2; i < jsondata.length; i++) {
             var title = jsondata[i.toString()]['title'];
@@ -4518,7 +4518,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
       //debugPrint("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata);
+        //debugPrint(jsondata.toString());
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -4952,7 +4952,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                     //debugPrint("does work");
                                                                                     if (response.statusCode == 200) {
                                                                                       var jsondata = json.decode(response.body);
-                                                                                      //debugPrint(jsondata);
+                                                                                      //debugPrint(jsondata.toString());
                                                                                       if (jsondata["error"]) {
                                                                                       } else {
                                                                                         if (jsondata["success"]) {

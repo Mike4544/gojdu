@@ -54,7 +54,7 @@ class _EditFloorsState extends State<EditFloors> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata);
+        debugPrint(jsondata.toString());
         if (jsondata["error"]) {
           debugPrint(jsondata["message"]);
 

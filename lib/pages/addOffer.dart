@@ -700,7 +700,7 @@ class _AddOfferState extends State<AddOffer> {
                               debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                debugPrint(jsondata);
+                                debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -714,7 +714,8 @@ class _AddOfferState extends State<AddOffer> {
                                             "channel": "Students"
                                           });
 
-                                      debugPrint(response2.statusCode.toString());
+                                      debugPrint(
+                                          response2.statusCode.toString());
 
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =

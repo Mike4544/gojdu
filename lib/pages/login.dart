@@ -12,7 +12,6 @@ import 'package:gojdu/pages/forgot_password.dart';
 // Messaging token
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-
 import 'package:gojdu/others/options.dart';
 
 class Login extends StatefulWidget {
@@ -388,7 +387,7 @@ class _LoginState extends State<Login> {
                                     debugPrint(response.statusCode.toString());
                                     if (response.statusCode == 200) {
                                       var jsondata = json.decode(response.body);
-                                      //  debugPrint(jsondata);
+                                      //  debugPrint(jsondata.toString());
                                       if (jsondata['success']) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(const SnackBar(
