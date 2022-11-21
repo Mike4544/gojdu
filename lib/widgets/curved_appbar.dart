@@ -20,6 +20,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
   final Map map;
   final VoidCallback? update;
   final List<PageDescription> descriptions;
+  final ValueNotifier notifs;
 
   CurvedAppbar(
       {Key? key,
@@ -29,7 +30,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
       required this.position,
       required this.map,
       required this.descriptions,
-      this.update})
+      this.update, required this.notifs})
       : preferredSize = Size.fromHeight(
             screenHeight < 675 ? screenHeight * .175 : screenHeight * .15),
         super(key: key);
@@ -46,17 +47,10 @@ var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 
 class _CurvedAppbarState extends State<CurvedAppbar> {
-  late bool? isActive;
+  late bool isActive;
 
-  Future<int> getBall() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    isActive = prefs.getBool('activeBall');
-
-    return 1;
-  }
-
-  late var loadBall = getBall();
+  
+  // late var loadBall = getBall();
 
   final double size = screenHeight * .05 > 40 ? 40 : screenHeight * .05;
 
@@ -77,8 +71,10 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
         widget.map['account'] == 'Teacher') {
       return GestureDetector(
         onTap: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => NotifPage(isAdmin: globalMap['account'] == 'Admin',)));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => NotifPage(notifs: widget.notifs,
+                    isAdmin: globalMap['account'] == 'Admin',
+                  )));
         },
         child: SizedBox(
           height: size,
@@ -89,7 +85,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
               children: [
                 const Icon(Icons.notifications, color: ColorsB.gray900),
                 Visibility(
-                  visible: isActive == true && isActive != null,
+                  visible: widget.notifs.value > 0,
                   child: Positioned(
                     bottom: 0,
                     right: 0,
@@ -176,22 +172,10 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
               const SizedBox(
                 width: 15,
               ),
-              FutureBuilder(
-                future: getBall(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return SizedBox(
-                      height: size,
-                      width: size,
-                      child: const FittedBox(
-                        fit: BoxFit.contain,
-                        child:
-                            Icon(Icons.notifications, color: ColorsB.gray900),
-                      ),
-                    );
-                  } else {
-                    return notifBell(size: size);
-                  }
+              ValueListenableBuilder(
+                valueListenable: widget.notifs,
+                builder: (_ , __, ___) {
+                  return notifBell(size: size);
                 },
               ),
             ]),

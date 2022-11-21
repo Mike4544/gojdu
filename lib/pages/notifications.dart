@@ -5,11 +5,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gojdu/pages/news.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
-import '../databases/alertsdb.dart';
+//  import '../databases/alertsdb.dart';
 import '../widgets/back_navbar.dart';
 import '../widgets/Alert.dart';
 import 'package:intl/intl.dart';
@@ -19,11 +21,15 @@ import 'package:http/http.dart' as http;
 
 import 'package:gojdu/others/options.dart';
 
+import '../widgets/lazyBuilder.dart';
+
 class NotifPage extends StatefulWidget {
   final VoidCallback? updateFP;
   final bool isAdmin;
+  ValueNotifier notifs;
 
-  const NotifPage({Key? key, this.updateFP, required this.isAdmin})
+  NotifPage(
+      {Key? key, this.updateFP, required this.isAdmin, required this.notifs})
       : super(key: key);
 
   @override
@@ -31,82 +37,229 @@ class NotifPage extends StatefulWidget {
 }
 
 class _NotifPageState extends State<NotifPage> {
-  List<Alert>? alerts;
+  // List<Alert> alerts = [];
+  List<AlertContainer> alerts = [];
   late bool isLoading = false;
 
-  late Future loadAlerts = refreshAlerts();
+  // Future setBall(bool state) async {
+  //   var prefs = await SharedPreferences.getInstance();
 
-  //  final LocalNotificationService _notifService = LocalNotificationService();
+  //   await prefs.setBool('activeBall', state);
 
-  Future checkAndDelete() async {
-    for (var a in alerts!) {
-      DateTime timeOffsetted = DateTime(
-          a.createdTime.day, a.createdTime.month + 1, a.createdTime.year);
+  //   setState(() {});
+  // }
 
-      if (timeOffsetted.month == DateTime.now().month) {
-        await AlertDatabase.instance.delete(a.id!);
+  int lastMaxAlerts = -1; //  INT MAX
+  int maxScrollCountAlerts = 10;
+  int turnsAlerts = 10;
+  int lastIDAlerts = Misc.INT_MAX;
+
+  void sortAlerts() async {
+    alerts.sort((a, b) {
+      int firstVal = a.alert.read == true ? 1 : 0;
+      int secondVal = b.alert.read == true ? 1 : 0;
+
+      return firstVal.compareTo(secondVal);
+    });
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    //  reassemble();
+  }
+
+  late Future _getAlerts = loadAlerts().then((value) => sortAlerts());
+
+  Future<int> loadAlerts() async {
+    //  Alerts.clear();
+    widget.notifs.value = 0;
+    lastMaxAlerts = maxScrollCountAlerts;
+
+    //  Maybe rework this a bit.
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/getAlerts.php');
+      final response = await http.post(url, body: {
+        "lastID": '$lastIDAlerts',
+        'turns': '$turnsAlerts',
+        'persID': '${globalMap['id']}',
+        'availability': globalMap['account'] == 'Admin' ? '1' : '2'
+      });
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        print(jsondata);
+
+        if (jsondata[0]["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata[0]["success"]) {
+            for (int i = 1; i < jsondata.length; i++) {
+              //  alerts.add(Alert.fromJson(jsondata));
+              final currAlert = Alert.fromJson(jsondata[i]);
+
+              alerts.add(AlertContainer(
+                  alert: currAlert,
+                  callback: view,
+                  share: share,
+                  isAdmin: globalMap['account'] == 'Admin'));
+
+              if (!currAlert.read) {
+                widget.notifs.value++;
+              }
+            }
+
+            //  Add the search terms
+            maxScrollCountAlerts += turnsAlerts;
+            lastIDAlerts = alerts.last.alert.id!;
+            print(lastIDAlerts);
+
+            //  print(events);
+          } else {
+            //print(jsondata[0]["message"]);
+          }
+        }
       }
+    } catch (e) {
+      throw Future.error(e.toString());
+    }
+
+    return 0;
+  }
+
+  Future<void> refreshAlerts() async {
+    alerts.clear();
+
+    setState(() {
+      maxScrollCountAlerts = turnsAlerts;
+      lastMaxAlerts = -1;
+
+      lastIDAlerts = Misc.INT_MAX;
+
+      _getAlerts = loadAlerts().then((value) => sortAlerts());
+    });
+
+    //  return 1;
+  }
+
+  void lazyLoadCallback() async {
+    if (lazyController.position.extentAfter == 0 &&
+        lastMaxAlerts < maxScrollCountAlerts) {
+      print('Haveth reached the end');
+
+      await loadAlerts();
+
+      setState(() {});
     }
   }
 
-  Future setBall(bool state) async {
-    var prefs = await SharedPreferences.getInstance();
-
-    await prefs.setBool('activeBall', state);
-  }
-
-  Future<int> refreshAlerts() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    alerts = await AlertDatabase.instance.readAllAlerts();
-
-    await checkAndDelete();
-
-    //  print(alerts!.length);
-
-    setState(() {
-      isLoading = false;
-    });
-
-    return 1;
-  }
+  late ScrollController lazyController;
 
   void share(Alert al) async {
-    setState(() {
-      al.shared = true;
-    });
+    try {
+      //  print(Availability.TEACHERS);
+      final response = await http.post(
+          Uri.parse('${Misc.link}/${Misc.appName}/updateAlerts.php'),
+          body: {'id': al.id.toString(), 'nAvail': '2'});
+
+      if (response.statusCode == 200) {
+        var jsondata = jsonDecode(response.body);
+
+        setState(() {
+          al.shared = true;
+        });
+
+        try {
+          var url = Uri.parse('${Misc.link}/${Misc.appName}/notifications.php');
+          final response = await http.post(url, body: {
+            "action": "Report_teachers",
+            "channel": "Teachers",
+            "rtitle": al.title,
+            "rdesc": al.description,
+            "rowner": al.owner,
+            "link": null.toString(),
+            "time": al.createdTime.toIso8601String()
+          });
+
+          // print(response.statusCode);
+          //       // print(response.body);
+          //  print(DateTime.now().toIso8601String());
+          print(response.statusCode);
+
+          if (response.statusCode == 200) {
+            var jsondata = jsonDecode(response.body);
+
+            print(jsondata);
+
+            //  Navigator.of(context).pop();
+          } else {
+            print('Error!');
+          }
+        } catch (e, stack) {
+          print("Exception! $e");
+          print(stack);
+        }
+      }
+    } catch (e, stack) {
+      debugPrint('EXCEPTION: $e');
+      debugPrint('STACK: $stack');
+
+      SnackBar failed = const SnackBar(
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        content: Text("Couldn't share with other teachers!",
+            style: TextStyle(color: Colors.white)),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(failed);
+    }
   }
 
   void update(Alert al) async {
     setState(() {
       al.read = true;
     });
+  }
 
-    bool toReadLeft = false;
-    for (var a in alerts!) {
-      if (a.read == false) {
-        toReadLeft = true;
-        break;
+  Future<void> view(Alert alert) async {
+    try {
+      final response = await http
+          .post(Uri.parse('${Misc.link}/${Misc.appName}/viewAlert.php'), body: {
+        'reportID': alert.id.toString(),
+        'person': globalMap['id'].toString()
+      });
+
+      switch (response.statusCode) {
+        case 200:
+          debugPrint('O mers');
+          widget.notifs.value--;
+          break;
+
+        default:
+          debugPrint('N-o mers');
+          break;
       }
-    }
-
-    if (!toReadLeft) {
-      await setBall(toReadLeft);
+    } catch (e, stack) {
+      debugPrint('Error whilst viewing! $e \n $stack');
     }
   }
 
   @override
   void initState() {
-    refreshAlerts();
+    //  refreshAlerts();
+    lazyController = ScrollController()..addListener(lazyLoadCallback);
 
     super.initState();
   }
 
   @override
   void dispose() {
-    alerts!.clear();
+    alerts.clear();
+    lazyController.dispose();
+
+    //  setBall(finalTest());
+
     super.dispose();
   }
 
@@ -173,276 +326,254 @@ class _NotifPageState extends State<NotifPage> {
                 )),
           ),
         ),
-        body: isLoading == false
-            ? Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Scrollbar(
-                  child: ListView.builder(
-                      itemCount: alerts!.isNotEmpty ? alerts!.length : 1,
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        if (alerts!.isNotEmpty) {
-                          return AlertContainer(
-                            isAdmin: widget.isAdmin,
-                            alert: alerts![index],
-                            callback: () async {
-                              update(alerts![index]);
-
-                              final temp = alerts![index].copy(
-                                read: true,
-                              );
-
-                              await AlertDatabase.instance.update(temp);
-                            },
-                            share: () async {
-                              share(alerts![index]);
-
-                              final temp = alerts![index].copy(
-                                shared: true,
-                              );
-
-                              await AlertDatabase.instance.update(temp);
-                            },
-                          );
-                        } else {
-                          return Center(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SvgPicture.asset('assets/svgs/404.svg'),
-                                const Text(
-                                  'Seems there are no reports!',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22.5,
-                                      fontWeight: FontWeight.bold),
-                                )
-                              ],
-                            ),
-                          );
-                        }
-                      }),
-                ),
-              )
-            : const SizedBox());
+        body: LazyBuilder(
+          future: _getAlerts,
+          widgetList: alerts,
+          lastID: lastIDAlerts,
+          lastMax: lastMaxAlerts,
+          turns: turnsAlerts,
+          maxScrollCount: maxScrollCountAlerts,
+          refresh: refreshAlerts,
+          scrollController: lazyController,
+        ));
   }
 }
 
-class AlertContainer extends StatelessWidget {
+class AlertContainer extends StatefulWidget {
   final Alert alert;
-  final VoidCallback callback;
-  final VoidCallback share;
+  final Function(Alert) callback;
+  final Function(Alert) share;
   final bool isAdmin;
 
-  const AlertContainer(
-      {Key? key,
-      required this.alert,
-      required this.callback,
-      required this.share,
-      required this.isAdmin})
-      : super(key: key);
+  const AlertContainer({
+    Key? key,
+    required this.alert,
+    required this.callback,
+    required this.share,
+    required this.isAdmin,
+  }) : super(key: key);
+
+  @override
+  State<AlertContainer> createState() => _AlertContainerState();
+}
+
+class _AlertContainerState extends State<AlertContainer> {
+  late var title = widget.alert.title;
+  late var owner = widget.alert.owner;
+  late var desc = widget.alert.description;
+  late var time = widget.alert.createdTime;
+  late var stringImage = widget.alert.imageString;
+  late var read = widget.alert.read;
+  late var shared = widget.alert.shared;
+  late int seenby = widget.alert.seenby - 1;
+
+  Widget _seenByBar() => Visibility(
+        visible: seenby > 0,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 50),
+            decoration: BoxDecoration(
+                color: ColorsB.gray800,
+                borderRadius: BorderRadius.circular(360)),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Seen by $seenby other(s).',
+                  style: TextStyle(fontSize: 15.sp, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    var title = alert.title;
-    var owner = alert.owner;
-    var desc = alert.description;
-    var time = alert.createdTime;
-    var stringImage = alert.imageString;
-    var read = alert.read;
-    var shared = alert.shared;
-
-    Future<void> sendReport(String title, String owner, String desc,
-        DateTime time, var link) async {
-      try {
-        var url = Uri.parse('${Misc.link}/${Misc.appName}/notifications.php');
-        final response = await http.post(url, body: {
-          "action": "Report_teachers",
-          "channel": "Teachers",
-          "rtitle": title,
-          "rdesc": desc,
-          "rowner": owner,
-          "link": link,
-          "time": time.toIso8601String()
-        });
-
-        // print(response.statusCode);
-        //       // print(response.body);
-        //  print(DateTime.now().toIso8601String());
-        print(response.statusCode);
-
-        if (response.statusCode == 200) {
-          var jsondata = jsonDecode(response.body);
-
-          print(jsondata);
-
-          //  Navigator.of(context).pop();
-        } else {
-          print('Error!');
-        }
-      } catch (e) {
-        print("Exception! $e");
-      }
-    }
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Container(
-              height: 125,
-              decoration: read
-                  ? BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: ColorsB.gray800, width: 3),
-                    )
-                  : BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: ColorsB.gray800, width: 3),
-                      gradient: LinearGradient(
-                          colors: [
-                            ColorsB.gray800.withOpacity(.25),
-                            ColorsB.gray700
-                          ],
-                          begin: Alignment.bottomLeft,
-                          end: Alignment.topRight,
-                          stops: const [.25, 1]),
-                      boxShadow: const [
-                          BoxShadow(
-                              blurRadius: 15,
-                              //  offset: Offset(10, 5),
-                              color: Colors.black26,
-                              spreadRadius: 5)
-                        ]),
-            ),
-            SizedBox(
-              height: 125,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    callback();
-
-                    Navigator.of(context).push(PageRouteBuilder(
-                        pageBuilder: (context, animation, secAnim) =>
-                            SlideTransition(
-                              position: Tween<Offset>(
-                                      begin: const Offset(0, 1),
-                                      end: Offset.zero)
-                                  .animate(CurvedAnimation(
-                                      parent: animation, curve: Curves.ease)),
-                              child: BigNewsContainer(
-                                title: title,
-                                description: desc,
-                                color: ColorsB.gray800,
-                                author: owner,
-                                imageString: stringImage,
-                              ),
-                            )));
-                  },
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 125,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            title.length < 15
-                                ? title
-                                : '${title.substring(0, 15)}...',
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(
-                                color: !read ? Colors.white : Colors.white30,
-                                fontWeight: FontWeight.bold,
-                                overflow: TextOverflow.fade,
-                                fontSize: 17.5),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Text(
-                          DateFormat.yMMMd().format(time),
-                          style: TextStyle(
-                              color: read ? Colors.white30 : Colors.white,
-                              fontSize: 12.5),
+            Stack(
+              children: [
+                Container(
+                  height: 125,
+                  decoration: read
+                      ? BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: ColorsB.gray800, width: 3),
                         )
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: Text(
-                              owner.length < 12
-                                  ? 'Alerted by $owner'
-                                  : 'Alerted by ${owner.substring(0, 15)}...',
-                              style: TextStyle(
-                                  color:
-                                      read ? Colors.white30 : ColorsB.yellow500,
-                                  fontSize: 15),
-                            ),
-                          ),
-                        ),
-                        if (!shared && isAdmin)
-                          FittedBox(
-                            child: TextButton.icon(
-                              icon: const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: () async {
-                                share();
+                      : BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: ColorsB.gray800, width: 3),
+                          gradient: LinearGradient(
+                              colors: [
+                                ColorsB.gray800.withOpacity(.25),
+                                ColorsB.gray700
+                              ],
+                              begin: Alignment.bottomLeft,
+                              end: Alignment.topRight,
+                              stops: const [.25, 1]),
+                          boxShadow: const [
+                              BoxShadow(
+                                  blurRadius: 15,
+                                  //  offset: Offset(10, 5),
+                                  color: Colors.black26,
+                                  spreadRadius: 5)
+                            ]),
+                ),
+                SizedBox(
+                  height: 125,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        if (!read) {
+                          widget.callback(widget.alert);
+                          //  widget.sort();
+                        }
 
-                                await sendReport(
-                                    title, owner, desc, time, stringImage);
-                              },
-                              label: const Text("Share with teachers",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  )),
-                              style: TextButton.styleFrom(
-                                  backgroundColor: ColorsB.yellow500,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30))),
+                        setState(() {
+                          read = true;
+                        });
+
+                        print(read);
+
+                        Navigator.of(context).push(PageRouteBuilder(
+                            pageBuilder: (context, animation, secAnim) =>
+                                SlideTransition(
+                                  position: Tween<Offset>(
+                                          begin: const Offset(0, 1),
+                                          end: Offset.zero)
+                                      .animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.ease)),
+                                  child: BigNewsContainer(
+                                    title: title,
+                                    description: desc,
+                                    color: ColorsB.gray800,
+                                    author: owner,
+                                    imageString: stringImage,
+                                  ),
+                                )));
+                      },
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 125,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title.length < 15
+                                    ? title
+                                    : '${title.substring(0, 15)}...',
+                                overflow: TextOverflow.fade,
+                                style: TextStyle(
+                                    color:
+                                        !read ? Colors.white : Colors.white30,
+                                    fontWeight: FontWeight.bold,
+                                    overflow: TextOverflow.fade,
+                                    fontSize: 17.5),
+                              ),
                             ),
-                          )
-                        else
-                          Container(
-                            height: 30,
-                            width: 30,
-                            decoration: const BoxDecoration(
-                                shape: BoxShape.circle, color: ColorsB.gray800),
-                            child: const Center(
-                              child: FittedBox(
-                                child: Icon(
-                                  Icons.check,
-                                  color: Colors.white,
+                            const SizedBox(
+                              height: 15,
+                            ),
+                            Text(
+                              DateFormat.yMMMd().format(time),
+                              style: TextStyle(
+                                  color: read ? Colors.white30 : Colors.white,
+                                  fontSize: 12.5),
+                            )
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Text(
+                                  owner.length < 12
+                                      ? 'Alerted by $owner'
+                                      : 'Alerted by ${owner.substring(0, 15)}...',
+                                  style: TextStyle(
+                                      color: read
+                                          ? Colors.white30
+                                          : ColorsB.yellow500,
+                                      fontSize: 15),
                                 ),
                               ),
                             ),
-                          )
+                            if (!shared && widget.isAdmin)
+                              FittedBox(
+                                child: TextButton.icon(
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      await widget.share(widget.alert);
+
+                                      setState(() {
+                                        shared = true;
+                                      });
+                                    } catch (e) {
+                                      debugPrint(e.toString());
+                                    }
+                                  },
+                                  label: const Text("Share with teachers",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      )),
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: ColorsB.yellow500,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30))),
+                                ),
+                              )
+                            else
+                              Container(
+                                height: 30,
+                                width: 30,
+                                decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: ColorsB.gray800),
+                                child: const Center(
+                                  child: FittedBox(
+                                    child: Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            )
+                  ),
+                )
+              ],
+            ),
+            _seenByBar()
           ],
         ),
       ),
@@ -492,7 +623,7 @@ class BigNewsContainer extends StatelessWidget {
       //print(imageLink);
 
       return GestureDetector(
-        onTap: imageString == 'null'
+        onTap: imageString == 'null' || imageString == ''
             ? null
             : () {
                 showDialog(
@@ -521,7 +652,8 @@ class BigNewsContainer extends StatelessWidget {
         child: Container(
           width: screenWidth,
           height: screenHeight * 0.5,
-          decoration: imageString == 'null' ? woImage : wImage,
+          decoration:
+              imageString == 'null' || imageString == '' ? woImage : wImage,
           child: Align(
             alignment: Alignment.bottomLeft,
             child: Padding(

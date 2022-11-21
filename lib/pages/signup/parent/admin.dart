@@ -334,6 +334,7 @@ class _AdminSignUpState extends State<AdminSignUp> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => NewsPage(
+                                        notifs: ValueNotifier(0),
                                             data: loginMap,
                                             newlyCreated: true,
                                           )));

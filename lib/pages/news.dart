@@ -47,7 +47,7 @@ import './notes.dart';
 
 import './alertPage.dart';
 
-import '../databases/alertsdb.dart';
+//  import '../databases/alertsdb.dart';
 import '../widgets/Alert.dart';
 
 // For vibration
@@ -67,11 +67,15 @@ import './sendFeedback.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import 'notifications.dart';
+
 class NewsPage extends StatefulWidget {
   final Map data;
   final bool? newlyCreated;
+  ValueNotifier notifs;
 
-  const NewsPage({Key? key, required this.data, this.newlyCreated})
+  NewsPage(
+      {Key? key, required this.data, this.newlyCreated, required this.notifs})
       : super(key: key);
 
   @override
@@ -98,9 +102,6 @@ GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 List<String> titles = [];
 List<String> sizes = [];
-
-List<Alert>? alerts;
-bool haveNew = false;
 
 var bar1Key = GlobalKey();
 var bar2Key = GlobalKey();
@@ -286,35 +287,8 @@ class _NewsPageState extends State<NewsPage> {
   //  Testing smthing
   //  late Future? gFloors = getFloors();
 
-  Future setBall(bool state) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    await prefs.setBool('activeBall', state);
-
-    if (bar1Key.currentState != null) {
-      bar1Key.currentState!.setState(() {});
-    }
-
-    // if(bar2Key.currentState != null){
-    //   bar2Key.currentState!.setState(() {
-    //
-    //   });
-    // }
-  }
-
-  Future addAlert(var message) async {
-    final data = message.data;
-
-    final alert = Alert(
-        read: false,
-        title: data['report_title'],
-        description: data['report_desc'],
-        imageString: data['report_image'].toString(),
-        createdTime: DateTime.parse(data['report_time']),
-        owner: data['report_owner'],
-        shared: false);
-
-    await AlertDatabase.instance.create(alert);
+  void addAlert() {
+    widget.notifs.value++;
   }
 
   // late List<String> curvedAppBarLabels;
@@ -393,11 +367,7 @@ class _NewsPageState extends State<NewsPage> {
 
         case 'Report':
           print('a');
-          await setBall(true);
-
-          setState(() {
-            addAlert(message);
-          });
+          addAlert();
 
           HapticFeedback.mediumImpact();
 
@@ -431,31 +401,32 @@ class _NewsPageState extends State<NewsPage> {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) async {
-      if (message.data['type'] == 'Post') {
-        if (_announcementsKey.currentState != null) {
-          //  _announcementsKey.currentState!._refresh();
-        }
-      }
+      switch (message.data['type']) {
+        case "Post":
+          reassemble();
+          break;
 
-      if (message.data['type'] == 'Event') {
-        if (_announcementsKey.currentState != null) {
+        case 'Event':
           setState(() {
             currSelect = 1;
             _eventCtrl.jumpToPage(currSelect);
           });
-        }
-      }
+          break;
 
-      if (message.data['type'] == 'Report') {
-        await setBall(true);
+        case 'Report':
+          //  await setBall(true);
+          addAlert();
 
-        setState(() {
-          addAlert(message);
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => NotifPage(notifs: widget.notifs,
+                    isAdmin: globalMap['account'] == 'Admin',
+                  )));
 
-          //  refreshAlerts();
+          break;
 
-          haveNew = true;
-        });
+        default:
+          print('Default');
+          break;
       }
     });
 
@@ -684,6 +655,7 @@ class _NewsPageState extends State<NewsPage> {
         resizeToAvoidBottomInset: true,
         //  key: _scaffoldKey,
         appBar: CurvedAppbar(
+          notifs: widget.notifs,
           descriptions: curvedAppBarDescriptions,
           names: curvedAppBarLabels,
           nameIndex: _currentIndex,
@@ -726,7 +698,6 @@ class _NewsPageState extends State<NewsPage> {
                 const FeedbackPage(),
               ],
               map: globalMap,
-              notif: haveNew,
               update: () {
                 setState(() {});
               },

@@ -541,6 +541,7 @@ class _SecondPageState extends State<SecondPage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => NewsPage(
+                                            notifs: ValueNotifier(0),
                                             data: loginMap,
                                             newlyCreated: true,
                                           )));

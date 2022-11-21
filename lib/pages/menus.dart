@@ -10,7 +10,6 @@ import 'package:back_button_interceptor/back_button_interceptor.dart';
 class MenuTabs extends StatefulWidget {
   List<Widget> pages;
   Map map;
-  bool notif;
   VoidCallback update;
   GlobalKey key2;
 
@@ -18,7 +17,6 @@ class MenuTabs extends StatefulWidget {
       {Key? key,
       required this.pages,
       required this.map,
-      required this.notif,
       required this.update,
       required this.key2})
       : super(key: key);

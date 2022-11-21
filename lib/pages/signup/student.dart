@@ -462,6 +462,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                                                     builder:
                                                                         (context) =>
                                                                             NewsPage(
+                                                                              notifs: ValueNotifier(0),
                                                                               data: loginMap,
                                                                               newlyCreated: true,
                                                                             )));

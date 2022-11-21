@@ -17,6 +17,7 @@ class LazyBuilder extends StatefulWidget {
   int maxScrollCount;
   int turns;
   int lastID;
+  
 
   LazyBuilder(
       {Key? key,
@@ -46,12 +47,13 @@ class _LazyBuilderState extends State<LazyBuilder>
   // int maxScrollCount = 10;
   // int turns = 10;
   // int lastID = Misc.INT_MAX;
+  
 
   @override
   void initState() {
     // _scrollController = ScrollController();
 
-    // _scrollController.addListener(widget.lazyLoadCallback);
+    // _scrollController.addListener(widget.lazyLoadCallback)
 
     super.initState();
   }

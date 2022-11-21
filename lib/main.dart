@@ -112,6 +112,25 @@ void initialization(BuildContext context) async {
   await Future.delayed(const Duration(seconds: 2));
 }
 
+ValueNotifier notifs = ValueNotifier(0);
+
+Future<void> getNotifs(int id) async {
+  try {
+    final response = await http.post(
+        Uri.parse("${Misc.link}/${Misc.appName}/getInitNotifs.php"),
+        body: {'persID': '$id'});
+
+    if (response.statusCode == 200) {
+      var jsondata = jsonDecode(response.body);
+
+      notifs.value = jsondata['notifs'];
+    }
+  } catch (e, stack) {
+    debugPrint(e.toString());
+    debugPrint(stack.toString());
+  }
+}
+
 Future<Widget> getPage() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   print(prefs.getString('email').toString());
@@ -152,6 +171,10 @@ Future<Widget> getPage() async {
               'id': jsondata['id'],
             };
 
+            if (acc_type == 'Admin') {
+              await getNotifs(loginMap['id']);
+            }
+
             type = acc_type;
             await prefs.setString('type', type);
             await prefs.setString('first_name', fn);
@@ -159,6 +182,7 @@ Future<Widget> getPage() async {
             await prefs.setString('email', email);
 
             return NewsPage(
+              notifs: notifs,
               data: loginMap,
             );
           } else {

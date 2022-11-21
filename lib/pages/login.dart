@@ -172,6 +172,20 @@ class _LoginState extends State<Login> {
                                 isLoggingIn
                             ? login
                             : null,
+                        style: TextButton.styleFrom(
+                            backgroundColor:
+                                _nameController.value.text.isNotEmpty &&
+                                        _passController.value.text.isNotEmpty
+                                    ? ColorsB.yellow500
+                                    : ColorsB.gray800,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            shadowColor: ColorsB.yellow500.withOpacity(0.25),
+                            elevation: _nameController.value.text.isNotEmpty &&
+                                    _passController.value.text.isNotEmpty
+                                ? 15
+                                : 0),
                         child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 30),
@@ -188,20 +202,6 @@ class _LoginState extends State<Login> {
                                     valueColor: AlwaysStoppedAnimation<Color>(
                                         ColorsB.gray900),
                                   )),
-                        style: TextButton.styleFrom(
-                            backgroundColor:
-                                _nameController.value.text.isNotEmpty &&
-                                        _passController.value.text.isNotEmpty
-                                    ? ColorsB.yellow500
-                                    : ColorsB.gray800,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            shadowColor: ColorsB.yellow500.withOpacity(0.25),
-                            elevation: _nameController.value.text.isNotEmpty &&
-                                    _passController.value.text.isNotEmpty
-                                ? 15
-                                : 0),
                       ),
                     ),
                     Padding(
@@ -249,7 +249,10 @@ class _LoginState extends State<Login> {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => NewsPage(data: loginInfo))
+                        builder: (context) => NewsPage(
+                              data: loginInfo,
+                              notifs: notifs,
+                            ))
 
                     //TODO: Remove the hardcoded value
 
@@ -267,8 +270,26 @@ class _LoginState extends State<Login> {
   }
 
   late Map loginInfo;
+  ValueNotifier notifs = ValueNotifier(0);
 
-  void login() async {
+  Future<void> getNotifs(int id) async {
+    try {
+      final response = await http.post(
+          Uri.parse("${Misc.link}/${Misc.appName}/getInitNotifs.php"),
+          body: {'persID': '$id'});
+
+      if (response.statusCode == 200) {
+        var jsondata = jsonDecode(response.body);
+
+        notifs.value = jsondata['notifs'];
+      }
+    } catch (e, stack) {
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
+    }
+  }
+
+  Future<void> login() async {
     //  TODO: Pass the login info gen
 
     final SharedPreferences prefs2 = await prefs;
@@ -422,6 +443,7 @@ class _LoginState extends State<Login> {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) => NewsPage(
+                                                      notifs: notifs,
                                                       data: loginMap,
                                                       newlyCreated: true,
                                                     )));
@@ -517,6 +539,10 @@ class _LoginState extends State<Login> {
                 'verification': jsondata1['verification'],
                 'id': jsondata1['id'],
               };
+
+              if (acc_type == 'Admin') {
+                await getNotifs(loginMap['id']);
+              }
 
               loginInfo = loginMap;
 

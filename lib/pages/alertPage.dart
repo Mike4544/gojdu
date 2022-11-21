@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:gojdu/pages/news.dart';
 import 'package:intl/intl.dart';
 import '../others/colors.dart';
 
@@ -100,39 +101,65 @@ class _AlertPageState extends State<AlertPage> {
       File? file, String title, String description, var fileFormat) async {
     try {
       String? baseimage;
+      String link = "";
+      String time = DateTime.now().toIso8601String();
+      String owner = '${widget.gMap['first_name']} ${widget.gMap['last_name']}';
 
       if (file != null) {
         var imageBytes = file.readAsBytesSync();
         baseimage = base64Encode(imageBytes);
+
+        String name = '$time$owner.${fileFormat.toString()}';
+
+        link = '${Misc.link}/${Misc.appName}/imgs/${name.replaceAll(' ', '_')}';
       }
 
-      print(fileFormat.toString());
-
-      var url = Uri.parse('${Misc.link}/${Misc.appName}/notifications.php');
-      final response = await http.post(url, body: {
-        "action": "Report",
-        "channel": "Admins",
-        "fterm": fileFormat.toString(),
-        "image": baseimage
-            .toString(), // FIXME: Upload it on the server and be done with it
-        "rtitle": title,
-        "rdesc": description,
-        "rowner": '${widget.gMap['first_name']} ${widget.gMap['last_name']}',
-        "time": DateTime.now().toIso8601String()
+      var url1 = Uri.parse('${Misc.link}/${Misc.appName}/insertAlert.php');
+      final response = await http.post(url1, body: {
+        "title": title,
+        "description": description,
+        "link": link,
+        "owid": '${globalMap['id']}'
       });
 
-      // print(response.statusCode);
-      //       // print(response.body);
-      //  print(DateTime.now().toIso8601String());
-
       if (response.statusCode == 200) {
-        var jsondata = jsonDecode(response.body);
+        var jsondata1 = jsonDecode(response.body);
 
-        print(jsondata);
+        if (!jsondata1['error']) {
+          try {
+            var url =
+                Uri.parse('${Misc.link}/${Misc.appName}/notifications.php');
+            final response = await http.post(url, body: {
+              "action": "Report",
+              "channel": "Admins",
+              "fterm": fileFormat.toString(),
+              "image": baseimage
+                  .toString(), // FIXME: Upload it on the server and be done with it
+              "rtitle": title,
+              "rdesc": description,
+              "rowner":
+                  '${widget.gMap['first_name']} ${widget.gMap['last_name']}',
+              "time": time
+            });
 
-        //  Navigator.of(context).pop();
-      } else {
-        print('Error!');
+            // print(response.statusCode);
+            //       // print(response.body);
+            //  print(DateTime.now().toIso8601String());
+
+            if (response.statusCode == 200) {
+              var jsondata = jsonDecode(response.body);
+
+              print(jsondata);
+
+              //  Navigator.of(context).pop();
+            } else {
+              print('Error!');
+            }
+          } catch (e, stack) {
+            debugPrint(e.toString());
+            debugPrint(stack.toString());
+          }
+        }
       }
     } catch (e) {
       print("Exception! $e");
