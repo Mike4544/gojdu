@@ -548,7 +548,7 @@ class _SecondPageState extends State<SecondPage> {
                               //user shared preference to save data
                             } else {
                               _errorText = "Error connecting.";
-                              debugPrint(jsondata.toString());
+                              //debugPrint(jsondata.toString());
                               Navigator.of(context).pop('dialog');
                             }
                           }

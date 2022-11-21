@@ -83,7 +83,7 @@ class _OffersPageState extends State<OffersPage>
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -149,7 +149,7 @@ class _OffersPageState extends State<OffersPage>
 
             //  debugPrint(events);
           } else {
-            //debugPrint(jsondata[0]["message"]);
+            ////debugPrint(jsondata[0]["message"]);
 
           }
         }
@@ -182,7 +182,7 @@ class _OffersPageState extends State<OffersPage>
         debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata.toString());
+        //  //debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           debugPrint('Errored');

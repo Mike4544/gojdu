@@ -103,7 +103,7 @@ class _PostEventState extends State<PostEvent> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //debugPrint(jsondata["msg"]);
+          ////debugPrint(jsondata["msg"]);
         } else {
           //debugPrint("Upload successful");
         }
@@ -480,7 +480,7 @@ class _PostEventState extends State<PostEvent> {
                               debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                debugPrint(jsondata.toString());
+                                //debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -501,7 +501,7 @@ class _PostEventState extends State<PostEvent> {
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =
                                             json.decode(response2.body);
-                                        debugPrint(jsondata2);
+                                        //debugPrint(jsondata2);
 
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(SnackBar(
@@ -524,7 +524,7 @@ class _PostEventState extends State<PostEvent> {
                                         ));
 
                                         Navigator.of(context).pop();
-                                        //  debugPrint(jsondata2);
+                                        //  //debugPrint(jsondata2);
                                         Navigator.of(context).pop();
                                       }
                                     } catch (e) {
@@ -532,7 +532,7 @@ class _PostEventState extends State<PostEvent> {
                                     }
                                     //  Navigator.of(context).pop();
                                   } else {
-                                    //debugPrint(jsondata["message"]);
+                                    ////debugPrint(jsondata["message"]);
                                   }
                                 }
                               }

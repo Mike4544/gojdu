@@ -101,11 +101,11 @@ class ClassTableState extends State<ClassTable>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
-            //  debugPrint(jsondata['$i']);
+            //  //debugPrint(jsondata['$i']);
             classes.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -490,11 +490,11 @@ class _TeacherSearchState extends State<TeacherSearch>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
-            //  debugPrint(jsondata['$i']);
+            //  //debugPrint(jsondata['$i']);
             teachers.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],

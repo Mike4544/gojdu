@@ -54,9 +54,9 @@ class _EditFloorsState extends State<EditFloors> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
         if (jsondata["error"]) {
-          debugPrint(jsondata["message"]);
+          //debugPrint(jsondata["message"]);
 
           ScaffoldMessenger.of(_scaffoldKey.currentContext!)
               .showSnackBar(SnackBar(

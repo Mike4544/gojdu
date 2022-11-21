@@ -98,7 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
       if (jsondata["error"]) {
-        debugPrint(jsondata["msg"]);
+        //debugPrint(jsondata["msg"]);
       } else {
         debugPrint("Upload successful");
       }
@@ -716,12 +716,12 @@ Future<void> deleteAccount(BuildContext context, String email) async {
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
-      debugPrint(jsondata.toString());
+      //debugPrint(jsondata.toString());
 
       Navigator.of(context).pop();
 
       if (jsondata["error"]) {
-        debugPrint(jsondata["message"]);
+        //debugPrint(jsondata["message"]);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,

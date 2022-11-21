@@ -296,7 +296,7 @@ class _AdminSignUpState extends State<AdminSignUp> {
                         });
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          debugPrint(jsondata.toString());
+                          //debugPrint(jsondata.toString());
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];

@@ -69,7 +69,7 @@ class _NotifPageState extends State<NotifPage> {
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -100,7 +100,7 @@ class _NotifPageState extends State<NotifPage> {
 
             //  debugPrint(events);
           } else {
-            //debugPrint(jsondata[0]["message"]);
+            ////debugPrint(jsondata[0]["message"]);
           }
         }
       }
@@ -173,7 +173,7 @@ class _NotifPageState extends State<NotifPage> {
           if (response.statusCode == 200) {
             var jsondata = jsonDecode(response.body);
 
-            debugPrint(jsondata.toString());
+            //debugPrint(jsondata.toString());
 
             //  Navigator.of(context).pop();
           } else {

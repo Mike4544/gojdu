@@ -96,11 +96,11 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -138,11 +138,11 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -186,12 +186,12 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
           debugPrint(id.toString());
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -230,11 +230,11 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -574,7 +574,7 @@ class Comment extends StatefulWidget {
         debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  debugPrint(jsondata.toString());
+        //  //debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           debugPrint('Errored');
@@ -666,7 +666,7 @@ class Comment extends StatefulWidget {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        debugPrint(jsondata.toString());
+        //debugPrint(jsondata.toString());
 
         return jsondata['id']['ID'];
       }
@@ -707,11 +707,11 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -749,11 +749,11 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          debugPrint(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          debugPrint(jsondata.toString());
+          //debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
@@ -1171,7 +1171,7 @@ class _CommentBarState extends State<CommentBar> {
 
                   if (response.statusCode == 200) {
                     var jsondata = json.decode(response.body);
-                    debugPrint(jsondata.toString());
+                    //debugPrint(jsondata.toString());
 
                     if (jsondata['success']) {
                       int commentId = await Comment.getMaxId();

@@ -85,7 +85,7 @@ class _AlertPageState extends State<AlertPage> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //debugPrint(jsondata["msg"]);
+          ////debugPrint(jsondata["msg"]);
         } else {
           //debugPrint("Upload successful");
         }
@@ -149,7 +149,7 @@ class _AlertPageState extends State<AlertPage> {
             if (response.statusCode == 200) {
               var jsondata = jsonDecode(response.body);
 
-              debugPrint(jsondata.toString());
+              //debugPrint(jsondata.toString());
 
               //  Navigator.of(context).pop();
             } else {

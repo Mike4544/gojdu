@@ -307,7 +307,7 @@ class _LoginState extends State<Login> {
         }).timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
           var jsondata1 = json.decode(response.body);
-          debugPrint(jsondata1);
+          //debugPrint(jsondata1);
           if (jsondata1["error"]) {
             if (jsondata1['message'] ==
                 'Your account is still pending. Check your email and activate it.') {
@@ -387,7 +387,7 @@ class _LoginState extends State<Login> {
                                     debugPrint(response.statusCode.toString());
                                     if (response.statusCode == 200) {
                                       var jsondata = json.decode(response.body);
-                                      //  debugPrint(jsondata.toString());
+                                      //  //debugPrint(jsondata.toString());
                                       if (jsondata['success']) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(const SnackBar(
@@ -509,7 +509,7 @@ class _LoginState extends State<Login> {
               // debugPrint(ln);
               // debugPrint(fn);
               // debugPrint(email);
-              debugPrint(jsondata1["token"]);
+              //debugPrint(jsondata1["token"]);
 
               await prefs2.setString('email', email);
               await prefs2.setString('password', _passController.value.text);
