@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -44,17 +42,17 @@ class _OpportunitiesListState extends State<OpportunitiesList>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/deleteOpportunity.php');
       final response = await http.post(url, body: {"id": Id.toString()});
 
-      print(Id.toString());
-      print(response.statusCode);
+      debugPrint(Id.toString());
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
-        print(response.body);
+        debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata['error']) {
-          print('Errored');
+          debugPrint('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -93,7 +91,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
           opportunities.removeAt(index);
         }
       } else {
-        print("Deletion failed.");
+        debugPrint("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -129,7 +127,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         ),
       ));
 
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -156,7 +154,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxOpportunities < maxScrollCountOpportunities) {
-      print('Haveth reached the end');
+      debugPrint('Haveth reached the end');
 
       await loadOpportunities();
 
@@ -178,10 +176,10 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         "lastID": '$lastIDOpportunities',
         'turns': '$turnsOpportunities'
       });
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -200,13 +198,13 @@ class _OpportunitiesListState extends State<OpportunitiesList>
               String color = jsondata[i]["color"].toString();
               String topic = jsondata[i]["topic"].toString();
 
-              // print(date);
-              // print('Index $i');
+              // debugPrint(date);
+              // debugPrint('Index $i');
 
               int? id = jsondata[i]["id"];
               int? oid = jsondata[i]["ownerID"];
 
-              ////print(globalMap['id']);
+              ////debugPrint(globalMap['id']);
 
               if (id != null) {
                 // events.add(Event(title: title,
@@ -249,7 +247,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
                   globalMap: globalMap,
                 ));
 
-                print(opportunities.length);
+                //  debugPrint(opportunities.length);
               }
             }
 
@@ -257,9 +255,9 @@ class _OpportunitiesListState extends State<OpportunitiesList>
             maxScrollCountOpportunities += turnsOpportunities;
             lastIDOpportunities = opportunities.last.id;
 
-            //  print(events);
+            //  debugPrint(events);
           } else {
-            //print(jsondata[0]["message"]);
+            //debugPrint(jsondata[0]["message"]);
           }
         }
       }
@@ -297,10 +295,8 @@ class _OpportunitiesListState extends State<OpportunitiesList>
   Widget build(BuildContext context) {
     super.build(context);
 
-    //  print('building');
+    //  debugPrint('building');
 
-    var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
 
     Widget opportunityList() {
       List dummyList = [];
@@ -395,7 +391,6 @@ class TriangleBackground extends StatefulWidget {
 class _TriangleBackgroundState extends State<TriangleBackground> {
   static const double _backConstant = 1.5;
   static const double _midConstant = 3.5;
-  static const double _frontConstant = 6;
 
   late var _acceleration;
 
@@ -1064,12 +1059,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   @override
   void initState() {
-    print(avatarImg);
+    debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  print(_controller.position.pixels);
+      //  debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -1101,7 +1096,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
           fit: BoxFit.cover),
     );
 
-    //print(imageLink);
+    //debugPrint(imageLink);
 
     return GestureDetector(
       onTap: (widget.imageString == 'null' || widget.imageString == '')
@@ -1194,7 +1189,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                     Uri.parse(widget.gMapsLink!))) {
                                   await launchUrl(Uri.parse(widget.gMapsLink!));
                                 } else {
-                                  print('Can\'t do it chief');
+                                  debugPrint('Can\'t do it chief');
                                 }
                               },
                               child: Row(

@@ -1,21 +1,16 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gojdu/pages/news.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 //  import '../databases/alertsdb.dart';
 import '../widgets/back_navbar.dart';
 import '../widgets/Alert.dart';
 import 'package:intl/intl.dart';
-import '../local_notif_service.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -54,20 +49,7 @@ class _NotifPageState extends State<NotifPage> {
   int turnsAlerts = 10;
   int lastIDAlerts = Misc.INT_MAX;
 
-  void sortAlerts() async {
-    alerts.sort((a, b) {
-      int firstVal = a.alert.read == true ? 1 : 0;
-      int secondVal = b.alert.read == true ? 1 : 0;
-
-      return firstVal.compareTo(secondVal);
-    });
-
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    //  reassemble();
-  }
-
-  late Future _getAlerts = loadAlerts().then((value) => sortAlerts());
+  late Future _getAlerts = loadAlerts();
 
   Future<int> loadAlerts() async {
     //  Alerts.clear();
@@ -84,10 +66,10 @@ class _NotifPageState extends State<NotifPage> {
         'persID': '${globalMap['id']}',
         'availability': globalMap['account'] == 'Admin' ? '1' : '2'
       });
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -113,11 +95,11 @@ class _NotifPageState extends State<NotifPage> {
             //  Add the search terms
             maxScrollCountAlerts += turnsAlerts;
             lastIDAlerts = alerts.last.alert.id!;
-            print(lastIDAlerts);
+            debugPrint(lastIDAlerts.toString());
 
-            //  print(events);
+            //  debugPrint(events);
           } else {
-            //print(jsondata[0]["message"]);
+            //debugPrint(jsondata[0]["message"]);
           }
         }
       }
@@ -137,7 +119,7 @@ class _NotifPageState extends State<NotifPage> {
 
       lastIDAlerts = Misc.INT_MAX;
 
-      _getAlerts = loadAlerts().then((value) => sortAlerts());
+      _getAlerts = loadAlerts();
     });
 
     //  return 1;
@@ -146,7 +128,7 @@ class _NotifPageState extends State<NotifPage> {
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxAlerts < maxScrollCountAlerts) {
-      print('Haveth reached the end');
+      debugPrint('Haveth reached the end');
 
       await loadAlerts();
 
@@ -158,7 +140,7 @@ class _NotifPageState extends State<NotifPage> {
 
   void share(Alert al) async {
     try {
-      //  print(Availability.TEACHERS);
+      //  debugPrint(Availability.TEACHERS);
       final response = await http.post(
           Uri.parse('${Misc.link}/${Misc.appName}/updateAlerts.php'),
           body: {'id': al.id.toString(), 'nAvail': '2'});
@@ -182,23 +164,23 @@ class _NotifPageState extends State<NotifPage> {
             "time": al.createdTime.toIso8601String()
           });
 
-          // print(response.statusCode);
-          //       // print(response.body);
-          //  print(DateTime.now().toIso8601String());
-          print(response.statusCode);
+          // debugPrint(response.statusCode);
+          //       // debugPrint(response.body);
+          //  debugPrint(DateTime.now().toIso8601String());
+          debugPrint(response.statusCode.toString());
 
           if (response.statusCode == 200) {
             var jsondata = jsonDecode(response.body);
 
-            print(jsondata);
+            debugPrint(jsondata);
 
             //  Navigator.of(context).pop();
           } else {
-            print('Error!');
+            debugPrint('Error!');
           }
         } catch (e, stack) {
-          print("Exception! $e");
-          print(stack);
+          debugPrint("Exception! $e");
+          debugPrint(stack.toString());
         }
       }
     } catch (e, stack) {
@@ -365,7 +347,7 @@ class _AlertContainerState extends State<AlertContainer> {
   late var stringImage = widget.alert.imageString;
   late var read = widget.alert.read;
   late var shared = widget.alert.shared;
-  late int seenby = widget.alert.seenby - 1;
+  late int seenby = widget.alert.seenby;
 
   Widget _seenByBar() => Visibility(
         visible: seenby > 0,
@@ -381,7 +363,9 @@ class _AlertContainerState extends State<AlertContainer> {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  'Seen by $seenby other(s).',
+                  read
+                      ? 'Seen by ${seenby - 1} other(s).'
+                      : 'Seen by $seenby other(s).',
                   style: TextStyle(fontSize: 15.sp, color: Colors.white),
                 ),
               ),
@@ -434,6 +418,7 @@ class _AlertContainerState extends State<AlertContainer> {
                       onTap: () {
                         if (!read) {
                           widget.callback(widget.alert);
+                          seenby++;
                           //  widget.sort();
                         }
 
@@ -441,7 +426,7 @@ class _AlertContainerState extends State<AlertContainer> {
                           read = true;
                         });
 
-                        print(read);
+                        debugPrint(read.toString());
 
                         Navigator.of(context).push(PageRouteBuilder(
                             pageBuilder: (context, animation, secAnim) =>
@@ -620,7 +605,7 @@ class BigNewsContainer extends StatelessWidget {
             fit: BoxFit.cover),
       );
 
-      //print(imageLink);
+      //debugPrint(imageLink);
 
       return GestureDetector(
         onTap: imageString == 'null' || imageString == ''

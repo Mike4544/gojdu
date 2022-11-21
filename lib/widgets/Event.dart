@@ -476,12 +476,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     // TODO: implement initState
 
     avatarImg = '${Misc.link}/${Misc.appName}/profiles/${widget.ownerID}.jpg';
-    print(avatarImg);
+    debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  print(_controller.position.pixels);
+      //  debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -497,7 +497,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    //print(imageLink);
+    //debugPrint(imageLink);
 
     BoxDecoration woImage = BoxDecoration(color: widget.color);
 
@@ -602,12 +602,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       children: [
                         GestureDetector(
                           onTap: () async {
-                            //  print(widget.mapsLink);
+                            //  debugPrint(widget.mapsLink);
                             if (await canLaunchUrl(
                                 Uri.parse(widget.mapsLink))) {
                               await launchUrl(Uri.parse(widget.mapsLink));
                             } else {
-                              print('Can\'t do it chief');
+                              debugPrint('Can\'t do it chief');
                             }
                           },
                           child: Row(

@@ -11,7 +11,6 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-
   final _postController = TextEditingController();
   final GlobalKey<FormState> _form = GlobalKey();
 
@@ -23,11 +22,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
     super.dispose();
   }
 
-
   @override
-  Widget build(BuildContext context)
-  {
-
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -43,10 +39,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               children: [
                 Text(
                   'Have some ideas you\'re willing to share with us? Tell us more! Who knows, they might become a reality!',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.sp
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 20.sp),
                 ),
                 const SizedBox(height: 50),
                 const Text(
@@ -72,8 +65,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide(
                               color: Colors.red,
-                            )
-                        ),
+                            )),
                         filled: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -91,9 +83,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       right: 10,
                       child: FloatingActionButton(
                         onPressed: () async {
-
-                          if(_form.currentState!.validate()){
-
+                          if (_form.currentState!.validate()) {
                             setState(() {
                               sending = true;
                             });
@@ -113,35 +103,39 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 _postController.clear();
                               });
 
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
                                 content: Text('Feedback sent!'),
                                 backgroundColor: Colors.green,
                                 behavior: SnackBarBehavior.floating,
                               ));
-
-                            } catch(e) {
-                              print(e);
+                            } catch (e) {
+                              debugPrint(e.toString());
 
                               setState(() {
                                 sending = false;
                                 _postController.clear();
                               });
 
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
                                 content: Text('Something went wrong!'),
                                 backgroundColor: Colors.red,
                                 behavior: SnackBarBehavior.floating,
                               ));
                             }
                           }
-
-
                         },
                         backgroundColor: ColorsB.yellow500,
-                        child: sending ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white),),
-                        ) : const Icon(Icons.send),
+                        child: sending
+                            ? Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: const CircularProgressIndicator(
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.send),
                         mini: true,
                       ),
                     )

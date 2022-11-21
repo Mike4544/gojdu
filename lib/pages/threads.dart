@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/options.dart';
-import 'package:native_video_view/native_video_view.dart';
 import '../others/colors.dart';
 
 import 'package:http/http.dart' as http;

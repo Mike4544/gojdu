@@ -85,15 +85,15 @@ class _AlertPageState extends State<AlertPage> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //print(jsondata["msg"]);
+          //debugPrint(jsondata["msg"]);
         } else {
-          //print("Upload successful");
+          //debugPrint("Upload successful");
         }
       } else {
-        //print("Upload failed");
+        //debugPrint("Upload failed");
       }
     } catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
     }
   }
 
@@ -142,18 +142,18 @@ class _AlertPageState extends State<AlertPage> {
               "time": time
             });
 
-            // print(response.statusCode);
-            //       // print(response.body);
-            //  print(DateTime.now().toIso8601String());
+            // debugPrint(response.statusCode);
+            //       // debugPrint(response.body);
+            //  debugPrint(DateTime.now().toIso8601String());
 
             if (response.statusCode == 200) {
               var jsondata = jsonDecode(response.body);
 
-              print(jsondata);
+              debugPrint(jsondata);
 
               //  Navigator.of(context).pop();
             } else {
-              print('Error!');
+              debugPrint('Error!');
             }
           } catch (e, stack) {
             debugPrint(e.toString());
@@ -162,7 +162,7 @@ class _AlertPageState extends State<AlertPage> {
         }
       }
     } catch (e) {
-      print("Exception! $e");
+      debugPrint("Exception! $e");
     }
   }
 
@@ -299,8 +299,8 @@ class _AlertPageState extends State<AlertPage> {
                           errorText = '';
                         });
 
-                        print(_postTitleController.text);
-                        print(_postController.text);
+                        debugPrint(_postTitleController.text);
+                        debugPrint(_postController.text);
 
                         await sendReport(_file, _postTitleController.text,
                             _postController.text, format);

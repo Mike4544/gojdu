@@ -296,7 +296,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         });
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          print(jsondata);
+                          debugPrint(jsondata);
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];
@@ -420,7 +420,8 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                                       'email': email,
                                                       'code': _code.text
                                                     });
-                                                    print(response.statusCode);
+                                                    debugPrint(
+                                                        response.statusCode.toString());
                                                     if (response.statusCode ==
                                                         200) {
                                                       var jsondata =

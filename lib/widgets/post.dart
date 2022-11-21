@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/options.dart';
 import 'package:gojdu/pages/news.dart';
@@ -73,7 +71,7 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 class _PostState extends State<Post> {
   // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
   Future<void> like(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     if (widget.dislikes == true) {
       undislike(id, uid);
@@ -98,15 +96,15 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(jsondata);
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(widget.context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -120,7 +118,7 @@ class _PostState extends State<Post> {
   }
 
   Future<void> unlike(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! - 1;
@@ -140,15 +138,15 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(jsondata);
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(widget.context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -162,7 +160,7 @@ class _PostState extends State<Post> {
   }
 
   Future<void> dislike(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     if (widget.likesBool == true) {
       unlike(id, uid);
@@ -188,16 +186,16 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(id);
-          print(jsondata);
+          debugPrint(id.toString());
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(widget.context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -211,7 +209,7 @@ class _PostState extends State<Post> {
   }
 
   Future<void> undislike(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! + 1;
@@ -232,15 +230,15 @@ class _PostState extends State<Post> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(jsondata);
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(widget.context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -333,7 +331,7 @@ class _PostState extends State<Post> {
                                     ),
                                     height: 50,
                                     width: 75,
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.check,
                                       color: Colors.white,
                                     ),
@@ -351,7 +349,7 @@ class _PostState extends State<Post> {
                                     ),
                                     height: 50,
                                     width: 75,
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.close,
                                       color: Colors.white,
                                     ),
@@ -569,17 +567,17 @@ class Comment extends StatefulWidget {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/deleteComment.php');
       final response = await http.post(url, body: {"id": id.toString()});
 
-      print(id.toString());
-      print(response.statusCode);
+      debugPrint(id.toString());
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
-        print(response.body);
+        debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata['error']) {
-          print('Errored');
+          debugPrint('Errored');
 
           // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           //   behavior: SnackBarBehavior.floating,
@@ -618,7 +616,7 @@ class Comment extends StatefulWidget {
           comments.removeAt(index);
         }
       } else {
-        print("Deletion failed.");
+        debugPrint("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -654,7 +652,7 @@ class Comment extends StatefulWidget {
       //   ),
       // ));
 
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -663,17 +661,17 @@ class Comment extends StatefulWidget {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getMaxInsert.php');
       final response = await http.post(url, body: {"table": 'comments'});
 
-      print('Id');
-      print(response.statusCode);
+      debugPrint('Id');
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
 
         return jsondata['id']['ID'];
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return 1;
@@ -684,7 +682,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
   late bool _isnt404;
 
   Future<void> like(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     // if (widget.dislikes == true) {
     //   undislike(id, uid);
@@ -709,15 +707,15 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(jsondata);
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -731,10 +729,10 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
   }
 
   Future<void> unlike(int id, int uid) async {
-    //print(ids);
+    //debugPrint(ids);
 
     setState(() {
-      widget.likes = widget.likes! - 1;
+      widget.likes = widget.likes- 1;
       widget.likesBool = false;
 
       //widget.update();
@@ -751,15 +749,15 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          print(jsondata['message']);
+          debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          print(jsondata);
+          debugPrint(jsondata);
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -996,7 +994,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
               child: TextField(
                 keyboardType: TextInputType.text,
                 controller: _replyController,
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
                 maxLines: null,
                 focusNode: replyNode,
                 maxLength: 150,
@@ -1012,7 +1010,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   disabledBorder: InputBorder.none,
-                  hintStyle: TextStyle(
+                  hintStyle: const TextStyle(
                       color: Colors.white24, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -1063,8 +1061,8 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
     //  difference = widget.timePosted.difference(DateTime.now());
     // timeAgo = DateTime.now().subtract(difference);
 
-    //  print(difference);
-    print(widget.timePosted);
+    //  debugPrint(difference);
+    debugPrint(widget.timePosted.toString());
 
     //  Comment.getMaxId();
 
@@ -1119,7 +1117,7 @@ class _CommentBarState extends State<CommentBar> {
           child: TextField(
             keyboardType: TextInputType.text,
             controller: _commentController,
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
             maxLines: null,
             maxLength: 150,
             //  maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -1169,11 +1167,11 @@ class _CommentBarState extends State<CommentBar> {
                     "body": _commentController.text
                   });
 
-                  print(response.statusCode);
+                  debugPrint(response.statusCode.toString());
 
                   if (response.statusCode == 200) {
                     var jsondata = json.decode(response.body);
-                    print(jsondata);
+                    debugPrint(jsondata);
 
                     if (jsondata['success']) {
                       int commentId = await Comment.getMaxId();

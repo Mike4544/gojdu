@@ -121,15 +121,15 @@ class _AddOpportunityState extends State<AddOpportunity> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //print(jsondata["msg"]);
+          //debugPrint(jsondata["msg"]);
         } else {
-          //print("Upload successful");
+          //debugPrint("Upload successful");
         }
       } else {
-        //print("Upload failed");
+        //debugPrint("Upload failed");
       }
     } catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
     }
   }
 
@@ -276,8 +276,8 @@ class _AddOpportunityState extends State<AddOpportunity> {
 
                             setState(() {});
 
-                            print(locationButton);
-                            print(coordsForLink);
+                            debugPrint(locationButton);
+                            debugPrint(coordsForLink.toString());
                           },
                         )
                       : TextFormField(
@@ -553,9 +553,9 @@ class _AddOpportunityState extends State<AddOpportunity> {
                                 await uploadImage(_file, name);
                                 imgSub = true;
                               }
-                              //print(channels[i]);
+                              //debugPrint(channels[i]);
 
-                              //print(_file);
+                              //debugPrint(_file);
 
                               var finalLocation = isCustom
                                   ? _customLocation.text
@@ -588,10 +588,10 @@ class _AddOpportunityState extends State<AddOpportunity> {
                                 "topic": tag,
                                 "maps_link": mapsLink
                               });
-                              print(response.statusCode);
+                              debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                print(jsondata);
+                                debugPrint(jsondata);
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -605,12 +605,12 @@ class _AddOpportunityState extends State<AddOpportunity> {
                                             "channel": "Students"
                                           });
 
-                                      print(response2.statusCode);
+                                      debugPrint(response2.statusCode.toString());
 
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =
                                             json.decode(response2.body);
-                                        print(jsondata2);
+                                        debugPrint(jsondata2);
 
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(SnackBar(
@@ -633,21 +633,21 @@ class _AddOpportunityState extends State<AddOpportunity> {
                                         ));
 
                                         Navigator.of(context).pop();
-                                        //  print(jsondata2);
+                                        //  debugPrint(jsondata2);
                                         Navigator.of(context).pop();
                                       }
                                     } catch (e) {
-                                      //print(e);
+                                      //debugPrint(e);
                                     }
 
                                     //  Navigator.of(context).pop();
                                   } else {
-                                    //print(jsondata["message"]);
+                                    //debugPrint(jsondata["message"]);
                                   }
                                 }
                               }
                             } catch (e) {
-                              //print(e);
+                              //debugPrint(e);
                               //Navigator.of(context).pop();
                             }
 
@@ -713,7 +713,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    print(serviceEnabled);
+    debugPrint(serviceEnabled.toString());
     if (!serviceEnabled) {
       // Location services are not enabled don't continue
       // accessing the position and request users of the
@@ -806,7 +806,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                               center: currentPosition,
                               onTap: (_, coords) async {
                                 _markers.clear();
-                                //  print(coords);
+                                //  debugPrint(coords);
                                 _markers.insert(
                                     0,
                                     Marker(
@@ -820,7 +820,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
                                 selectedPosition = coords;
                                 selected = true;
-                                print(coords);
+                                debugPrint(coords.toString());
 
                                 var geoCode = GeoCode();
 
@@ -829,7 +829,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                                     longitude: selectedPosition.longitude);
                                 // road = address!.streetAddress!;
                                 // city = address!.city!;
-                                print(address);
+                                debugPrint(address.toString());
 
                                 setState(() {});
                               }),

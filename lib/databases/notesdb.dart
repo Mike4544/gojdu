@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:path/path.dart';
 
 import 'package:gojdu/widgets/Note.dart';
@@ -30,7 +29,6 @@ class NotesDatabase {
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const boolType = 'BOOLEAN NOT NULL';
-    const intType = 'INTEGER NOT NULL';
     const stringType = 'TEXT NOT NULL';
 
 

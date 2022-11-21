@@ -334,7 +334,7 @@ class _FirstPageState extends State<FirstPage> {
                       "email": _mail.value.text,
                       "token": token
                     });
-                    print(response.statusCode);
+                    //  debugPrint(response.statusCode);
                     if (response.statusCode == 200) {
                       var jsondata = json.decode(response.body);
                       if (jsondata["error"]) {
@@ -356,7 +356,7 @@ class _FirstPageState extends State<FirstPage> {
                           _prefs.setString('first_name', first_name);
                           _prefs.setString('last_name', last_name);
 
-                          print(acc_type.toString());
+                          debugPrint(acc_type.toString());
                           Navigator.of(context).pop('dialog');
 
                           final loginMap = {

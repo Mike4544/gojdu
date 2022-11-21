@@ -296,7 +296,7 @@ class _AdminSignUpState extends State<AdminSignUp> {
                         });
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          print(jsondata);
+                          debugPrint(jsondata);
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];
@@ -334,7 +334,7 @@ class _AdminSignUpState extends State<AdminSignUp> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => NewsPage(
-                                        notifs: ValueNotifier(0),
+                                            notifs: ValueNotifier(0),
                                             data: loginMap,
                                             newlyCreated: true,
                                           )));

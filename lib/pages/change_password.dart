@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:ui' as ui;
 import 'package:gojdu/widgets/back_navbar.dart';
-import 'package:gojdu/pages/login.dart';
 import 'package:gojdu/widgets/input_fields.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Import the libraries needed for HTTP requests
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -153,7 +148,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                                 });
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
-                                  print(jsondata);
+                                  debugPrint(jsondata);
                                   if (jsondata['success']) {
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(const SnackBar(

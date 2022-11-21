@@ -124,20 +124,20 @@ class _AddOfferState extends State<AddOffer> {
       final response = await http.post(url,
           body: {"image": baseimage, "name": name, "format": _format});
 
-      print('Image: ${response.statusCode}');
+      debugPrint('Image: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //print(jsondata["msg"]);
+          //debugPrint(jsondata["msg"]);
         } else {
-          //print("Upload successful");
+          //debugPrint("Upload successful");
         }
       } else {
-        //print("Upload failed");
+        //debugPrint("Upload failed");
       }
     } catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
       throw Exception(e);
     }
   }
@@ -296,8 +296,8 @@ class _AddOfferState extends State<AddOffer> {
 
                             setState(() {});
 
-                            print(locationButton);
-                            print(coordsForLink);
+                            debugPrint(locationButton);
+                            debugPrint(coordsForLink.toString());
                           },
                         )
                       : TextFormField(
@@ -654,8 +654,8 @@ class _AddOfferState extends State<AddOffer> {
                               var name2 = companyName.text
                                   .replaceAll(' ', '_')
                                   .replaceAll('\'', '');
-                              print(name2);
-                              print('Logo ${logo == null}');
+                              debugPrint(name2);
+                              debugPrint('Logo ${logo == null}');
 
                               await uploadImage(logo, name2, "png");
 
@@ -671,9 +671,9 @@ class _AddOfferState extends State<AddOffer> {
                                   ? "${Misc.link}/${Misc.appName}/imgs/$name.$format"
                                   : '';
 
-                              //print(channels[i]);
+                              //debugPrint(channels[i]);
 
-                              //print(_file);
+                              //debugPrint(_file);
 
                               var url = Uri.parse(
                                   '${Misc.link}/${Misc.appName}/addOffer.php');
@@ -697,10 +697,10 @@ class _AddOfferState extends State<AddOffer> {
                                 "col": choosenColor.toString(),
                                 "ownerID": widget.gMap['id'].toString()
                               });
-                              print(response.statusCode);
+                              debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                print(jsondata);
+                                debugPrint(jsondata);
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -714,12 +714,12 @@ class _AddOfferState extends State<AddOffer> {
                                             "channel": "Students"
                                           });
 
-                                      print(response2.statusCode);
+                                      debugPrint(response2.statusCode.toString());
 
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =
                                             json.decode(response2.body);
-                                        print(jsondata2);
+                                        debugPrint(jsondata2);
 
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(SnackBar(
@@ -742,21 +742,21 @@ class _AddOfferState extends State<AddOffer> {
                                         ));
 
                                         Navigator.of(context).pop();
-                                        //  print(jsondata2);
+                                        //  debugPrint(jsondata2);
                                         Navigator.of(context).pop();
                                       }
                                     } catch (e) {
-                                      print(e);
+                                      debugPrint(e.toString());
                                     }
 
                                     //  Navigator.of(context).pop();
                                   } else {
-                                    //print(jsondata["message"]);
+                                    //debugPrint(jsondata["message"]);
                                   }
                                 }
                               }
                             } catch (e) {
-                              //print(e);
+                              //debugPrint(e);
                               //Navigator.of(context).pop();
                             }
 
@@ -822,7 +822,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    print(serviceEnabled);
+    debugPrint(serviceEnabled.toString());
     if (!serviceEnabled) {
       // Location services are not enabled don't continue
       // accessing the position and request users of the
@@ -915,7 +915,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                               center: currentPosition,
                               onTap: (_, coords) async {
                                 _markers.clear();
-                                //  print(coords);
+                                //  debugPrint(coords);
                                 _markers.insert(
                                     0,
                                     Marker(
@@ -929,7 +929,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
                                 selectedPosition = coords;
                                 selected = true;
-                                print(coords);
+                                debugPrint(coords.toString());
 
                                 var geoCode = GeoCode();
 
@@ -938,7 +938,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                                     longitude: selectedPosition.longitude);
                                 // road = address!.streetAddress!;
                                 // city = address!.city!;
-                                print(address);
+                                debugPrint(address.toString());
 
                                 setState(() {});
                               }),

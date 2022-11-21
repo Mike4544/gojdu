@@ -110,7 +110,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 'action': "FORGOT",
                                 "email": emailController.text,
                               });
-                              print(response.statusCode);
+                              debugPrint(response.statusCode.toString());
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
 

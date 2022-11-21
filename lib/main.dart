@@ -4,7 +4,6 @@ import '../others/options.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 //Importing the 'main' pages
 import 'package:gojdu/pages/login.dart';
@@ -19,7 +18,6 @@ import 'package:gojdu/pages/signup/teacher.dart';
 import 'package:gojdu/pages/signup/parent/parent_init.dart';
 
 //Importing the splash screen
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 //  Preferences
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +27,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 // Import Connectivity
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 // Firebase thingys
 import 'package:firebase_core/firebase_core.dart';
@@ -37,9 +34,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 
 // Import the verified page
-import 'package:gojdu/pages/verified.dart';
 
-import 'package:gojdu/others/colors.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import './local_notif_service.dart';
@@ -69,7 +64,7 @@ Future<void> main() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final Widget homeWidget = await getPage();
 
-  print('TYPE: $type');
+  debugPrint('TYPE: $type');
 
   //  await _locNotifs.init();
 
@@ -133,17 +128,17 @@ Future<void> getNotifs(int id) async {
 
 Future<Widget> getPage() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  print(prefs.getString('email').toString());
+  debugPrint(prefs.getString('email').toString());
 
   String? token = await FirebaseMessaging.instance.getToken();
 
   if (!(prefs.getString('email') != null &&
       prefs.getString("password") != null)) {
-    print(false);
+    debugPrint(false.toString());
     return const Login();
   } else {
     try {
-      //print(true);
+      //debugPrint(true);
       var url = Uri.parse('${Misc.link}/${Misc.appName}/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),

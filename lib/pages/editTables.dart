@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -51,13 +50,13 @@ class _EditFloorsState extends State<EditFloors> {
       var url = Uri.parse(url1);
       final response = await http.post(url, body: postBody);
 
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
         if (jsondata["error"]) {
-          print(jsondata["message"]);
+          debugPrint(jsondata["message"]);
 
           ScaffoldMessenger.of(_scaffoldKey.currentContext!)
               .showSnackBar(SnackBar(
@@ -77,11 +76,11 @@ class _EditFloorsState extends State<EditFloors> {
             ),
           ));
         } else {
-          print("Upload successful");
+          debugPrint("Upload successful");
 
           widget.update(temporary);
           //  widget.floors = temporary;
-          //  print(widget.floors);
+          //  debugPrint(widget.floors);
 
           ScaffoldMessenger.of(_scaffoldKey.currentContext!)
               .showSnackBar(SnackBar(
@@ -106,7 +105,7 @@ class _EditFloorsState extends State<EditFloors> {
           widget.floors = temporary;
         }
       } else {
-        print("Upload failed");
+        debugPrint("Upload failed");
         ScaffoldMessenger.of(_scaffoldKey.currentContext!)
             .showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -128,7 +127,7 @@ class _EditFloorsState extends State<EditFloors> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
       ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red,
@@ -162,10 +161,10 @@ class _EditFloorsState extends State<EditFloors> {
 
   @override
   void initState() {
-    print(widget.type.toString());
+    debugPrint(widget.type.toString());
     for (int i = 0; i < widget.floors.length; ++i) {
       temporary.add(widget.floors[i].clone());
-      // print('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
+      // debugPrint('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
 
     }
 
@@ -176,7 +175,7 @@ class _EditFloorsState extends State<EditFloors> {
         temporary[i].image = await networkImageToBase64(temporary[i].image);
       }
 
-      print(temporary);
+      debugPrint(temporary.toString());
     });
 
     super.initState();
@@ -191,7 +190,7 @@ class _EditFloorsState extends State<EditFloors> {
         overflow: TextOverflow.fade);
 
     for (var i = 0; i < array.length; i++) {
-      print(array[i].floor);
+      debugPrint(array[i].floor);
 
       temp.insert(
           i,
@@ -256,7 +255,7 @@ class _EditFloorsState extends State<EditFloors> {
                               actions: [
                                 TextButton(
                                   onPressed: () {
-                                    //  print(json.encode(temporary));
+                                    //  debugPrint(json.encode(temporary));
 
                                     if (_formKey.currentState!.validate()) {
                                       array[i].floor = nameController.text;
@@ -266,7 +265,7 @@ class _EditFloorsState extends State<EditFloors> {
                                         String baseimage =
                                             base64Encode(imageBytes);
 
-                                        print('Index $i is $baseimage');
+                                        debugPrint('Index $i is $baseimage');
 
                                         // images[i] = baseimage;
                                         temporary[i].image = baseimage;
@@ -362,7 +361,7 @@ class _EditFloorsState extends State<EditFloors> {
                                               _format = '.' +
                                                   image!.name.split('.').last;
 
-                                              print(_format.toString());
+                                              debugPrint(_format.toString());
 
                                               buttonText = image!.name;
                                             } catch (e) {
@@ -782,7 +781,7 @@ class _EditFloorsState extends State<EditFloors> {
                                                           image!.name
                                                               .split('.')
                                                               .last;
-                                                      //  print(_format.toString());
+                                                      //  debugPrint(_format.toString());
 
                                                       buttonText = image!.name;
                                                     } catch (e) {
@@ -827,9 +826,9 @@ class _EditFloorsState extends State<EditFloors> {
                       return;
                     }
 
-                    // print(jsonEncode(images));
-                    // //  print(jsonEncode(names));
-                    // print(jsonEncode(terms));
+                    // debugPrint(jsonEncode(images));
+                    // //  debugPrint(jsonEncode(names));
+                    // debugPrint(jsonEncode(terms));
 
                     Map<String, Map<String, String>> data = {};
 
@@ -843,7 +842,7 @@ class _EditFloorsState extends State<EditFloors> {
                       });
                     }
 
-                    print(jsonEncode(data).toString());
+                    debugPrint(jsonEncode(data).toString());
 
                     showDialog(
                         context: context,

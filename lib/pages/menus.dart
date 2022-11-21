@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 import 'package:gojdu/others/colors.dart';
-import 'package:gojdu/pages/settings.dart';
-import 'package:gojdu/widgets/curved_appbar.dart';
 import 'package:gojdu/others/rounded_triangle.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';

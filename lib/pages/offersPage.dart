@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gojdu/pages/addOffer.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:gojdu/pages/opportunities.dart';
@@ -13,7 +11,6 @@ import 'package:gojdu/widgets/lazyBuilder.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
-import './offersPage.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
@@ -64,7 +61,7 @@ class _OffersPageState extends State<OffersPage>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxOffers < maxScrollCountOffers) {
-      print('Haveth reached the end');
+      debugPrint('Haveth reached the end');
 
       await loadOffers();
 
@@ -83,10 +80,10 @@ class _OffersPageState extends State<OffersPage>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getOffers.php');
       final response = await http.post(url,
           body: {"lastID": "$lastIDOffers", "turns": "$turnsOffers"});
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -109,7 +106,7 @@ class _OffersPageState extends State<OffersPage>
               String logo = jsondata[i]["logo"].toString();
               String color = jsondata[i]["color"].toString();
 
-              ////print(globalMap['id']);
+              ////debugPrint(globalMap['id']);
 
               if (id != null) {
                 // var day = int.parse(date.split('/')[0]);
@@ -136,29 +133,29 @@ class _OffersPageState extends State<OffersPage>
                   s_color: color,
                 ));
 
-                print(offers.length);
+                //  debugPrint(offers.length);
               }
 
               /* if(post != "null")
               {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
+                //debugPrint(post+ " this is the post");
+                //debugPrint(title+" this is the title");
+                //debugPrint(owner+ " this is the owner");
               } */
 
             }
             maxScrollCountOffers += turnsOffers;
             lastIDOffers = offers.last.id;
 
-            //  print(events);
+            //  debugPrint(events);
           } else {
-            //print(jsondata[0]["message"]);
+            //debugPrint(jsondata[0]["message"]);
 
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       throw Future.error(e.toString());
     }
 
@@ -178,17 +175,17 @@ class _OffersPageState extends State<OffersPage>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/deleteOffer.php');
       final response = await http.post(url, body: {"id": Id.toString()});
 
-      print(Id.toString());
-      print(response.statusCode);
+      debugPrint(Id.toString());
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
-        print(response.body);
+        debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata['error']) {
-          print('Errored');
+          debugPrint('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -227,7 +224,7 @@ class _OffersPageState extends State<OffersPage>
           offers.removeAt(index);
         }
       } else {
-        print("Deletion failed.");
+        debugPrint("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -263,7 +260,7 @@ class _OffersPageState extends State<OffersPage>
         ),
       ));
 
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -406,7 +403,7 @@ class OfferContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(date);
+    debugPrint(date.toString());
 
     final titleStyle = TextStyle(
         color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold);
@@ -690,12 +687,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   @override
   void initState() {
-    print(avatarImg);
+    debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  print(_controller.position.pixels);
+      //  debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -727,8 +724,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
           fit: BoxFit.cover),
     );
 
-    //print(imageLink);
-    print(widget.imageString);
+    //debugPrint(imageLink);
+    debugPrint(widget.imageString);
 
     return GestureDetector(
       onTap: (widget.imageString == 'null' || widget.imageString == '')
@@ -840,7 +837,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                     Uri.parse(widget.gMapsLink!))) {
                                   await launchUrl(Uri.parse(widget.gMapsLink!));
                                 } else {
-                                  print('Can\'t do it chief');
+                                  debugPrint('Can\'t do it chief');
                                 }
                               },
                               child: Row(
@@ -1002,7 +999,7 @@ class _BackgroundState extends State<Background> {
       accelerometerEvents.listen((event) {
         _parallaxValues = event;
 
-        //print(event);
+        //debugPrint(event);
 
         if (mounted) {
           setState(() {});
@@ -1026,7 +1023,7 @@ class _BackgroundState extends State<Background> {
     blur2 = math.Random().nextDouble() * 12;
     blur3 = math.Random().nextDouble() * 5;
 
-    //  print(c11);
+    //  debugPrint(c11);
   }
 
   @override

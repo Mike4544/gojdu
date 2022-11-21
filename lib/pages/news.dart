@@ -48,10 +48,8 @@ import './notes.dart';
 import './alertPage.dart';
 
 //  import '../databases/alertsdb.dart';
-import '../widgets/Alert.dart';
 
 // For vibration
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/switchPosts.dart';
 
@@ -281,7 +279,7 @@ class _NewsPageState extends State<NewsPage> {
   @override
   void deactivate() {
     super.deactivate();
-    //print(1);
+    //debugPrint(1);
   }
 
   //  Testing smthing
@@ -305,15 +303,15 @@ class _NewsPageState extends State<NewsPage> {
         connectionStatus = result;
         _connectionStatus = result;
       });
-      //print(result);
-      //print(lastConnectionStatus);
+      //debugPrint(result);
+      //debugPrint(lastConnectionStatus);
       checkConnectivity();
       lastConnectionStatus = connectionStatus;
     });
 
     FirebaseMessaging.onMessage.listen((message) async {
-      print(message.data['type']);
-      print(message.data['type'] == 'Report');
+      debugPrint(message.data['type']);
+      debugPrint((message.data['type'] == 'Report').toString());
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -366,7 +364,7 @@ class _NewsPageState extends State<NewsPage> {
           break;
 
         case 'Report':
-          print('a');
+          debugPrint('a');
           addAlert();
 
           HapticFeedback.mediumImpact();
@@ -395,7 +393,7 @@ class _NewsPageState extends State<NewsPage> {
           break;
 
         default:
-          print('DEFAULT');
+          debugPrint('DEFAULT');
           break;
       }
     });
@@ -418,14 +416,15 @@ class _NewsPageState extends State<NewsPage> {
           addAlert();
 
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => NotifPage(notifs: widget.notifs,
+              builder: (context) => NotifPage(
+                    notifs: widget.notifs,
                     isAdmin: globalMap['account'] == 'Admin',
                   )));
 
           break;
 
         default:
-          print('Default');
+          debugPrint('Default');
           break;
       }
     });
@@ -543,10 +542,10 @@ class _NewsPageState extends State<NewsPage> {
       final response = await http.post(url, body: {
         'state': 'Pending',
       });
-      //print(response.statusCode);
+      //debugPrint(response.statusCode);
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -565,7 +564,7 @@ class _NewsPageState extends State<NewsPage> {
               String acc_type = jsondata[i]["type"].toString();
               String token = jsondata[i]["token"].toString();
 
-              //  print(name);
+              //  debugPrint(name);
 
               if (name != "null" && email != "null") {
                 _names.add(name);
@@ -576,19 +575,19 @@ class _NewsPageState extends State<NewsPage> {
 
               /* if(post != "null")
               {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
+                //debugPrint(post+ " this is the post");
+                //debugPrint(title+" this is the title");
+                //debugPrint(owner+ " this is the owner");
               } */
 
             }
           } else {
-            //print(jsondata["1"]["message"]);
+            //debugPrint(jsondata["1"]["message"]);
           }
         }
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
     }
 
     return 0;
@@ -605,11 +604,11 @@ class _NewsPageState extends State<NewsPage> {
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
-        //print(jsondata2);
+        //debugPrint(jsondata2);
 
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
     }
   }
 
@@ -624,7 +623,7 @@ class _NewsPageState extends State<NewsPage> {
 
       if (response2.statusCode == 200) {
         var jsondata2 = json.decode(response2.body);
-        //print(jsondata2);
+        //debugPrint(jsondata2);
         if (jsondata2['error'] == false) {
           _notifyUser(token);
 
@@ -635,9 +634,9 @@ class _NewsPageState extends State<NewsPage> {
       }
     } on TimeoutException catch (e) {
       return throw Exception('Timeout');
-      //print(e);
+      //debugPrint(e);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -1061,7 +1060,7 @@ class _NewsPageState extends State<NewsPage> {
                                                                     ),
                                                                     onTap:
                                                                         () async {
-                                                                      print(
+                                                                      debugPrint(
                                                                           'Checked');
                                                                       await _verifyUser(
                                                                           _tokens[
@@ -1318,7 +1317,7 @@ class _AnnouncementsState extends State<Announcements>
     //   }
     // });
 
-    //print(globalMap['account']);
+    //debugPrint(globalMap['account']);
     //  widget.eventCtrl = PageController(initialPage: widget.currSelect);
   }
 
@@ -1601,7 +1600,7 @@ class _EventsPageState extends State<EventsPage>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxEvents < maxScrollCountEvents) {
-      print('Haveth reached the end');
+      debugPrint('Haveth reached the end');
 
       await loadEvents();
 
@@ -1616,7 +1615,7 @@ class _EventsPageState extends State<EventsPage>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -1697,7 +1696,7 @@ class _EventsPageState extends State<EventsPage>
     //  events.clear();
 
     //  Maybe rework this a bit.
-    print('events');
+    debugPrint('events');
     lastMaxEvents = maxScrollCountEvents;
 
     try {
@@ -1748,16 +1747,16 @@ class _EventsPageState extends State<EventsPage>
             }
             lastIDEvents = jsondata[jsondata.length - 1]['id'];
             maxScrollCountEvents += turnsEvents;
-            //  print(events);
+            //  debugPrint(events);
           } else {
-            //print(jsondata["1"]["message"]);
+            //debugPrint(jsondata["1"]["message"]);
           }
           //  events.add(SizedBox(height: screenHeight * .25));
         }
       }
     } catch (e, stack) {
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
     }
 
     return 0;
@@ -1848,10 +1847,10 @@ class _PostsListState extends State<PostsList>
         "maxTurns": turns.toString(),
         "channel": widget.channel,
       });
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
         if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
@@ -1892,7 +1891,7 @@ class _PostsListState extends State<PostsList>
               if (post != "null" && post != null && ownerID != null) {
                 // if (liked.contains(globalMap['id'].toString())) {
                 //   likedbool = true;
-                //   //print('a');
+                //   //debugPrint('a');
                 // } else {
                 //   likedbool = false;
                 // }
@@ -1903,7 +1902,7 @@ class _PostsListState extends State<PostsList>
                 //   dislikedbool = false;
                 // }
 
-                print('da');
+                debugPrint('da');
                 posts.add(Post(
                   id: id!,
                   title: title,
@@ -1931,15 +1930,15 @@ class _PostsListState extends State<PostsList>
             }
             lastID = jsondata[jsondata.length - 1]['id'];
             maxScrollCount += 10;
-            print(posts.length);
+            debugPrint(posts.length.toString());
           } else {
-            //print(jsondata["1"]["message"]);
+            //debugPrint(jsondata["1"]["message"]);
           }
         }
       }
     } catch (e, stack) {
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
       throw Future.error(e.toString());
     }
 
@@ -2070,7 +2069,7 @@ class _PostsListState extends State<PostsList>
   }
 
   Future _refresh() async {
-    ////print(posts.length);
+    ////debugPrint(posts.length);
 
     posts.clear();
 
@@ -2101,9 +2100,9 @@ class _PostsListState extends State<PostsList>
   void initState() {
     _scrollController = ScrollController();
     _scrollController.addListener(() {
-      //  print(_scrollController.position.extentAfter);
-      //print(lastMax);
-      //  print(lastID);
+      //  debugPrint(_scrollController.position.extentAfter);
+      //debugPrint(lastMax);
+      //  debugPrint(lastID);
       if (_scrollController.position.extentAfter == 0 &&
           lastMax < maxScrollCount) {
         _getMoreData();
@@ -2354,7 +2353,7 @@ class BigNewsContainer extends StatefulWidget {
 class _BigNewsContainerState extends State<BigNewsContainer> {
   // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
   Future<void> like(int id, int uid) async {
-    ////print(ids);
+    ////debugPrint(ids);
 
     if (widget.dislikes == true) {
       undislike(id, uid);
@@ -2383,15 +2382,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          //print(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          //print(jsondata);
+          //debugPrint(jsondata);
         }
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2405,7 +2404,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> unlike(int id, int uid) async {
-    ////print(ids);
+    ////debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! - 1;
@@ -2428,15 +2427,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          //print(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          //print(jsondata);
+          //debugPrint(jsondata);
         }
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2450,7 +2449,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> dislike(int id, int uid) async {
-    ////print(ids);
+    ////debugPrint(ids);
 
     if (widget.likesBool == true) {
       unlike(id, uid);
@@ -2480,15 +2479,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          //print(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          //print(jsondata);
+          //debugPrint(jsondata);
         }
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2502,7 +2501,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> undislike(int id, int uid) async {
-    ////print(ids);
+    ////debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! + 1;
@@ -2526,15 +2525,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          //print(jsondata['message']);
+          //debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          //print(jsondata);
+          //debugPrint(jsondata);
         }
       }
     } catch (e) {
-      //print(e);
+      //debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2631,19 +2630,19 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         "maxLoaded": _turnsToLoad.toString()
       });
 
-      print(response.statusCode);
+      debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
         Map jsondata = json.decode(response.body);
-        print(jsondata.length);
-        print(widget.id);
-        print(jsondata);
+        debugPrint(jsondata.length.toString());
+        debugPrint(widget.id.toString());
+        debugPrint(jsondata.toString());
 
         if (jsondata['success']) {
           for (int i = 2; i < jsondata.length; i++) {
-            //  print(jsondata['${i - 1}']);
-            //print(jsondata['${i - 1}']['lby'].split(';'));
-            print(DateTime.parse(jsondata['${i - 1}']['time']));
+            //  debugPrint(jsondata['${i - 1}']);
+            //debugPrint(jsondata['${i - 1}']['lby'].split(';'));
+            //  debugPrint(DateTime.parse(jsondata['${i - 1}']['time']));
             comments.add(
                 Comment.fromJson(jsondata['${i - 1}'], globalMap, () async {
               await Comment.deleteComment(context, jsondata['${i - 1}']['id'],
@@ -2658,11 +2657,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
       }
     } catch (e, stack) {
-      print(e);
-      print(stack);
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
     }
 
-    //  _builderKey.currentState?.setState(() {});
+    //  _builderKey.currentState?.setState(() {}.toString());
 
     //  _commentsStream.add(1);
     return 1;
@@ -2675,24 +2674,24 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  print(_controller.position.pixels);
+      //  debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
 
     _commentScrollController.addListener(() async {
-      //  print(_commentScrollController.position.extentAfter);
+      //  debugPrint(_commentScrollController.position.extentAfter);
       if (_commentScrollController.position.extentAfter == 0 &&
           _commentMaxIndex != lastMax) {
         try {
-          print('More data...');
+          debugPrint('More data...');
           //  _commentsStream.add(1);
           await getComments().then((value) => _commentsStream.add(1));
 
-          print(lastMax);
-          print(_commentMaxIndex);
+          debugPrint(lastMax.toString());
+          debugPrint(_commentMaxIndex.toString());
         } catch (e) {
-          print(e);
+          debugPrint(e.toString());
         }
       }
     });
@@ -3018,7 +3017,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    //print(imageLink);
+    //debugPrint(imageLink);
 
     BoxDecoration woImage = BoxDecoration(color: widget.color);
 
@@ -3146,11 +3145,11 @@ class _MapPageState extends State<MapPage> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
-            //  print(jsondata['$i']);
+            //  debugPrint(jsondata['$i']);
             floors.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -3162,7 +3161,7 @@ class _MapPageState extends State<MapPage> {
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
@@ -4087,7 +4086,7 @@ class _CalPag1State extends State<CalPag1> {
                                                               }
                                                             }
                                                           } catch (e) {
-                                                            ////print(e);
+                                                            ////debugPrint(e);
                                                             setState(() {
                                                               errorText =
                                                                   'Error connecting to server';
@@ -4128,7 +4127,7 @@ class _CalPag1State extends State<CalPag1> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  print(jsondata);
+        //  debugPrint(jsondata);
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -4214,10 +4213,10 @@ class _CalPag1State extends State<CalPag1> {
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
-      //print('Gojdu: ${response.statusCode}');
+      //debugPrint('Gojdu: ${response.statusCode}');
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //print(jsondata);
+        //debugPrint(jsondata);
         if (jsondata['1']['success']) {
           for (int i = 2; i < jsondata.length; i++) {
             var title = jsondata[i.toString()]['title'];
@@ -4237,7 +4236,7 @@ class _CalPag1State extends State<CalPag1> {
               );
 
               halls.add(hall);
-              //print(halls);
+              //debugPrint(halls);
 
             } else {
               break;
@@ -4248,7 +4247,7 @@ class _CalPag1State extends State<CalPag1> {
         }
       } else {}
     } catch (e) {
-      ////print(e);
+      ////debugPrint(e);
       //return 0;
     }
 
@@ -4515,11 +4514,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyyy-MM-dd').format(date).toString(),
       });
-      //print(response.statusCode);
-      //print("im heree");
+      //debugPrint(response.statusCode);
+      //debugPrint("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //print(jsondata);
+        //debugPrint(jsondata);
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -4537,9 +4536,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                 String begin = jsondata[i.toString()]["begin"].toString();
                 String? end = jsondata[i.toString()]["end"].toString();
                 String? owner = jsondata[i.toString()]["owner"].toString();
-                ////print(begin);
-                ////print(end);
-                ////print(owner);
+                ////debugPrint(begin);
+                ////debugPrint(end);
+                ////debugPrint(owner);
 
                 if (begin != 'null' && end != 'null' && owner != 'null') {
                   if (_events[date] != null &&
@@ -4558,9 +4557,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
             /* if(post != "null")
               {
-                //print(post+ " this is the post");
-                //print(title+" this is the title");
-                //print(owner+ " this is the owner");
+                //debugPrint(post+ " this is the post");
+                //debugPrint(title+" this is the title");
+                //debugPrint(owner+ " this is the owner");
               } */
 
           }
@@ -4707,7 +4706,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                           setState(() {
                             widget.changePage(2);
                             _selectedDay = selectedDay;
-                            //print(_selectedDay);
+                            //debugPrint(_selectedDay);
                             _focusedDay = focusedDay;
                             width = 300;
                           });
@@ -4836,16 +4835,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                     ),
                                                                                     onTap: () async {
                                                                                       TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                      //print(pickedTime.toString());
+                                                                                      //debugPrint(pickedTime.toString());
                                                                                       if (pickedTime != null) {
                                                                                         parsedTime1 = pickedTime;
                                                                                         //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
                                                                                         String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //print(formattedTime);
+                                                                                        //  //debugPrint(formattedTime);
                                                                                         setState(() {
                                                                                           timeText.text = formattedTime;
                                                                                           _time1 = formattedTime;
-                                                                                          //print(formattedTime);
+                                                                                          //debugPrint(formattedTime);
                                                                                         });
                                                                                       }
                                                                                     },
@@ -4904,7 +4903,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                       parsedTime2 = pickedTime;
                                                                                       if (pickedTime != null) {
                                                                                         String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //print(formattedTime);
+                                                                                        //  //debugPrint(formattedTime);
                                                                                         setState(() {
                                                                                           timeText2.text = formattedTime;
                                                                                           _time2 = formattedTime;
@@ -4949,21 +4948,21 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                       "hall": _currentHall.toString(),
                                                                                       "owner": globalMap["first_name"] + " " + globalMap["last_name"],
                                                                                     });
-                                                                                    //print(response.statusCode);
-                                                                                    //print("does work");
+                                                                                    //debugPrint(response.statusCode);
+                                                                                    //debugPrint("does work");
                                                                                     if (response.statusCode == 200) {
                                                                                       var jsondata = json.decode(response.body);
-                                                                                      //print(jsondata);
+                                                                                      //debugPrint(jsondata);
                                                                                       if (jsondata["error"]) {
                                                                                       } else {
                                                                                         if (jsondata["success"]) {
                                                                                           Navigator.pop(context);
                                                                                         } else {
-                                                                                          //print(jsondata["message"]);
+                                                                                          //debugPrint(jsondata["message"]);
                                                                                         }
                                                                                       }
                                                                                     }
-                                                                                    //print(_events);
+                                                                                    //debugPrint(_events);
 
                                                                                     widget.changePage(3);
                                                                                     setState(() {});
@@ -5296,15 +5295,15 @@ class _PostItPageState extends State<PostItPage> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          //print(jsondata["msg"]);
+          //debugPrint(jsondata["msg"]);
         } else {
-          //print("Upload successful");
+          //debugPrint("Upload successful");
         }
       } else {
-        //print("Upload failed");
+        //debugPrint("Upload failed");
       }
     } catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
     }
   }
 
@@ -5435,11 +5434,11 @@ class _PostItPageState extends State<PostItPage> {
                                       //  classes[0] = value;
                                       if (value!) {
                                         channels.add(e.key);
-                                        print('Added ${e.key}');
+                                        debugPrint('Added ${e.key}');
                                       } else {
                                         channels.remove(e.key);
                                       }
-                                      //print(channels);
+                                      //debugPrint(channels);
                                     });
                                   },
                                 ),
@@ -5549,9 +5548,9 @@ class _PostItPageState extends State<PostItPage> {
                                   await uploadImage(_file, name);
                                   imgSub = true;
                                 }
-                                //print(channels[i]);
+                                //debugPrint(channels[i]);
 
-                                //print(_file);
+                                //debugPrint(_file);
 
                                 var url = Uri.parse(
                                     '${Misc.link}/${Misc.appName}/insertposts.php');
@@ -5593,16 +5592,16 @@ class _PostItPageState extends State<PostItPage> {
                                         if (response2.statusCode == 200) {
                                           var jsondata2 =
                                               json.decode(response2.body);
-                                          //  print(jsondata2);
+                                          //  debugPrint(jsondata2);
                                           Navigator.of(context).pop();
                                         }
                                       } catch (e) {
-                                        //print(e);
+                                        //debugPrint(e);
                                       }
 
                                       // -------------------------------------------------
                                     } else {
-                                      //print(jsondata["message"]);
+                                      //debugPrint(jsondata["message"]);
                                     }
                                   }
                                 }

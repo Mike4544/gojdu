@@ -73,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     var _response = await http.get(Uri.parse(
         '${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg'));
-    print("${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg");
+    debugPrint("${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg");
 
     _lastFile = _response.bodyBytes;
 
@@ -81,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future uploadFile(CroppedFile _file) async {
-    print('Trying...');
+    debugPrint('Trying...');
 
     File file = File(_file.path);
 
@@ -98,12 +98,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
       if (jsondata["error"]) {
-        print(jsondata["msg"]);
+        debugPrint(jsondata["msg"]);
       } else {
-        print("Upload successful");
+        debugPrint("Upload successful");
       }
     } else {
-      //print("Upload failed");
+      //debugPrint("Upload failed");
     }
   }
 
@@ -550,8 +550,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           TextButton.icon(
             onPressed: () {
-              print(pass);
-              print(email);
+              debugPrint(pass);
+              debugPrint(email);
 
               showDialog(
                   context: context,
@@ -712,16 +712,16 @@ Future<void> deleteAccount(BuildContext context, String email) async {
         builder: (context) => const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500)));
 
-    print(response.statusCode);
+    debugPrint(response.statusCode.toString());
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
-      print(jsondata);
+      debugPrint(jsondata);
 
       Navigator.of(context).pop();
 
       if (jsondata["error"]) {
-        print(jsondata["message"]);
+        debugPrint(jsondata["message"]);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -742,7 +742,7 @@ Future<void> deleteAccount(BuildContext context, String email) async {
         await logoff(context);
       }
     } else {
-      print("Upload failed");
+      debugPrint("Upload failed");
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -765,7 +765,7 @@ Future<void> deleteAccount(BuildContext context, String email) async {
       //  Navigator.of(context).pop();
     }
   } catch (e) {
-    //print("Error during converting to Base64");
+    //debugPrint("Error during converting to Base64");
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.red,

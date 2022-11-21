@@ -1,18 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/switchPosts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../others/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 import '../others/floor.dart';
@@ -106,11 +101,11 @@ class ClassTableState extends State<ClassTable>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
-            //  print(jsondata['$i']);
+            //  debugPrint(jsondata['$i']);
             classes.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -122,7 +117,7 @@ class ClassTableState extends State<ClassTable>
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -495,11 +490,11 @@ class _TeacherSearchState extends State<TeacherSearch>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        print(jsondata);
+        debugPrint(jsondata);
         if (jsondata['0']["error"]) {
         } else {
           for (int i = 1; i <= 3; i++) {
-            //  print(jsondata['$i']);
+            //  debugPrint(jsondata['$i']);
             teachers.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -511,7 +506,7 @@ class _TeacherSearchState extends State<TeacherSearch>
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //print("Error during converting to Base64");
+      //debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

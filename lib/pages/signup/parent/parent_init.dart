@@ -337,7 +337,7 @@ class _FirstPageState extends State<FirstPage> {
                     email1topass = _mail.value.text;
                     pass1topass = _password.value.text;
                     pass2topass = _repPassword.value.text;
-                    print('Done');
+                    debugPrint('Done');
                     Navigator.of(context).pop('dialog');
 
                     setState(() {
@@ -481,12 +481,12 @@ class _SecondPageState extends State<SecondPage> {
 
                         email2topass = _childUsername.value.text;
 
-                        print(fntopass);
-                        print(lntopass);
-                        print(pass1topass);
-                        print(pass2topass);
-                        print(email1topass);
-                        print(email2topass);
+                        debugPrint(fntopass);
+                        debugPrint(lntopass);
+                        debugPrint(pass1topass);
+                        debugPrint(pass2topass);
+                        debugPrint(email1topass);
+                        debugPrint(email2topass);
 
                         _prefs.setString('email', email1topass!);
                         _prefs.setString('first_name', fntopass!);
@@ -507,7 +507,7 @@ class _SecondPageState extends State<SecondPage> {
                           "token": token,
                         });
                         if (response.statusCode == 200) {
-                          print(response.statusCode);
+                          debugPrint(response.statusCode.toString());
                           var jsondata = json.decode(response.body);
                           if (jsondata["error"]) {
                             setState(() {
@@ -548,7 +548,7 @@ class _SecondPageState extends State<SecondPage> {
                               //user shared preference to save data
                             } else {
                               _errorText = "Error connecting.";
-                              print(jsondata);
+                              debugPrint(jsondata);
                               Navigator.of(context).pop('dialog');
                             }
                           }
