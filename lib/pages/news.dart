@@ -404,13 +404,6 @@ class _NewsPageState extends State<NewsPage> {
           reassemble();
           break;
 
-        case 'Event':
-          setState(() {
-            currSelect = 1;
-            _eventCtrl.jumpToPage(currSelect);
-          });
-          break;
-
         case 'Report':
           //  await setBall(true);
           addAlert();
