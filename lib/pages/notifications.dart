@@ -351,7 +351,7 @@ class _AlertContainerState extends State<AlertContainer> {
   late int seenby = widget.alert.seenby;
 
   Widget _seenByBar() => Visibility(
-        visible: seenby > 0,
+        visible: seenby - 1 > 0,
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Container(
