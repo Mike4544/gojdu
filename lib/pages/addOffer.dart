@@ -10,6 +10,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 import 'package:http/http.dart' as http;
 
@@ -124,20 +125,20 @@ class _AddOfferState extends State<AddOffer> {
       final response = await http.post(url,
           body: {"image": baseimage, "name": name, "format": _format});
 
-      debugPrint('Image: ${response.statusCode}');
+      m_debugPrint('Image: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          ////debugPrint(jsondata["msg"]);
+          ////m_debugPrint(jsondata["msg"]);
         } else {
-          //debugPrint("Upload successful");
+          //m_debugPrint("Upload successful");
         }
       } else {
-        //debugPrint("Upload failed");
+        //m_debugPrint("Upload failed");
       }
     } catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
       throw Exception(e);
     }
   }
@@ -296,8 +297,8 @@ class _AddOfferState extends State<AddOffer> {
 
                             setState(() {});
 
-                            debugPrint(locationButton);
-                            debugPrint(coordsForLink.toString());
+                            m_debugPrint(locationButton);
+                            m_debugPrint(coordsForLink.toString());
                           },
                         )
                       : TextFormField(
@@ -654,8 +655,8 @@ class _AddOfferState extends State<AddOffer> {
                               var name2 = companyName.text
                                   .replaceAll(' ', '_')
                                   .replaceAll('\'', '');
-                              debugPrint(name2);
-                              debugPrint('Logo ${logo == null}');
+                              m_debugPrint(name2);
+                              m_debugPrint('Logo ${logo == null}');
 
                               await uploadImage(logo, name2, "png");
 
@@ -671,9 +672,9 @@ class _AddOfferState extends State<AddOffer> {
                                   ? "${Misc.link}/${Misc.appName}/imgs/$name.$format"
                                   : '';
 
-                              //debugPrint(channels[i]);
+                              //m_debugPrint(channels[i]);
 
-                              //debugPrint(_file);
+                              //m_debugPrint(_file);
 
                               var url = Uri.parse(
                                   '${Misc.link}/${Misc.appName}/addOffer.php');
@@ -697,10 +698,10 @@ class _AddOfferState extends State<AddOffer> {
                                 "col": choosenColor.toString(),
                                 "ownerID": widget.gMap['id'].toString()
                               });
-                              debugPrint(response.statusCode);
+                              m_debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                //debugPrint(jsondata.toString());
+                                //m_debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {
@@ -714,13 +715,13 @@ class _AddOfferState extends State<AddOffer> {
                                             "channel": "Students"
                                           });
 
-                                      debugPrint(
+                                      m_debugPrint(
                                           response2.statusCode.toString());
 
                                       if (response2.statusCode == 200) {
                                         var jsondata2 =
                                             json.decode(response2.body);
-                                        //debugPrint(jsondata2);
+                                        //m_debugPrint(jsondata2);
 
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(SnackBar(
@@ -743,21 +744,21 @@ class _AddOfferState extends State<AddOffer> {
                                         ));
 
                                         Navigator.of(context).pop();
-                                        //  //debugPrint(jsondata2);
+                                        //  //m_debugPrint(jsondata2);
                                         Navigator.of(context).pop();
                                       }
                                     } catch (e) {
-                                      debugPrint(e.toString());
+                                      m_debugPrint(e.toString());
                                     }
 
                                     //  Navigator.of(context).pop();
                                   } else {
-                                    ////debugPrint(jsondata["message"]);
+                                    ////m_debugPrint(jsondata["message"]);
                                   }
                                 }
                               }
                             } catch (e) {
-                              //debugPrint(e);
+                              //m_debugPrint(e);
                               //Navigator.of(context).pop();
                             }
 
@@ -823,7 +824,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    debugPrint(serviceEnabled.toString());
+    m_debugPrint(serviceEnabled.toString());
     if (!serviceEnabled) {
       // Location services are not enabled don't continue
       // accessing the position and request users of the
@@ -916,7 +917,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                               center: currentPosition,
                               onTap: (_, coords) async {
                                 _markers.clear();
-                                //  debugPrint(coords);
+                                //  m_debugPrint(coords);
                                 _markers.insert(
                                     0,
                                     Marker(
@@ -930,7 +931,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
 
                                 selectedPosition = coords;
                                 selected = true;
-                                debugPrint(coords.toString());
+                                m_debugPrint(coords.toString());
 
                                 var geoCode = GeoCode();
 
@@ -939,7 +940,7 @@ class _FullScreenMapState extends State<FullScreenMap> {
                                     longitude: selectedPosition.longitude);
                                 // road = address!.streetAddress!;
                                 // city = address!.city!;
-                                debugPrint(address.toString());
+                                m_debugPrint(address.toString());
 
                                 setState(() {});
                               }),

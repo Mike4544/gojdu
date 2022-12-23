@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzData;
+//  Import the api.dart
+import 'package:gojdu/others/api.dart';
 
 class LocalNotificationService {
   LocalNotificationService();
@@ -8,6 +10,7 @@ class LocalNotificationService {
   final _localNotificationService = FlutterLocalNotificationsPlugin();
 
   Future init() async {
+    
     tzData.initializeTimeZones();
     const AndroidInitializationSettings androidSetting =
         AndroidInitializationSettings('@mipmap/gj_notif');
@@ -24,13 +27,13 @@ class LocalNotificationService {
     await _localNotificationService.initialize(
       settings,
       onDidReceiveNotificationResponse: (notifResponse) async {
-        debugPrint('data: $notifResponse');
+        m_debugPrint('data: $notifResponse');
       },
       // onDidReceiveBackgroundNotificationResponse: notificationTapBackground
     ).then((_) {
-      debugPrint('setupPlugin: setup success');
+      m_debugPrint('setupPlugin: setup success');
     }).catchError((Object error) {
-      debugPrint('Error: $error');
+      m_debugPrint('Error: $error');
     });
   }
 
@@ -68,11 +71,11 @@ class LocalNotificationService {
 
   // @pragma('vm:entry-point')
   // void notificationTapBackground(NotificationResponse notificationResponse) {
-  //   debugPrint('backgroundData: $notificationResponse');
+  //   m_debugPrint('backgroundData: $notificationResponse');
   // }
 
   void _onDidReceiveLocalNotification(
       int id, String? title, String? body, String? payload) {
-    debugPrint('id $id');
+    m_debugPrint('id $id');
   }
 }

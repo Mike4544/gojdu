@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/others/floor.dart';
 
+import '../others/api.dart';
 import '../widgets/back_navbar.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -24,7 +25,23 @@ class EditFloors extends StatefulWidget {
 
 class _EditFloorsState extends State<EditFloors> {
   List<Floor> temporary = [];
+  List<Floor> toSend = [];
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  ///  # Flags
+  ///
+  ///  ```
+  ///  int flag = 0    0    0    0    0;
+  ///             b5   b4   b3   b2   b1
+  /// ```
+  /// bits 1 -> 3   - INSERT, UPDATE, or DELETE \
+  /// bit 4 - TEXT. \
+  /// bit 5 - IMAGE.
+  int kInsertFlag = 1 << 0; //  00001
+  int kUpdateFlag = 1 << 1; //  00010
+  int kDeleteFlag = 1 << 2; //  00100
+  int kTextFlag   = 1 << 3; //  01000
+  int kImageFlag  = 1 << 4; //  10000
 
   late bool canClick;
 
@@ -37,8 +54,8 @@ class _EditFloorsState extends State<EditFloors> {
     Map postBody;
 
     widget.type == null
-        ? url1 = '${Misc.link}/${Misc.appName}/insertfloor.php'
-        : url1 = '${Misc.link}/${Misc.appName}/insertTimetable.php';
+        ? url1 = '${Misc.link}/${Misc.appName}/floorsAPI/insertfloor.php'
+        : url1 = '${Misc.link}/${Misc.appName}/timetablesAPI/insertTimetable.php';
 
     widget.type == null
         ? postBody = {
@@ -50,13 +67,13 @@ class _EditFloorsState extends State<EditFloors> {
       var url = Uri.parse(url1);
       final response = await http.post(url, body: postBody);
 
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        m_debugPrint(jsondata.toString());
         if (jsondata["error"]) {
-          //debugPrint(jsondata["message"]);
+          //m_debugPrint(jsondata["message"]);
 
           ScaffoldMessenger.of(_scaffoldKey.currentContext!)
               .showSnackBar(SnackBar(
@@ -76,11 +93,11 @@ class _EditFloorsState extends State<EditFloors> {
             ),
           ));
         } else {
-          debugPrint("Upload successful");
+          m_debugPrint("Upload successful");
 
           widget.update(temporary);
           //  widget.floors = temporary;
-          //  debugPrint(widget.floors);
+          //  m_debugPrint(widget.floors);
 
           ScaffoldMessenger.of(_scaffoldKey.currentContext!)
               .showSnackBar(SnackBar(
@@ -105,7 +122,7 @@ class _EditFloorsState extends State<EditFloors> {
           widget.floors = temporary;
         }
       } else {
-        debugPrint("Upload failed");
+        m_debugPrint("Upload failed");
         ScaffoldMessenger.of(_scaffoldKey.currentContext!)
             .showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -127,7 +144,7 @@ class _EditFloorsState extends State<EditFloors> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
       ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red,
@@ -153,32 +170,41 @@ class _EditFloorsState extends State<EditFloors> {
     super.dispose();
   }
 
-  Future<String> networkImageToBase64(String imageUrl) async {
-    http.Response response = await http.get(Uri.parse(imageUrl));
-    final bytes = response.bodyBytes;
-    return base64Encode(bytes);
-  }
+  // Future<String> networkImageToBase64(String imageUrl) async {
+  //   http.Response response = await http.get(Uri.parse(imageUrl));
+  //   final bytes = response.bodyBytes;
+  //   return base64Encode(bytes);
+  // }
 
   @override
   void initState() {
-    debugPrint(widget.type.toString());
+    m_debugPrint(widget.type.toString());
     for (int i = 0; i < widget.floors.length; ++i) {
-      temporary.add(widget.floors[i].clone());
-      // debugPrint('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
+      temporary.add(widget.floors[i]
+          .copyWith(image: null, initName: widget.floors[i].floor));
+      // m_debugPrint('${temporary[i].floor}: ${temporary[i].image.substring(0, 10)}');
 
     }
 
     canClick = false;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      for (int i = 0; i < widget.floors.length; ++i) {
-        temporary[i].image = await networkImageToBase64(temporary[i].image);
-      }
+      //  Dirty resetting each image
 
-      debugPrint(temporary.toString());
+      // for (Floor elm in temporary) {
+      //   elm.image = "";
+      // }
+
+      m_debugPrint(temporary.toString());
     });
 
     super.initState();
+  }
+
+  void updateWithCase(int _case, int i) {
+    toSend.removeWhere((element) => element.floor == temporary[i].floor);
+    toSend.add(
+        temporary[i].copyWith(tcase: _case, initName: temporary[i].initName));
   }
 
   List<DataRow> dataRows(List<Floor> array) {
@@ -190,7 +216,7 @@ class _EditFloorsState extends State<EditFloors> {
         overflow: TextOverflow.fade);
 
     for (var i = 0; i < array.length; i++) {
-      debugPrint(array[i].floor);
+      m_debugPrint(array[i].floor);
 
       temp.insert(
           i,
@@ -248,6 +274,10 @@ class _EditFloorsState extends State<EditFloors> {
                     showDialog(
                         context: context,
                         builder: (context) {
+                          int _flags = 0;
+
+                          _flags |= kUpdateFlag;
+
                           return StatefulBuilder(
                             builder: (_, StateSetter setThisState) =>
                                 AlertDialog(
@@ -255,17 +285,21 @@ class _EditFloorsState extends State<EditFloors> {
                               actions: [
                                 TextButton(
                                   onPressed: () {
-                                    //  debugPrint(json.encode(temporary));
+                                    //  m_debugPrint(json.encode(temporary));
 
                                     if (_formKey.currentState!.validate()) {
+                                      _flags |= kTextFlag;
+
                                       array[i].floor = nameController.text;
                                       if (_file != null) {
+                                        _flags |= kImageFlag;
+
                                         var imageBytes =
                                             _file!.readAsBytesSync();
                                         String baseimage =
                                             base64Encode(imageBytes);
 
-                                        debugPrint('Index $i is $baseimage');
+                                        m_debugPrint('Index $i is $baseimage');
 
                                         // images[i] = baseimage;
                                         temporary[i].image = baseimage;
@@ -277,6 +311,7 @@ class _EditFloorsState extends State<EditFloors> {
                                       }
 
                                       setState(() {});
+                                      updateWithCase(_flags, i);
                                       Navigator.of(context).pop();
                                     }
                                   },
@@ -361,7 +396,7 @@ class _EditFloorsState extends State<EditFloors> {
                                               _format = '.' +
                                                   image!.name.split('.').last;
 
-                                              debugPrint(_format.toString());
+                                              m_debugPrint(_format.toString());
 
                                               buttonText = image!.name;
                                             } catch (e) {
@@ -388,7 +423,7 @@ class _EditFloorsState extends State<EditFloors> {
                           );
                         });
                   },
-                  icon: Icon(Icons.edit, color: Colors.white),
+                  icon: const Icon(Icons.edit, color: Colors.white),
                   splashRadius: 20,
                 ),
                 IconButton(
@@ -431,6 +466,10 @@ class _EditFloorsState extends State<EditFloors> {
                                       children: [
                                         InkWell(
                                           onTap: () async {
+                                            int _flags = 0;
+                                            _flags |= kDeleteFlag;
+
+                                            updateWithCase(_flags, i);
                                             temporary.removeAt(i);
 
                                             Navigator.of(context).pop();
@@ -449,7 +488,7 @@ class _EditFloorsState extends State<EditFloors> {
                                             ),
                                             height: 50,
                                             width: 75,
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.check,
                                               color: Colors.white,
                                             ),
@@ -469,7 +508,7 @@ class _EditFloorsState extends State<EditFloors> {
                                             ),
                                             height: 50,
                                             width: 75,
-                                            child: Icon(
+                                            child: const Icon(
                                               Icons.close,
                                               color: Colors.white,
                                             ),
@@ -481,7 +520,7 @@ class _EditFloorsState extends State<EditFloors> {
                                 ),
                               )));
                     },
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     splashRadius: 20),
               ],
             ))
@@ -654,6 +693,10 @@ class _EditFloorsState extends State<EditFloors> {
                             showDialog(
                                 context: context,
                                 builder: (context) {
+                                  int _flags = 0;
+
+                                  _flags |= kInsertFlag;
+
                                   return StatefulBuilder(
                                     builder: (_, StateSetter setThisState) =>
                                         AlertDialog(
@@ -685,6 +728,9 @@ class _EditFloorsState extends State<EditFloors> {
                                                           nameController.text) +
                                                       _format!,
                                                   image: baseimage));
+
+                                              updateWithCase(
+                                                  _flags, temporary.length - 1);
 
                                               setState(() {});
                                               Navigator.of(context).pop();
@@ -781,7 +827,7 @@ class _EditFloorsState extends State<EditFloors> {
                                                           image!.name
                                                               .split('.')
                                                               .last;
-                                                      //  debugPrint(_format.toString());
+                                                      //  m_debugPrint(_format.toString());
 
                                                       buttonText = image!.name;
                                                     } catch (e) {
@@ -826,23 +872,34 @@ class _EditFloorsState extends State<EditFloors> {
                       return;
                     }
 
-                    // debugPrint(jsonEncode(images));
-                    // //  debugPrint(jsonEncode(names));
-                    // debugPrint(jsonEncode(terms));
+                    // m_debugPrint(jsonEncode(images));
+                    // //  m_debugPrint(jsonEncode(names));
+                    // m_debugPrint(jsonEncode(terms));
 
-                    Map<String, Map<String, String>> data = {};
+                    Map<String, Map<String, dynamic>> data = {};
 
-                    for (int i = 0; i < temporary.length; i++) {
+                    // for (int i = 0; i < temporary.length; i++) {
+                    //   data.addAll({
+                    //     "id[$i]": {
+                    //       "floor": temporary[i].floor,
+                    //       "file": temporary[i].file,
+                    //       "b64": temporary[i].image
+                    //     }
+                    //   });
+                    // }
+                    for (int i = 0; i < toSend.length; i++) {
                       data.addAll({
                         "id[$i]": {
-                          "floor": temporary[i].floor,
-                          "file": temporary[i].file,
-                          "b64": temporary[i].image
+                          "floor": toSend[i].floor,
+                          "initName": toSend[i].initName,
+                          "file": toSend[i].file,
+                          "b64": toSend[i].image,
+                          "flags": toSend[i].tcase.toString()
                         }
                       });
                     }
 
-                    debugPrint(jsonEncode(data).toString());
+                    m_debugPrint(jsonEncode(data).toString());
 
                     showDialog(
                         context: context,

@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gojdu/others/api.dart';
+import 'package:gojdu/pages/schoolFiles.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:gojdu/pages/threads.dart';
+import 'package:gojdu/widgets/profilePics.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -279,7 +283,7 @@ class _NewsPageState extends State<NewsPage> {
   @override
   void deactivate() {
     super.deactivate();
-    //debugPrint(1);
+    //m_debugPrint(1);
   }
 
   //  Testing smthing
@@ -289,8 +293,7 @@ class _NewsPageState extends State<NewsPage> {
     widget.notifs.value++;
   }
 
-  // late List<String> curvedAppBarLabels;
-  // late List<PageDescription> curvedAppBarDescriptions;
+  late final Api api;
 
   @override
   void initState() {
@@ -303,15 +306,15 @@ class _NewsPageState extends State<NewsPage> {
         connectionStatus = result;
         _connectionStatus = result;
       });
-      //debugPrint(result);
-      //debugPrint(lastConnectionStatus);
+      //m_debugPrint(result);
+      //m_debugPrint(lastConnectionStatus);
       checkConnectivity();
       lastConnectionStatus = connectionStatus;
     });
 
     FirebaseMessaging.onMessage.listen((message) async {
-      debugPrint(message.data['type']);
-      debugPrint((message.data['type'] == 'Report').toString());
+      m_debugPrint(message.data['type']);
+      m_debugPrint((message.data['type'] == 'Report').toString());
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -364,7 +367,7 @@ class _NewsPageState extends State<NewsPage> {
           break;
 
         case 'Report':
-          debugPrint('a');
+          m_debugPrint('a');
           addAlert();
 
           HapticFeedback.mediumImpact();
@@ -393,7 +396,7 @@ class _NewsPageState extends State<NewsPage> {
           break;
 
         default:
-          debugPrint('DEFAULT');
+          m_debugPrint('DEFAULT');
           break;
       }
     });
@@ -417,14 +420,12 @@ class _NewsPageState extends State<NewsPage> {
           break;
 
         default:
-          debugPrint('Default');
+          m_debugPrint('Default');
           break;
       }
     });
 
-    //  _loaded = false;
-
-    // Listening for the notifications
+    api = Api(context: context);
 
     // <---------- Load the acc type -------------->
     accType = widget.data['account'];
@@ -524,114 +525,9 @@ class _NewsPageState extends State<NewsPage> {
   final List<String> _types = [];
   final List<String> _tokens = [];
 
-  void updateRedButton() async {
-    setState(() {});
-  }
-
-  // <----------  Load the pending users -------------->
-  Future<int> _loadUsers() async {
-    try {
-      var url = Uri.parse('${Misc.link}/${Misc.appName}/select_users.php');
-      final response = await http.post(url, body: {
-        'state': 'Pending',
-      });
-      //debugPrint(response.statusCode);
-      if (response.statusCode == 200) {
-        var jsondata = json.decode(response.body);
-        //  //debugPrint(jsondata.toString());
-
-        if (jsondata[0]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
-        } else {
-          if (jsondata[0]["success"]) {
-            _names.clear();
-            _emails.clear();
-            _types.clear();
-            _tokens.clear();
-
-            for (int i = 1; i <= jsondata.length; i++) {
-              String name = jsondata[i]["user"].toString();
-              String email = jsondata[i]["email"].toString();
-              String acc_type = jsondata[i]["type"].toString();
-              String token = jsondata[i]["token"].toString();
-
-              //  debugPrint(name);
-
-              if (name != "null" && email != "null") {
-                _names.add(name);
-                _emails.add(email);
-                _types.add(acc_type);
-                _tokens.add(token);
-              }
-
-              /* if(post != "null")
-              {
-                //debugPrint(post+ " this is the post");
-                //debugPrint(title+" this is the title");
-                //debugPrint(owner+ " this is the owner");
-              } */
-
-            }
-          } else {
-            ////debugPrint(jsondata["1"]["message"]);
-          }
-        }
-      }
-    } catch (e) {
-      //debugPrint(e);
-    }
-
-    return 0;
-  }
-
-  // The notification
-  Future<void> _notifyUser(String? token) async {
-    try {
-      var ulr2 = Uri.parse('${Misc.link}/${Misc.appName}/notifications.php');
-      final response2 = await http.post(ulr2, body: {
-        "action": "Verify",
-        "token": token,
-      });
-
-      if (response2.statusCode == 200) {
-        var jsondata2 = json.decode(response2.body);
-        ////debugPrint(jsondata2);
-
-      }
-    } catch (e) {
-      //debugPrint(e);
-    }
-  }
-
-  Future _verifyUser(
-      String? token, String? email, String status, int index) async {
-    try {
-      var ulr2 = Uri.parse('${Misc.link}/${Misc.appName}/verify_accounts.php');
-      final response2 = await http.post(ulr2, body: {
-        "email": email,
-        "code": "NO_CODE"
-      }).timeout(const Duration(seconds: 15));
-
-      if (response2.statusCode == 200) {
-        var jsondata2 = json.decode(response2.body);
-        ////debugPrint(jsondata2);
-        if (jsondata2['error'] == false) {
-          _notifyUser(token);
-
-          _names.removeAt(index);
-        }
-      } else {
-        return throw Exception('Couldn\'t connect');
-      }
-    } on TimeoutException catch (e) {
-      return throw Exception('Timeout');
-      //debugPrint(e);
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
+  // void updateRedButton() async {
+  //   setState(() {});
+  // }
 
   //  late List<Widget> pages;
 
@@ -655,7 +551,6 @@ class _NewsPageState extends State<NewsPage> {
           position: 1,
           map: globalMap,
           key: bar1Key,
-          update: updateRedButton,
         ),
         backgroundColor: ColorsB.gray900,
         extendBody: true,
@@ -686,7 +581,7 @@ class _NewsPageState extends State<NewsPage> {
                 ),
                 AlertPage(gMap: globalMap),
                 const Calendar(key: ValueKey(3)),
-                const Notes(),
+                SchoolFiles(key: const ValueKey(4), isAdmin: globalMap['account'] == 'Admin' || globalMap['account'] == 'Teacher'),
                 const FeedbackPage(),
               ],
               map: globalMap,
@@ -922,7 +817,7 @@ class _NewsPageState extends State<NewsPage> {
                           ]),
                     ),
                     onTap: () {
-                      late var _getUsers = _loadUsers();
+                      late var _getUsers = api.loadUsers();
                       // Verification page for the admin
                       showDialog(
                           barrierDismissible: false,
@@ -970,24 +865,21 @@ class _NewsPageState extends State<NewsPage> {
                                 content: SizedBox(
                                     height: screenHeight * 0.75,
                                     width: screenWidth * 0.8,
-                                    child: FutureBuilder(
+                                    child: FutureBuilder<List<User>>(
                                         future: _getUsers,
                                         builder: (c, sn) {
-                                          if (sn.hasData &&
-                                              (_names.isNotEmpty ||
-                                                  _emails.isNotEmpty ||
-                                                  _types.isNotEmpty)) {
+                                          if (sn.hasData) {
                                             return Scrollbar(
                                               controller: _scrollController,
                                               child: ListView.builder(
                                                 controller: _scrollController,
                                                 physics:
                                                     const BouncingScrollPhysics(),
-                                                itemCount: _names.isNotEmpty
-                                                    ? _names.length
+                                                itemCount: sn.data!.isNotEmpty
+                                                    ? sn.data!.length
                                                     : 1,
                                                 itemBuilder: (context, index) {
-                                                  if (_names.isNotEmpty) {
+                                                  if (sn.data!.isNotEmpty) {
                                                     return Padding(
                                                         padding:
                                                             const EdgeInsets
@@ -1001,13 +893,7 @@ class _NewsPageState extends State<NewsPage> {
                                                                         .start,
                                                                 children: [
                                                                   Text(
-                                                                    _names[index].split(' ')[
-                                                                            0] +
-                                                                        ' ' +
-                                                                        _names[index].split(' ')[1]
-                                                                            [
-                                                                            0] +
-                                                                        '.',
+                                                                    '${sn.data![index].name.split(' ')[0]} ${sn.data![index].name.split(' ')[1][0]}.',
                                                                     style: const TextStyle(
                                                                         fontSize:
                                                                             15,
@@ -1018,7 +904,7 @@ class _NewsPageState extends State<NewsPage> {
                                                                     height: 5,
                                                                   ),
                                                                   Text(
-                                                                    'Type: ${_types[index]}',
+                                                                    'Type: ${sn.data![index].type}',
                                                                     style: const TextStyle(
                                                                         fontSize:
                                                                             10,
@@ -1026,7 +912,7 @@ class _NewsPageState extends State<NewsPage> {
                                                                             .yellow500),
                                                                   ),
                                                                   Text(
-                                                                    'Email: ${_emails[index]}',
+                                                                    'Email: ${sn.data![index].email}',
                                                                     style: const TextStyle(
                                                                         fontSize:
                                                                             10,
@@ -1053,14 +939,12 @@ class _NewsPageState extends State<NewsPage> {
                                                                     ),
                                                                     onTap:
                                                                         () async {
-                                                                      debugPrint(
+                                                                      m_debugPrint(
                                                                           'Checked');
-                                                                      await _verifyUser(
-                                                                          _tokens[
+                                                                      await api.verifyUser(
+                                                                          sn.data![
                                                                               index],
-                                                                          _emails[
-                                                                              index],
-                                                                          'Verified',
+                                                                          sn.data!,
                                                                           index);
                                                                       setState1(
                                                                           () {});
@@ -1078,14 +962,8 @@ class _NewsPageState extends State<NewsPage> {
                                                                     onTap: () {
                                                                       setState1(
                                                                           () {
-                                                                        _names.removeAt(
-                                                                            index);
-                                                                        _tokens.removeAt(
-                                                                            index);
-                                                                        _types.removeAt(
-                                                                            index);
-                                                                        _emails.removeAt(
-                                                                            index);
+                                                                        sn.data!
+                                                                            .removeAt(index);
                                                                       });
 
                                                                       // TODO: Cancel feature + Check feature
@@ -1278,7 +1156,7 @@ class _AnnouncementsState extends State<Announcements>
     }
 
     _tabController = TabController(
-        length: 3,
+        length: Misc.categories.length,
         vsync: this,
         initialIndex: _getCurrentIndex(),
         animationDuration: const Duration(milliseconds: 500));
@@ -1286,7 +1164,7 @@ class _AnnouncementsState extends State<Announcements>
     _tabController.addListener(() async {
       if (!_tabController.indexIsChanging) {
         setState(() {
-          currentChannel = labels[_tabController.index];
+          currentChannel = Misc.categories.entries.elementAt(_tabController.index).key;
         });
       }
       //  await Future.delayed(Duration(milliseconds:150));
@@ -1310,7 +1188,7 @@ class _AnnouncementsState extends State<Announcements>
     //   }
     // });
 
-    //debugPrint(globalMap['account']);
+    //m_debugPrint(globalMap['account']);
     //  widget.eventCtrl = PageController(initialPage: widget.currSelect);
   }
 
@@ -1357,8 +1235,6 @@ class _AnnouncementsState extends State<Announcements>
   bool isAlive = true;
 
   // Max max max posts
-
-  List<String> labels = ['Students', 'Teachers', 'Parents'];
 
   final style = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
 
@@ -1593,7 +1469,7 @@ class _EventsPageState extends State<EventsPage>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxEvents < maxScrollCountEvents) {
-      debugPrint('Haveth reached the end');
+      m_debugPrint('Haveth reached the end');
 
       await loadEvents();
 
@@ -1608,7 +1484,7 @@ class _EventsPageState extends State<EventsPage>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  //debugPrint(jsondata.toString());
+        //  //m_debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -1689,7 +1565,7 @@ class _EventsPageState extends State<EventsPage>
     //  events.clear();
 
     //  Maybe rework this a bit.
-    debugPrint('events');
+    m_debugPrint('events');
     lastMaxEvents = maxScrollCountEvents;
 
     try {
@@ -1700,7 +1576,7 @@ class _EventsPageState extends State<EventsPage>
       });
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
         if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
@@ -1740,16 +1616,16 @@ class _EventsPageState extends State<EventsPage>
             }
             lastIDEvents = jsondata[jsondata.length - 1]['id'];
             maxScrollCountEvents += turnsEvents;
-            //  debugPrint(events);
+            //  m_debugPrint(events);
           } else {
-            ////debugPrint(jsondata["1"]["message"]);
+            ////m_debugPrint(jsondata["1"]["message"]);
           }
           //  events.add(SizedBox(height: screenHeight * .25));
         }
       }
     } catch (e, stack) {
-      debugPrint(e.toString());
-      debugPrint(stack.toString());
+      m_debugPrint(e.toString());
+      m_debugPrint(stack.toString());
     }
 
     return 0;
@@ -1840,10 +1716,11 @@ class _PostsListState extends State<PostsList>
         "maxTurns": turns.toString(),
         "channel": widget.channel,
       });
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        m_debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
         if (jsondata[0]["error"]) {
           setState(() {
             //nameError = jsondata["message"];
@@ -1858,8 +1735,8 @@ class _PostsListState extends State<PostsList>
               String link = jsondata[i]["link"].toString();
 
               int? likesCount = jsondata[i]["likes"];
-              String? likedPpl = jsondata[i]["lppl"].toString();
-              String? dislikedPpl = jsondata[i]["dppl"].toString();
+              //  String? likedPpl = jsondata[i]["lppl"].toString();
+              //  String? dislikedPpl = jsondata[i]["dppl"].toString();
               int? id = jsondata[i]["id"];
 
               // List<String> liked = likedPpl.split(';');
@@ -1884,7 +1761,7 @@ class _PostsListState extends State<PostsList>
               if (post != "null" && post != null && ownerID != null) {
                 // if (liked.contains(globalMap['id'].toString())) {
                 //   likedbool = true;
-                //   //debugPrint('a');
+                //   //m_debugPrint('a');
                 // } else {
                 //   likedbool = false;
                 // }
@@ -1895,7 +1772,7 @@ class _PostsListState extends State<PostsList>
                 //   dislikedbool = false;
                 // }
 
-                debugPrint('da');
+                m_debugPrint('da');
                 posts.add(Post(
                   id: id!,
                   title: title,
@@ -1923,15 +1800,15 @@ class _PostsListState extends State<PostsList>
             }
             lastID = jsondata[jsondata.length - 1]['id'];
             maxScrollCount += 10;
-            debugPrint(posts.length.toString());
+            m_debugPrint(posts.length.toString());
           } else {
-            ////debugPrint(jsondata["1"]["message"]);
+            ////m_debugPrint(jsondata["1"]["message"]);
           }
         }
       }
     } catch (e, stack) {
-      debugPrint(e.toString());
-      debugPrint(stack.toString());
+      m_debugPrint(e.toString());
+      m_debugPrint(stack.toString());
       throw Future.error(e.toString());
     }
 
@@ -2062,7 +1939,7 @@ class _PostsListState extends State<PostsList>
   }
 
   Future _refresh() async {
-    ////debugPrint(posts.length);
+    ////m_debugPrint(posts.length);
 
     posts.clear();
 
@@ -2093,9 +1970,9 @@ class _PostsListState extends State<PostsList>
   void initState() {
     _scrollController = ScrollController();
     _scrollController.addListener(() {
-      //  debugPrint(_scrollController.position.extentAfter);
-      //debugPrint(lastMax);
-      //  debugPrint(lastID);
+      //  m_debugPrint(_scrollController.position.extentAfter);
+      //m_debugPrint(lastMax);
+      //  m_debugPrint(lastID);
       if (_scrollController.position.extentAfter == 0 &&
           lastMax < maxScrollCount) {
         _getMoreData();
@@ -2346,7 +2223,7 @@ class BigNewsContainer extends StatefulWidget {
 class _BigNewsContainerState extends State<BigNewsContainer> {
   // <------------------- Like, Unlike, Dislike, Undislike functions ------------------>
   Future<void> like(int id, int uid) async {
-    ////debugPrint(ids);
+    ////m_debugPrint(ids);
 
     if (widget.dislikes == true) {
       undislike(id, uid);
@@ -2375,15 +2252,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          ////debugPrint(jsondata['message']);
+          ////m_debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          ////debugPrint(jsondata.toString());
+          ////m_debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
-      //debugPrint(e);
+      //m_debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2397,7 +2274,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> unlike(int id, int uid) async {
-    ////debugPrint(ids);
+    ////m_debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! - 1;
@@ -2420,15 +2297,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          ////debugPrint(jsondata['message']);
+          ////m_debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          ////debugPrint(jsondata.toString());
+          ////m_debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
-      //debugPrint(e);
+      //m_debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2442,7 +2319,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> dislike(int id, int uid) async {
-    ////debugPrint(ids);
+    ////m_debugPrint(ids);
 
     if (widget.likesBool == true) {
       unlike(id, uid);
@@ -2472,15 +2349,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          ////debugPrint(jsondata['message']);
+          ////m_debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          ////debugPrint(jsondata.toString());
+          ////m_debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
-      //debugPrint(e);
+      //m_debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2494,7 +2371,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Future<void> undislike(int id, int uid) async {
-    ////debugPrint(ids);
+    ////m_debugPrint(ids);
 
     setState(() {
       widget.likes = widget.likes! + 1;
@@ -2518,15 +2395,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata['error']) {
-          ////debugPrint(jsondata['message']);
+          ////m_debugPrint(jsondata['message']);
         }
 
         if (jsondata['success']) {
-          ////debugPrint(jsondata.toString());
+          ////m_debugPrint(jsondata.toString());
         }
       }
     } catch (e) {
-      //debugPrint(e);
+      //m_debugPrint(e);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           'Something went wrong!',
@@ -2555,47 +2432,6 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   bool visible = false;
   var avatarImg;
 
-  late bool _isnt404;
-
-  Future<int> _getImgStatus() async {
-    var response = await http.get(Uri.parse(avatarImg));
-
-    _isnt404 = response.statusCode != 404;
-
-    return response.statusCode;
-  }
-
-  Widget _CircleAvatar() {
-    late var _sCode = _getImgStatus();
-
-    return FutureBuilder(
-      future: _sCode,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (_isnt404) {
-            return CircleAvatar(
-              backgroundImage: Image.network(
-                avatarImg,
-              ).image,
-            );
-          } else {
-            return CircleAvatar(
-              child: Text(widget.author[0]),
-            );
-          }
-        } else if (snapshot.hasError) {
-          return CircleAvatar(
-            child: Text(widget.author[0]),
-          );
-        } else {
-          return const CircleAvatar(
-            backgroundColor: Colors.white,
-          );
-        }
-      },
-    );
-  }
-
   final ScrollController _commentScrollController = ScrollController();
   int _commentMaxIndex = 20;
   //  StreamController _commentsStream = StreamController.broadcast();
@@ -2623,19 +2459,19 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         "maxLoaded": _turnsToLoad.toString()
       });
 
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
         Map jsondata = json.decode(response.body);
-        //debugPrint(jsondata.length.toString());
-        debugPrint(widget.id.toString());
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.length.toString());
+        m_debugPrint(widget.id.toString());
+        //m_debugPrint(jsondata.toString());
 
         if (jsondata['success']) {
           for (int i = 2; i < jsondata.length; i++) {
-            //  //debugPrint(jsondata['${i - 1}']);
-            ////debugPrint(jsondata['${i - 1}']['lby'].split(';'));
-            //  debugPrint(DateTime.parse(jsondata['${i - 1}']['time']));
+            //  //m_debugPrint(jsondata['${i - 1}']);
+            ////m_debugPrint(jsondata['${i - 1}']['lby'].split(';'));
+            //  m_debugPrint(DateTime.parse(jsondata['${i - 1}']['time']));
             comments.add(
                 Comment.fromJson(jsondata['${i - 1}'], globalMap, () async {
               await Comment.deleteComment(context, jsondata['${i - 1}']['id'],
@@ -2650,8 +2486,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
         }
       }
     } catch (e, stack) {
-      debugPrint(e.toString());
-      debugPrint(stack.toString());
+      m_debugPrint(e.toString());
+      m_debugPrint(stack.toString());
     }
 
     //  _builderKey.currentState?.setState(() {}.toString());
@@ -2667,24 +2503,24 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  debugPrint(_controller.position.pixels);
+      //  m_debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
 
     _commentScrollController.addListener(() async {
-      //  debugPrint(_commentScrollController.position.extentAfter);
+      //  m_debugPrint(_commentScrollController.position.extentAfter);
       if (_commentScrollController.position.extentAfter == 0 &&
           _commentMaxIndex != lastMax) {
         try {
-          debugPrint('More data...');
+          m_debugPrint('More data...');
           //  _commentsStream.add(1);
           await getComments().then((value) => _commentsStream.add(1));
 
-          debugPrint(lastMax.toString());
-          debugPrint(_commentMaxIndex.toString());
+          m_debugPrint(lastMax.toString());
+          m_debugPrint(_commentMaxIndex.toString());
         } catch (e) {
-          debugPrint(e.toString());
+          m_debugPrint(e.toString());
         }
       }
     });
@@ -2971,7 +2807,10 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                             ),
                             Chip(
                               backgroundColor: ColorsB.gray200,
-                              avatar: _CircleAvatar(),
+                              avatar: ProfilePicture(
+                                url: avatarImg,
+                                userName: widget.author,
+                              ),
                               label: Text(
                                   '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'),
                             )
@@ -3010,21 +2849,13 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    //debugPrint(imageLink);
+    //m_debugPrint(imageLink);
 
     BoxDecoration woImage = BoxDecoration(color: widget.color);
 
     BoxDecoration wImage = BoxDecoration(
       image: DecorationImage(
-          image: Image.network(
-            widget.imageLink!,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-
-              return const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
-            },
-          ).image,
+          image: CachedNetworkImageProvider(widget.imageLink!),
           fit: BoxFit.cover),
     );
 
@@ -3039,8 +2870,10 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       child: Stack(children: [
                         Center(
                           child: InteractiveViewer(
-                              clipBehavior: Clip.none,
-                              child: Image.network(widget.imageLink!)),
+                            clipBehavior: Clip.none,
+                            child:
+                                CachedNetworkImage(imageUrl: widget.imageLink!),
+                          ),
                         ),
                         Positioned(
                             top: 10,
@@ -3102,7 +2935,10 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         shadowColor: Colors.black12,
                         elevation: 40,
                         backgroundColor: ColorsB.gray200,
-                        avatar: _CircleAvatar(),
+                        avatar: ProfilePicture(
+                          url: avatarImg,
+                          userName: widget.author,
+                        ),
                         label: Text(
                             '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'),
                       )
@@ -3138,11 +2974,11 @@ class _MapPageState extends State<MapPage> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
-          for (int i = 1; i <= 3; i++) {
-            //  //debugPrint(jsondata['$i']);
+          for (int i = 1; i <= jsondata.length; i++) {
+            //  //m_debugPrint(jsondata['$i']);
             floors.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -3154,7 +2990,7 @@ class _MapPageState extends State<MapPage> {
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
@@ -4079,7 +3915,7 @@ class _CalPag1State extends State<CalPag1> {
                                                               }
                                                             }
                                                           } catch (e) {
-                                                            ////debugPrint(e);
+                                                            ////m_debugPrint(e);
                                                             setState(() {
                                                               errorText =
                                                                   'Error connecting to server';
@@ -4120,7 +3956,7 @@ class _CalPag1State extends State<CalPag1> {
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //  //debugPrint(jsondata.toString());
+        //  //m_debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -4206,10 +4042,10 @@ class _CalPag1State extends State<CalPag1> {
       final response = await http.post(url, body: {
         "action": 'IMPORT', // Or INSERT
       });
-      //debugPrint('Gojdu: ${response.statusCode}');
+      //m_debugPrint('Gojdu: ${response.statusCode}');
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        ////debugPrint(jsondata.toString());
+        ////m_debugPrint(jsondata.toString());
         if (jsondata['1']['success']) {
           for (int i = 2; i < jsondata.length; i++) {
             var title = jsondata[i.toString()]['title'];
@@ -4229,7 +4065,7 @@ class _CalPag1State extends State<CalPag1> {
               );
 
               halls.add(hall);
-              //debugPrint(halls);
+              //m_debugPrint(halls);
 
             } else {
               break;
@@ -4240,7 +4076,7 @@ class _CalPag1State extends State<CalPag1> {
         }
       } else {}
     } catch (e) {
-      ////debugPrint(e);
+      ////m_debugPrint(e);
       //return 0;
     }
 
@@ -4507,11 +4343,11 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
         "hall": _currentHall.toString(),
         "day": DateFormat('yyyy-MM-dd').format(date).toString(),
       });
-      //debugPrint(response.statusCode);
-      //debugPrint("im heree");
+      //m_debugPrint(response.statusCode);
+      //m_debugPrint("im heree");
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        ////debugPrint(jsondata.toString());
+        ////m_debugPrint(jsondata.toString());
 
         if (jsondata["1"]["error"]) {
           setState(() {
@@ -4529,9 +4365,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                 String begin = jsondata[i.toString()]["begin"].toString();
                 String? end = jsondata[i.toString()]["end"].toString();
                 String? owner = jsondata[i.toString()]["owner"].toString();
-                ////debugPrint(begin);
-                ////debugPrint(end);
-                ////debugPrint(owner);
+                ////m_debugPrint(begin);
+                ////m_debugPrint(end);
+                ////m_debugPrint(owner);
 
                 if (begin != 'null' && end != 'null' && owner != 'null') {
                   if (_events[date] != null &&
@@ -4550,9 +4386,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
 
             /* if(post != "null")
               {
-                //debugPrint(post+ " this is the post");
-                //debugPrint(title+" this is the title");
-                //debugPrint(owner+ " this is the owner");
+                //m_debugPrint(post+ " this is the post");
+                //m_debugPrint(title+" this is the title");
+                //m_debugPrint(owner+ " this is the owner");
               } */
 
           }
@@ -4699,7 +4535,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                           setState(() {
                             widget.changePage(2);
                             _selectedDay = selectedDay;
-                            //debugPrint(_selectedDay);
+                            //m_debugPrint(_selectedDay);
                             _focusedDay = focusedDay;
                             width = 300;
                           });
@@ -4828,16 +4664,16 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                     ),
                                                                                     onTap: () async {
                                                                                       TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                      //debugPrint(pickedTime.toString());
+                                                                                      //m_debugPrint(pickedTime.toString());
                                                                                       if (pickedTime != null) {
                                                                                         parsedTime1 = pickedTime;
                                                                                         //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
                                                                                         String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //debugPrint(formattedTime);
+                                                                                        //  //m_debugPrint(formattedTime);
                                                                                         setState(() {
                                                                                           timeText.text = formattedTime;
                                                                                           _time1 = formattedTime;
-                                                                                          //debugPrint(formattedTime);
+                                                                                          //m_debugPrint(formattedTime);
                                                                                         });
                                                                                       }
                                                                                     },
@@ -4896,7 +4732,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                       parsedTime2 = pickedTime;
                                                                                       if (pickedTime != null) {
                                                                                         String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //debugPrint(formattedTime);
+                                                                                        //  //m_debugPrint(formattedTime);
                                                                                         setState(() {
                                                                                           timeText2.text = formattedTime;
                                                                                           _time2 = formattedTime;
@@ -4941,21 +4777,21 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                                       "hall": _currentHall.toString(),
                                                                                       "owner": globalMap["first_name"] + " " + globalMap["last_name"],
                                                                                     });
-                                                                                    //debugPrint(response.statusCode);
-                                                                                    //debugPrint("does work");
+                                                                                    //m_debugPrint(response.statusCode);
+                                                                                    //m_debugPrint("does work");
                                                                                     if (response.statusCode == 200) {
                                                                                       var jsondata = json.decode(response.body);
-                                                                                      ////debugPrint(jsondata.toString());
+                                                                                      ////m_debugPrint(jsondata.toString());
                                                                                       if (jsondata["error"]) {
                                                                                       } else {
                                                                                         if (jsondata["success"]) {
                                                                                           Navigator.pop(context);
                                                                                         } else {
-                                                                                          ////debugPrint(jsondata["message"]);
+                                                                                          ////m_debugPrint(jsondata["message"]);
                                                                                         }
                                                                                       }
                                                                                     }
-                                                                                    //debugPrint(_events);
+                                                                                    //m_debugPrint(_events);
 
                                                                                     widget.changePage(3);
                                                                                     setState(() {});
@@ -5288,15 +5124,15 @@ class _PostItPageState extends State<PostItPage> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          ////debugPrint(jsondata["msg"]);
+          ////m_debugPrint(jsondata["msg"]);
         } else {
-          //debugPrint("Upload successful");
+          //m_debugPrint("Upload successful");
         }
       } else {
-        //debugPrint("Upload failed");
+        //m_debugPrint("Upload failed");
       }
     } catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
     }
   }
 
@@ -5427,11 +5263,11 @@ class _PostItPageState extends State<PostItPage> {
                                       //  classes[0] = value;
                                       if (value!) {
                                         channels.add(e.key);
-                                        debugPrint('Added ${e.key}');
+                                        m_debugPrint('Added ${e.key}');
                                       } else {
                                         channels.remove(e.key);
                                       }
-                                      //debugPrint(channels);
+                                      //m_debugPrint(channels);
                                     });
                                   },
                                 ),
@@ -5541,9 +5377,9 @@ class _PostItPageState extends State<PostItPage> {
                                   await uploadImage(_file, name);
                                   imgSub = true;
                                 }
-                                //debugPrint(channels[i]);
+                                //m_debugPrint(channels[i]);
 
-                                //debugPrint(_file);
+                                //m_debugPrint(_file);
 
                                 var url = Uri.parse(
                                     '${Misc.link}/${Misc.appName}/insertposts.php');
@@ -5585,16 +5421,16 @@ class _PostItPageState extends State<PostItPage> {
                                         if (response2.statusCode == 200) {
                                           var jsondata2 =
                                               json.decode(response2.body);
-                                          //  //debugPrint(jsondata2);
+                                          //  //m_debugPrint(jsondata2);
                                           Navigator.of(context).pop();
                                         }
                                       } catch (e) {
-                                        //debugPrint(e);
+                                        //m_debugPrint(e);
                                       }
 
                                       // -------------------------------------------------
                                     } else {
-                                      ////debugPrint(jsondata["message"]);
+                                      ////m_debugPrint(jsondata["message"]);
                                     }
                                   }
                                 }

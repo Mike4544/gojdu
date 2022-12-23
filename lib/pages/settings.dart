@@ -29,6 +29,8 @@ import 'package:http_parser/http_parser.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import '../others/api.dart';
+
 FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 class SettingsPage extends StatefulWidget {
@@ -73,7 +75,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     var _response = await http.get(Uri.parse(
         '${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg'));
-    debugPrint("${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg");
+    m_debugPrint(
+        "${Misc.link}/${Misc.appName}/profiles/${globalMap['id']}.jpg");
 
     _lastFile = _response.bodyBytes;
 
@@ -81,7 +84,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future uploadFile(CroppedFile _file) async {
-    debugPrint('Trying...');
+    m_debugPrint('Trying...');
 
     File file = File(_file.path);
 
@@ -98,12 +101,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
       if (jsondata["error"]) {
-        //debugPrint(jsondata["msg"]);
+        //m_debugPrint(jsondata["msg"]);
       } else {
-        debugPrint("Upload successful");
+        m_debugPrint("Upload successful");
       }
     } else {
-      //debugPrint("Upload failed");
+      //m_debugPrint("Upload failed");
     }
   }
 
@@ -550,8 +553,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           TextButton.icon(
             onPressed: () {
-              debugPrint(pass);
-              debugPrint(email);
+              m_debugPrint(pass);
+              m_debugPrint(email);
 
               showDialog(
                   context: context,
@@ -712,16 +715,16 @@ Future<void> deleteAccount(BuildContext context, String email) async {
         builder: (context) => const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500)));
 
-    debugPrint(response.statusCode.toString());
+    m_debugPrint(response.statusCode.toString());
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
-      //debugPrint(jsondata.toString());
+      //m_debugPrint(jsondata.toString());
 
       Navigator.of(context).pop();
 
       if (jsondata["error"]) {
-        //debugPrint(jsondata["message"]);
+        //m_debugPrint(jsondata["message"]);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -742,7 +745,7 @@ Future<void> deleteAccount(BuildContext context, String email) async {
         await logoff(context);
       }
     } else {
-      debugPrint("Upload failed");
+      m_debugPrint("Upload failed");
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -765,7 +768,7 @@ Future<void> deleteAccount(BuildContext context, String email) async {
       //  Navigator.of(context).pop();
     }
   } catch (e) {
-    //debugPrint("Error during converting to Base64");
+    //m_debugPrint("Error during converting to Base64");
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.red,

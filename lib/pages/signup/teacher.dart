@@ -17,6 +17,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gojdu/others/options.dart';
 
+import '../../others/api.dart';
+
 class TeacherSignUp extends StatefulWidget {
   const TeacherSignUp({Key? key}) : super(key: key);
 
@@ -334,7 +336,7 @@ class _FirstPageState extends State<FirstPage> {
                       "email": _mail.value.text,
                       "token": token
                     });
-                    //  debugPrint(response.statusCode);
+                    //  m_debugPrint(response.statusCode);
                     if (response.statusCode == 200) {
                       var jsondata = json.decode(response.body);
                       if (jsondata["error"]) {
@@ -356,7 +358,7 @@ class _FirstPageState extends State<FirstPage> {
                           _prefs.setString('first_name', first_name);
                           _prefs.setString('last_name', last_name);
 
-                          debugPrint(acc_type.toString());
+                          m_debugPrint(acc_type.toString());
                           Navigator.of(context).pop('dialog');
 
                           final loginMap = {

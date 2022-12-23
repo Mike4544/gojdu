@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gojdu/widgets/profilePics.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 
 import 'package:http/http.dart' as http;
@@ -50,47 +53,6 @@ class Event extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var avatarImg = '${Misc.link}/${Misc.appName}/profiles/$ownerID.jpg';
-
-    bool? _isnt404;
-
-    Future<int> _getImgStatus() async {
-      var response = await http.get(Uri.parse(avatarImg));
-
-      _isnt404 = response.statusCode != 404;
-
-      return response.statusCode;
-    }
-
-    Widget _CircleAvatar() {
-      late var _sCode = _getImgStatus();
-
-      return FutureBuilder(
-        future: _sCode,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (_isnt404!) {
-              return CircleAvatar(
-                backgroundImage: Image.network(
-                  avatarImg,
-                ).image,
-              );
-            } else {
-              return CircleAvatar(
-                child: Text(owner[0]),
-              );
-            }
-          } else if (snapshot.hasError) {
-            return CircleAvatar(
-              child: Text(owner[0]),
-            );
-          } else {
-            return const CircleAvatar(
-              backgroundColor: Colors.white,
-            );
-          }
-        },
-      );
-    }
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -145,7 +107,10 @@ class Event extends StatelessWidget {
                                   child: Chip(
                                 label: Text(
                                     '${owner.split(' ').first} ${owner.split(' ').last[0]}.'),
-                                avatar: _CircleAvatar(),
+                                avatar: ProfilePicture(
+                                  url: avatarImg,
+                                  userName: owner,
+                                ),
                               )),
                               BetterChip(
                                   icon: const Icon(
@@ -415,73 +380,17 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   bool visible = false;
 
-  late bool _isnt404;
-
-  Future<int> _getImgStatus() async {
-    var response = await http.get(Uri.parse(avatarImg));
-
-    _isnt404 = response.statusCode != 404;
-
-    return response.statusCode;
-  }
-
-  Widget _CircleAvatar() {
-    late var _sCode = _getImgStatus();
-
-    return FutureBuilder(
-      future: _sCode,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (_isnt404) {
-            return CircleAvatar(
-              backgroundImage: Image.network(
-                avatarImg,
-              ).image,
-            );
-          } else {
-            return CircleAvatar(
-              child: Text(widget.author[0]),
-            );
-          }
-        } else if (snapshot.hasError) {
-          return CircleAvatar(
-            child: Text(widget.author[0]),
-          );
-        } else {
-          return const CircleAvatar(
-            backgroundColor: Colors.white,
-          );
-        }
-      },
-    );
-
-    // try {
-    //   return CircleAvatar(
-    //     backgroundImage: Image.network(
-    //       avatarImg,
-    //     ).image,
-    //   );
-    // }
-    // catch(e) {
-    //   return CircleAvatar(
-    //     child: Text(
-    //         widget.author[0]
-    //     ),
-    //   );
-    // }
-  }
-
   @override
   void initState() {
     // TODO: implement initState
 
     avatarImg = '${Misc.link}/${Misc.appName}/profiles/${widget.ownerID}.jpg';
-    debugPrint(avatarImg);
+    m_debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  debugPrint(_controller.position.pixels);
+      //  m_debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -497,21 +406,13 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   }
 
   Widget topPage() {
-    //debugPrint(imageLink);
+    //m_debugPrint(imageLink);
 
     BoxDecoration woImage = BoxDecoration(color: widget.color);
 
     BoxDecoration wImage = BoxDecoration(
       image: DecorationImage(
-          image: Image.network(
-            widget.imageString!,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-
-              return const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
-            },
-          ).image,
+          image: CachedNetworkImageProvider(widget.imageString!),
           fit: BoxFit.cover),
     );
 
@@ -526,8 +427,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       child: Stack(children: [
                         Center(
                           child: InteractiveViewer(
-                              clipBehavior: Clip.none,
-                              child: Image.network(widget.imageString!)),
+                            clipBehavior: Clip.none,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.imageString!,
+                            ),
+                          ),
                         ),
                         Positioned(
                             top: 10,
@@ -590,7 +494,10 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         ),
                         Chip(
                           backgroundColor: ColorsB.gray200,
-                          avatar: _CircleAvatar(),
+                          avatar: ProfilePicture(
+                            url: avatarImg,
+                            userName: widget.author,
+                          ),
                           label: Text(
                               '${widget.author.split(' ').first} ${widget.author.split(' ').last[0]}.'),
                         )
@@ -602,12 +509,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       children: [
                         GestureDetector(
                           onTap: () async {
-                            //  debugPrint(widget.mapsLink);
+                            //  m_debugPrint(widget.mapsLink);
                             if (await canLaunchUrl(
                                 Uri.parse(widget.mapsLink))) {
                               await launchUrl(Uri.parse(widget.mapsLink));
                             } else {
-                              debugPrint('Can\'t do it chief');
+                              m_debugPrint('Can\'t do it chief');
                             }
                           },
                           child: Row(

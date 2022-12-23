@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 //  import '../databases/alertsdb.dart';
 import '../widgets/back_navbar.dart';
@@ -66,10 +68,10 @@ class _NotifPageState extends State<NotifPage> {
         'persID': '${globalMap['id']}',
         'availability': globalMap['account'] == 'Admin' ? '1' : '2'
       });
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -77,6 +79,7 @@ class _NotifPageState extends State<NotifPage> {
           });
         } else {
           if (jsondata[0]["success"] && jsondata[1] != null) {
+            m_debugPrint(jsondata);
             for (int i = 1; i < jsondata.length; i++) {
               //  alerts.add(Alert.fromJson(jsondata));
               final currAlert = Alert.fromJson(jsondata[i]);
@@ -95,16 +98,18 @@ class _NotifPageState extends State<NotifPage> {
             //  Add the search terms
             maxScrollCountAlerts += turnsAlerts;
             lastIDAlerts = alerts.last.alert.id!;
-            debugPrint(maxScrollCountAlerts.toString());
-            debugPrint(lastMaxAlerts.toString());
+            m_debugPrint(maxScrollCountAlerts.toString());
+            m_debugPrint(lastMaxAlerts.toString());
 
-            //  debugPrint(events);
+            //  m_debugPrint(events);
           } else {
-            ////debugPrint(jsondata[0]["message"]);
+            ////m_debugPrint(jsondata[0]["message"]);
           }
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      m_debugPrint(e.toString());
+      m_debugPrint(s.toString());
       throw Future.error(e.toString());
     }
 
@@ -129,7 +134,7 @@ class _NotifPageState extends State<NotifPage> {
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxAlerts < maxScrollCountAlerts) {
-      debugPrint('Haveth reached the end');
+      m_debugPrint('Haveth reached the end');
 
       await loadAlerts();
 
@@ -141,7 +146,7 @@ class _NotifPageState extends State<NotifPage> {
 
   void share(Alert al) async {
     try {
-      //  debugPrint(Availability.TEACHERS);
+      //  m_debugPrint(Availability.TEACHERS);
       final response = await http.post(
           Uri.parse('${Misc.link}/${Misc.appName}/updateAlerts.php'),
           body: {'id': al.id.toString(), 'nAvail': '2'});
@@ -165,28 +170,28 @@ class _NotifPageState extends State<NotifPage> {
             "time": al.createdTime.toIso8601String()
           });
 
-          // debugPrint(response.statusCode);
-          //       // debugPrint(response.body);
-          //  debugPrint(DateTime.now().toIso8601String());
-          debugPrint(response.statusCode.toString());
+          // m_debugPrint(response.statusCode);
+          //       // m_debugPrint(response.body);
+          //  m_debugPrint(DateTime.now().toIso8601String());
+          m_debugPrint(response.statusCode.toString());
 
           if (response.statusCode == 200) {
             var jsondata = jsonDecode(response.body);
 
-            //debugPrint(jsondata.toString());
+            //m_debugPrint(jsondata.toString());
 
             //  Navigator.of(context).pop();
           } else {
-            debugPrint('Error!');
+            m_debugPrint('Error!');
           }
         } catch (e, stack) {
-          debugPrint("Exception! $e");
-          debugPrint(stack.toString());
+          m_debugPrint("Exception! $e");
+          m_debugPrint(stack.toString());
         }
       }
     } catch (e, stack) {
-      debugPrint('EXCEPTION: $e');
-      debugPrint('STACK: $stack');
+      m_debugPrint('EXCEPTION: $e');
+      m_debugPrint('STACK: $stack');
 
       SnackBar failed = const SnackBar(
         backgroundColor: Colors.red,
@@ -215,16 +220,16 @@ class _NotifPageState extends State<NotifPage> {
 
       switch (response.statusCode) {
         case 200:
-          debugPrint('O mers');
+          m_debugPrint('O mers');
           widget.notifs.value--;
           break;
 
         default:
-          debugPrint('N-o mers');
+          m_debugPrint('N-o mers');
           break;
       }
     } catch (e, stack) {
-      debugPrint('Error whilst viewing! $e \n $stack');
+      m_debugPrint('Error whilst viewing! $e \n $stack');
     }
   }
 
@@ -427,7 +432,7 @@ class _AlertContainerState extends State<AlertContainer> {
                           read = true;
                         });
 
-                        debugPrint(read.toString());
+                        m_debugPrint(read.toString());
 
                         Navigator.of(context).push(PageRouteBuilder(
                             pageBuilder: (context, animation, secAnim) =>
@@ -496,7 +501,7 @@ class _AlertContainerState extends State<AlertContainer> {
                                 child: Text(
                                   owner.length < 12
                                       ? 'Alerted by $owner'
-                                      : 'Alerted by ${owner.substring(0, 15)}...',
+                                      : 'Alerted by ${owner.substring(0, 12)}...',
                                   style: TextStyle(
                                       color: read
                                           ? Colors.white30
@@ -521,7 +526,7 @@ class _AlertContainerState extends State<AlertContainer> {
                                         shared = true;
                                       });
                                     } catch (e) {
-                                      debugPrint(e.toString());
+                                      m_debugPrint(e.toString());
                                     }
                                   },
                                   label: const Text("Share with teachers",
@@ -594,19 +599,10 @@ class BigNewsContainer extends StatelessWidget {
 
       BoxDecoration wImage = BoxDecoration(
         image: DecorationImage(
-            image: Image.network(
-              imageString!,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-
-                return const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
-              },
-            ).image,
-            fit: BoxFit.cover),
+            image: CachedNetworkImageProvider(imageString!), fit: BoxFit.cover),
       );
 
-      //debugPrint(imageLink);
+      //m_debugPrint(imageLink);
 
       return GestureDetector(
         onTap: imageString == 'null' || imageString == ''
@@ -619,8 +615,11 @@ class BigNewsContainer extends StatelessWidget {
                         child: Stack(children: [
                           Center(
                             child: InteractiveViewer(
-                                clipBehavior: Clip.none,
-                                child: Image.network(imageString!)),
+                              clipBehavior: Clip.none,
+                              child: CachedNetworkImage(
+                                imageUrl: imageString!,
+                              ),
+                            ),
                           ),
                           Positioned(
                               top: 10,

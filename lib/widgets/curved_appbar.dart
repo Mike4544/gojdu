@@ -18,7 +18,6 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
   final String? accType;
   final int position;
   final Map map;
-  final VoidCallback? update;
   final List<PageDescription> descriptions;
   final ValueNotifier notifs;
 
@@ -29,8 +28,7 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
       this.accType,
       required this.position,
       required this.map,
-      required this.descriptions,
-      this.update, required this.notifs})
+      required this.descriptions, required this.notifs})
       : preferredSize = Size.fromHeight(
             screenHeight < 675 ? screenHeight * .175 : screenHeight * .15),
         super(key: key);

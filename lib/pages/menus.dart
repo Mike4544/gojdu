@@ -101,10 +101,10 @@ class _MenuTabsState extends State<MenuTabs> {
       ),
       Tab(
         color: Colors.indigoAccent,
-        image: "assets/images/Carnet.png",
+        image: "assets/images/folderImg.png",
         description:
-            "Use this section to remember important matters.",
-        title: "School Notes",
+            "Search through your school's files.",
+        title: "School Files",
         index: 6,
         update: update,
       ),

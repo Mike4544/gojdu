@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -110,7 +111,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 behavior: SnackBarBehavior.floating,
                               ));
                             } catch (e) {
-                              debugPrint(e.toString());
+                              m_debugPrint(e.toString());
 
                               setState(() {
                                 sending = false;

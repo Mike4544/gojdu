@@ -14,6 +14,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import '../others/api.dart';
+
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
 
@@ -72,12 +74,12 @@ class _LoginState extends State<Login> {
     _nameController.dispose();
     _passController.dispose();
 
-    debugPrint('disposed');
+    m_debugPrint('disposed');
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("building");
+    m_debugPrint("building");
 
     var size = MediaQuery.of(context);
     globalSize = MediaQuery.of(context).size;
@@ -280,8 +282,8 @@ class _LoginState extends State<Login> {
         notifs.value = jsondata['notifs'];
       }
     } catch (e, stack) {
-      debugPrint(e.toString());
-      debugPrint(stack.toString());
+      m_debugPrint(e.toString());
+      m_debugPrint(stack.toString());
     }
   }
 
@@ -291,7 +293,7 @@ class _LoginState extends State<Login> {
     final SharedPreferences prefs2 = await prefs;
 
     String? token = await _firebaseMessaging.getToken();
-    //debugPrint(token);
+    //m_debugPrint(token);
 
     if (_formKey.currentState!.validate()) {
       try {
@@ -307,7 +309,7 @@ class _LoginState extends State<Login> {
         }).timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
           var jsondata1 = json.decode(response.body);
-          //debugPrint(jsondata1);
+          //m_debugPrint(jsondata1);
           if (jsondata1["error"]) {
             if (jsondata1['message'] ==
                 'Your account is still pending. Check your email and activate it.') {
@@ -384,10 +386,11 @@ class _LoginState extends State<Login> {
                                           'email': _nameController.value.text,
                                           'code': _code.text
                                         });
-                                    debugPrint(response.statusCode.toString());
+                                    m_debugPrint(
+                                        response.statusCode.toString());
                                     if (response.statusCode == 200) {
                                       var jsondata = json.decode(response.body);
-                                      //  //debugPrint(jsondata.toString());
+                                      //  //m_debugPrint(jsondata.toString());
                                       if (jsondata['success']) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(const SnackBar(
@@ -506,10 +509,10 @@ class _LoginState extends State<Login> {
               String acc_type = jsondata1["account"].toString();
               //String acc_type = 'Teacher';
 
-              // debugPrint(ln);
-              // debugPrint(fn);
-              // debugPrint(email);
-              //debugPrint(jsondata1["token"]);
+              // m_debugPrint(ln);
+              // m_debugPrint(fn);
+              // m_debugPrint(email);
+              //m_debugPrint(jsondata1["token"]);
 
               await prefs2.setString('email', email);
               await prefs2.setString('password', _passController.value.text);
@@ -517,7 +520,7 @@ class _LoginState extends State<Login> {
               await prefs2.setString('last_name', ln);
               await prefs2.setString('type', acc_type);
 
-              debugPrint(
+              m_debugPrint(
                   "The name is ${_nameController.value.text} and the password is ${_passController.value.text}");
 
               await _firebaseMessaging.subscribeToTopic('${acc_type}s');

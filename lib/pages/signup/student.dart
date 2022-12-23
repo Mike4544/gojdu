@@ -19,6 +19,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import '../../others/api.dart';
+
 class StudentSignUp extends StatefulWidget {
   const StudentSignUp({Key? key}) : super(key: key);
 
@@ -296,7 +298,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         });
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          //debugPrint(jsondata.toString());
+                          //m_debugPrint(jsondata.toString());
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];
@@ -420,7 +422,7 @@ class _StudentSignUpState extends State<StudentSignUp> {
                                                       'email': email,
                                                       'code': _code.text
                                                     });
-                                                    debugPrint(response
+                                                    m_debugPrint(response
                                                         .statusCode
                                                         .toString());
                                                     if (response.statusCode ==

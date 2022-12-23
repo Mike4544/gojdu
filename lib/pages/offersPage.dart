@@ -2,13 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:gojdu/pages/addOffer.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:gojdu/pages/opportunities.dart';
+import 'package:gojdu/widgets/filters.dart';
 import 'package:gojdu/widgets/lazyBuilder.dart';
+import 'package:gojdu/widgets/searchBar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
 import 'package:intl/intl.dart';
@@ -61,7 +65,7 @@ class _OffersPageState extends State<OffersPage>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxOffers < maxScrollCountOffers) {
-      debugPrint('Haveth reached the end');
+      m_debugPrint('Haveth reached the end');
 
       await loadOffers();
 
@@ -80,82 +84,39 @@ class _OffersPageState extends State<OffersPage>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getOffers.php');
       final response = await http.post(url,
           body: {"lastID": "$lastIDOffers", "turns": "$turnsOffers"});
-      debugPrint(response.statusCode.toString());
+      //  m_debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
-          setState(() {
-            //nameError = jsondata["message"];
-          });
+          m_debugPrint('Error');
+
+          // setState(() {
+          //   //nameError = jsondata["message"];
+          // });
         } else {
           if (jsondata[0]["success"]) {
             for (int i = 1; i < jsondata.length; i++) {
-              int id = jsondata[i]["id"];
-              int oid = jsondata[i]['ownerID'];
-              String discount = jsondata[i]["discount"].toString();
-              String short = jsondata[i]["short"].toString();
-              String long = jsondata[i]["long"].toString();
-              String owner = jsondata[i]["owner"].toString();
-              String company = jsondata[i]["company"].toString();
-              String location = jsondata[i]["location"].toString();
-              String mapsLink = jsondata[i]["mapsLink"].toString();
-              DateTime date = DateTime.parse(jsondata[i]["dateTime"]);
-              String Imlink = jsondata[i]["link"].toString();
-              String logo = jsondata[i]["logo"].toString();
-              String color = jsondata[i]["color"].toString();
+              ////m_debugPrint(globalMap['id']);
 
-              ////debugPrint(globalMap['id']);
-
-              if (id != null) {
-                // var day = int.parse(date.split('/')[0]);
-                // var month = int.parse(date.split('/')[1]);
-                // var year = int.parse(date.split('/')[2]);
-
-                offers.add(OfferContainer(
-                  id: id,
-                  owner_id: oid,
-                  compName: company,
-                  date: date,
-                  delete: () async {
-                    await deleteEvent(id, i - 1);
-                    setState(() {});
-                  },
-                  discount: discount,
-                  fullDescription: long,
-                  smallDescription: short,
-                  globalMap: globalMap,
-                  gmaps_link: mapsLink,
-                  headerImageLink: Imlink,
-                  logoLink: logo,
-                  owner: owner,
-                  s_color: color,
-                ));
-
-                //  debugPrint(offers.length);
-              }
-
-              /* if(post != "null")
-              {
-                //debugPrint(post+ " this is the post");
-                //debugPrint(title+" this is the title");
-                //debugPrint(owner+ " this is the owner");
-              } */
-
+              offers.add(
+                  OfferContainer.fromJson(jsondata[i], globalMap, () async {
+                await deleteEvent(jsondata[i]['id'], i - 1);
+              }));
             }
             maxScrollCountOffers += turnsOffers;
             lastIDOffers = offers.last.id;
 
-            //  debugPrint(events);
+            //  m_debugPrint(events);
           } else {
-            ////debugPrint(jsondata[0]["message"]);
+            ////m_debugPrint(jsondata[0]["message"]);
 
           }
         }
       }
     } catch (e) {
-      debugPrint(e.toString());
+      m_debugPrint(e.toString());
       throw Future.error(e.toString());
     }
 
@@ -175,17 +136,17 @@ class _OffersPageState extends State<OffersPage>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/deleteOffer.php');
       final response = await http.post(url, body: {"id": Id.toString()});
 
-      debugPrint(Id.toString());
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(Id.toString());
+      m_debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
-        debugPrint(response.body);
+        m_debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  //debugPrint(jsondata.toString());
+        //  //m_debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
-          debugPrint('Errored');
+          m_debugPrint('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -224,7 +185,7 @@ class _OffersPageState extends State<OffersPage>
           offers.removeAt(index);
         }
       } else {
-        debugPrint("Deletion failed.");
+        m_debugPrint("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -260,29 +221,11 @@ class _OffersPageState extends State<OffersPage>
         ),
       ));
 
-      debugPrint(e.toString());
+      m_debugPrint(e.toString());
     }
   }
 
   Widget _offersList() {
-    List dummyList = [];
-
-    for (var e in offers) {
-      if (searchEditor.text.isEmpty) {
-        dummyList.add(e);
-      } else {
-        if (e.compName
-                .toLowerCase()
-                .contains(searchEditor.text.toLowerCase()) ||
-            e.discount
-                .toLowerCase()
-                .contains(searchEditor.text.toLowerCase()) ||
-            e.smallDescription.contains(searchEditor.text)) {
-          dummyList.add(e);
-        }
-      }
-    }
-
     return LazyBuilder(
         future: _getOffers,
         widgetList: offers,
@@ -311,6 +254,24 @@ class _OffersPageState extends State<OffersPage>
     super.dispose();
   }
 
+  Widget adminButton() => Visibility(
+        visible: widget.globalMap['account'] == 'Admin' ||
+            widget.globalMap['account'] == 'Teacher',
+        child: FloatingActionButton(
+          elevation: 0,
+          backgroundColor: ColorsB.gray800,
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => AddOffer(gMap: widget.globalMap)));
+          },
+          mini: true,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -324,36 +285,13 @@ class _OffersPageState extends State<OffersPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SearchButtonBar(
-                    isAdmin: widget.globalMap['account'] == 'Admin' ||
-                        widget.globalMap['account'] == 'Teacher',
-                    searchController: searchEditor,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Visibility(
-                      visible: widget.globalMap['account'] == 'Admin' ||
-                          widget.globalMap['account'] == 'Teacher',
-                      child: FloatingActionButton(
-                        elevation: 0,
-                        backgroundColor: ColorsB.gray800,
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  AddOffer(gMap: widget.globalMap)));
-                        },
-                        mini: true,
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
+              SearchBar(
+                filters: const [
+                  mFilterChip(label: "Trends", color: ColorsB.yellow500),
+                  mFilterChip(label: "Offers", color: Colors.blueAccent),
                 ],
+                searchType: SearchType.offers,
+                adminButton: adminButton(),
               ),
               const SizedBox(
                 height: 10,
@@ -401,9 +339,43 @@ class OfferContainer extends StatelessWidget {
       required this.owner_id})
       : super(key: key);
 
+  static OfferContainer fromJson(
+      Map<String, dynamic> jsondata, Map globalMap, Function delete) {
+    int id = jsondata["id"];
+    int oid = jsondata['ownerID'];
+    String discount = jsondata["discount"].toString();
+    String short = jsondata["short"].toString();
+    String long = jsondata["long"].toString();
+    String owner = jsondata["owner"].toString();
+    String company = jsondata["company"].toString();
+    String location = jsondata["location"].toString();
+    String mapsLink = jsondata["mapsLink"].toString();
+    DateTime date = DateTime.parse(jsondata["dateTime"]);
+    String Imlink = jsondata["link"].toString();
+    String logo = jsondata["logo"].toString();
+    String color = jsondata["color"].toString();
+
+    return OfferContainer(
+      id: id,
+      owner_id: oid,
+      compName: company,
+      date: date,
+      delete: delete,
+      discount: discount,
+      fullDescription: long,
+      smallDescription: short,
+      globalMap: globalMap,
+      gmaps_link: mapsLink,
+      headerImageLink: Imlink,
+      logoLink: logo,
+      owner: owner,
+      s_color: color,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    debugPrint(date.toString());
+    m_debugPrint(date.toString());
 
     final titleStyle = TextStyle(
         color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold);
@@ -458,7 +430,9 @@ class OfferContainer extends StatelessWidget {
                                 child: ColorFiltered(
                                   colorFilter: const ColorFilter.mode(
                                       Colors.white, BlendMode.srcATop),
-                                  child: Image.network(logoLink),
+                                  child: CachedNetworkImage(
+                                    imageUrl: logoLink,
+                                  ),
                                 ),
                               ),
                               const SizedBox(
@@ -687,12 +661,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   @override
   void initState() {
-    debugPrint(avatarImg);
+    m_debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  debugPrint(_controller.position.pixels);
+      //  m_debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -712,20 +686,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
     BoxDecoration wImage = BoxDecoration(
       image: DecorationImage(
-          image: Image.network(
-            widget.imageString!,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-
-              return const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
-            },
-          ).image,
+          image: CachedNetworkImageProvider(widget.imageString!),
           fit: BoxFit.cover),
     );
 
-    //debugPrint(imageLink);
-    debugPrint(widget.imageString);
+    //m_debugPrint(imageLink);
+    m_debugPrint(widget.imageString);
 
     return GestureDetector(
       onTap: (widget.imageString == 'null' || widget.imageString == '')
@@ -738,8 +704,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       child: Stack(children: [
                         Center(
                           child: InteractiveViewer(
-                              clipBehavior: Clip.none,
-                              child: Image.network(widget.imageString!)),
+                            clipBehavior: Clip.none,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.imageString!,
+                            ),
+                          ),
                         ),
                         Positioned(
                             top: 10,
@@ -837,7 +806,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                     Uri.parse(widget.gMapsLink!))) {
                                   await launchUrl(Uri.parse(widget.gMapsLink!));
                                 } else {
-                                  debugPrint('Can\'t do it chief');
+                                  m_debugPrint('Can\'t do it chief');
                                 }
                               },
                               child: Row(
@@ -999,7 +968,7 @@ class _BackgroundState extends State<Background> {
       accelerometerEvents.listen((event) {
         _parallaxValues = event;
 
-        //debugPrint(event);
+        //m_debugPrint(event);
 
         if (mounted) {
           setState(() {});
@@ -1023,7 +992,7 @@ class _BackgroundState extends State<Background> {
     blur2 = math.Random().nextDouble() * 12;
     blur3 = math.Random().nextDouble() * 5;
 
-    //  debugPrint(c11);
+    //  m_debugPrint(c11);
   }
 
   @override

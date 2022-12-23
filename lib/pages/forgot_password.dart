@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 
 import 'package:gojdu/others/options.dart';
 
+import '../others/api.dart';
+
 // Global Variables
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
@@ -110,7 +112,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 'action': "FORGOT",
                                 "email": emailController.text,
                               });
-                              debugPrint(response.statusCode.toString());
+                              m_debugPrint(response.statusCode.toString());
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
 

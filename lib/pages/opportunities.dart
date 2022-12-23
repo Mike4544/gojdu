@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
+import '../widgets/filters.dart';
 import '../widgets/lazyBuilder.dart';
 import 'addOpportunity.dart';
 
@@ -19,6 +22,9 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:math' as math;
 
 import 'package:gojdu/others/options.dart';
+
+// import the search bar
+import '../widgets/searchBar.dart';
 
 class OpportunitiesList extends StatefulWidget {
   final Map globalMap;
@@ -42,17 +48,17 @@ class _OpportunitiesListState extends State<OpportunitiesList>
       var url = Uri.parse('${Misc.link}/${Misc.appName}/deleteOpportunity.php');
       final response = await http.post(url, body: {"id": Id.toString()});
 
-      debugPrint(Id.toString());
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(Id.toString());
+      m_debugPrint(response.statusCode.toString());
 
       if (response.statusCode == 200) {
-        debugPrint(response.body);
+        m_debugPrint(response.body);
 
         var jsondata = json.decode(response.body);
-        //  //debugPrint(jsondata.toString());
+        //  //m_debugPrint(jsondata.toString());
 
         if (jsondata['error']) {
-          debugPrint('Errored');
+          m_debugPrint('Errored');
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -91,7 +97,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
           opportunities.removeAt(index);
         }
       } else {
-        debugPrint("Deletion failed.");
+        m_debugPrint("Deletion failed.");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
@@ -127,7 +133,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         ),
       ));
 
-      debugPrint(e.toString());
+      m_debugPrint(e.toString());
     }
   }
 
@@ -146,7 +152,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
       lastIDOpportunities = Misc.INT_MAX;
 
       _getOpportunities = loadOpportunities();
-      setState(() {});
+      //  setState(() {});
       //  widget.future = widget.futureFunction;
     });
   }
@@ -154,7 +160,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
   void lazyLoadCallback() async {
     if (lazyController.position.extentAfter == 0 &&
         lastMaxOpportunities < maxScrollCountOpportunities) {
-      debugPrint('Haveth reached the end');
+      m_debugPrint('Haveth reached the end');
 
       await loadOpportunities();
 
@@ -176,10 +182,10 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         "lastID": '$lastIDOpportunities',
         'turns': '$turnsOpportunities'
       });
-      debugPrint(response.statusCode.toString());
+      m_debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        //m_debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           setState(() {
@@ -188,76 +194,19 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         } else {
           if (jsondata[0]["success"]) {
             for (int i = 1; i < jsondata.length; i++) {
-              String post = jsondata[i]["post"].toString();
-              String title = jsondata[i]["title"].toString();
-              String owner = jsondata[i]["owner"].toString();
-              String location = jsondata[i]["location"].toString();
-              String date = jsondata[i]["timeDate"].toString();
-              String link = jsondata[i]["link"].toString();
-              String gmaps = jsondata[i]["mapsLink"].toString();
-              String color = jsondata[i]["color"].toString();
-              String topic = jsondata[i]["topic"].toString();
-
-              // debugPrint(date);
-              // debugPrint('Index $i');
-
-              int? id = jsondata[i]["id"];
-              int? oid = jsondata[i]["ownerID"];
-
-              ////debugPrint(globalMap['id']);
-
-              if (id != null) {
-                // events.add(Event(title: title,
-                //   id: id,
-                //   body: post,
-                //   owner: owner,
-                //   link: link,
-                //   date: date,
-                //   location: location,
-                //   gMap: globalMap,
-                //   Context: context,
-                //   delete: () async {
-                //     await deleteEvent(id!, i - 2);
-                //
-                //     setState(() {
-                //
-                //     });
-                //
-                //   },
-                // )
-                // );
-                opportunities.add(OpportunityCard(
-                  owner: owner,
-                  id: id,
-                  ownerID: oid!,
-                  dev_height: screenHeight,
-                  dev_width: screenWidth,
-                  s_color: color,
-                  category: topic,
-                  gmaps_link: gmaps,
-                  headerImageLink: link,
-                  description: post,
-                  title: title,
-                  city: location.split(',').first,
-                  date: DateTime.tryParse(date) ?? DateTime(1970, 1, 1),
-                  delete: () async {
-                    await deleteEvent(id, i - 1);
-                    setState(() {});
-                  },
-                  globalMap: globalMap,
-                ));
-
-                //  debugPrint(opportunities.length);
-              }
+              opportunities.add(
+                  OpportunityCard.fromJson(jsondata[i], globalMap, () async {
+                await deleteEvent(jsondata[i]["id"], i - 1);
+              }));
             }
 
             //  Add the search terms
             maxScrollCountOpportunities += turnsOpportunities;
             lastIDOpportunities = opportunities.last.id;
 
-            //  debugPrint(events);
+            //  m_debugPrint(events);
           } else {
-            ////debugPrint(jsondata[0]["message"]);
+            ////m_debugPrint(jsondata[0]["message"]);
           }
         }
       }
@@ -291,30 +240,31 @@ class _OpportunitiesListState extends State<OpportunitiesList>
 
   late Future _getOpportunities = loadOpportunities();
 
+  Widget _addButton() => Visibility(
+        visible: widget.globalMap['account'] == 'Admin' ||
+            widget.globalMap['account'] == 'Teacher',
+        child: FloatingActionButton(
+          elevation: 0,
+          backgroundColor: ColorsB.gray800,
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => AddOpportunity(gMap: globalMap)));
+          },
+          mini: true,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    //  debugPrint('building');
+    //  m_debugPrint('building');
 
     Widget opportunityList() {
-      List dummyList = [];
-
-      for (var e in opportunities) {
-        if (searchEditor.text.isEmpty) {
-          dummyList.add(e);
-        } else {
-          if (e.title!
-                  .toLowerCase()
-                  .contains(searchEditor.text.toLowerCase()) ||
-              e.category
-                  .toLowerCase()
-                  .contains(searchEditor.text.toLowerCase())) {
-            dummyList.add(e);
-          }
-        }
-      }
-
       return LazyBuilder(
           future: _getOpportunities,
           widgetList: opportunities,
@@ -326,57 +276,45 @@ class _OpportunitiesListState extends State<OpportunitiesList>
           turns: turnsOpportunities);
     }
 
-    return GestureDetector(
-        onTap: () {
-          //  FocusScope.of(context).unfocus();
-        },
-        child: Stack(
-          children: [
-            const TriangleBackground(),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SearchButtonBar(
-                          isAdmin: widget.globalMap['account'] == 'Admin' ||
-                              widget.globalMap['account'] == 'Teacher',
-                          searchController: searchEditor,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Visibility(
-                            visible: widget.globalMap['account'] == 'Admin' ||
-                                widget.globalMap['account'] == 'Teacher',
-                            child: FloatingActionButton(
-                              elevation: 0,
-                              backgroundColor: ColorsB.gray800,
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddOpportunity(gMap: globalMap)));
-                              },
-                              mini: true,
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+    return Stack(
+      children: [
+        const TriangleBackground(),
+        Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SearchBar(
+                  searchType: SearchType.activities,
+                  adminButton: _addButton(),
+                  filters: const [
+                    mFilterChip(
+                      label: 'IT',
+                      color: Colors.greenAccent,
                     ),
-                    const SizedBox(
-                      height: 10,
+                    // Add serval more topics different from the ones in the database
+                    mFilterChip(
+                      label: 'Design',
+                      color: Colors.tealAccent,
                     ),
-                    Expanded(child: opportunityList()),
+                    mFilterChip(
+                      label: 'Fashion',
+                      color: Colors.purple,
+                    ),
+                    mFilterChip(
+                      label: 'Other',
+                      color: Colors.brown,
+                    ),
                   ],
-                )),
-          ],
-        ));
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Expanded(child: opportunityList()),
+              ],
+            )),
+      ],
+    );
   }
 }
 
@@ -716,6 +654,42 @@ class OpportunityCard extends StatelessWidget {
       required this.delete})
       : super(key: key);
 
+  static OpportunityCard fromJson(Map jsondata, Map gmap, Function delete) {
+    String post = jsondata["post"].toString();
+    String title = jsondata["title"].toString();
+    String owner = jsondata["owner"].toString();
+    String location = jsondata["location"].toString();
+    String date = jsondata["timeDate"].toString();
+    String link = jsondata["link"].toString();
+    String gmaps = jsondata["mapsLink"].toString();
+    String color = jsondata["color"].toString();
+    String topic = jsondata["topic"].toString();
+
+    // m_debugPrint(date);
+    // m_debugPrint('Index $i');
+
+    int? id = jsondata["id"];
+    int? oid = jsondata["ownerID"];
+
+    return OpportunityCard(
+      owner: owner,
+      id: id!,
+      ownerID: oid!,
+      dev_height: screenHeight,
+      dev_width: screenWidth,
+      s_color: color,
+      category: topic,
+      gmaps_link: gmaps,
+      headerImageLink: link,
+      description: post,
+      title: title,
+      city: location.split(',').first,
+      date: DateTime.tryParse(date) ?? DateTime(1970, 1, 1),
+      delete: delete,
+      globalMap: gmap,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> _iconsForTags = {
@@ -874,6 +848,11 @@ class OpportunityCard extends StatelessWidget {
                         child: Container(
                           width: dev_height * 0.05,
                           height: dev_height * 0.05 + 25,
+                          decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  colors: _colorsForTags[category]!,
+                                  begin: Alignment.bottomLeft,
+                                  end: Alignment.topRight)),
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: Padding(
@@ -886,11 +865,6 @@ class OpportunityCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                  colors: _colorsForTags[category]!,
-                                  begin: Alignment.bottomLeft,
-                                  end: Alignment.topRight)),
                         ),
                       ),
                     ),
@@ -1058,12 +1032,12 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
   @override
   void initState() {
-    debugPrint(avatarImg);
+    m_debugPrint(avatarImg);
 
     _controller.addListener(() {
       _isCollapsed ? visible = true : visible = false;
 
-      //  debugPrint(_controller.position.pixels);
+      //  m_debugPrint(_controller.position.pixels);
 
       setState(() {});
     });
@@ -1083,19 +1057,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
 
     BoxDecoration wImage = BoxDecoration(
       image: DecorationImage(
-          image: Image.network(
-            widget.imageString!,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-
-              return const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(ColorsB.yellow500));
-            },
-          ).image,
+          image: CachedNetworkImageProvider(widget.imageString!),
           fit: BoxFit.cover),
     );
 
-    //debugPrint(imageLink);
+    //m_debugPrint(imageLink);
 
     return GestureDetector(
       onTap: (widget.imageString == 'null' || widget.imageString == '')
@@ -1108,8 +1074,11 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                       child: Stack(children: [
                         Center(
                           child: InteractiveViewer(
-                              clipBehavior: Clip.none,
-                              child: Image.network(widget.imageString!)),
+                            clipBehavior: Clip.none,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.imageString!,
+                            ),
+                          ),
                         ),
                         Positioned(
                             top: 10,
@@ -1188,7 +1157,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                     Uri.parse(widget.gMapsLink!))) {
                                   await launchUrl(Uri.parse(widget.gMapsLink!));
                                 } else {
-                                  debugPrint('Can\'t do it chief');
+                                  m_debugPrint('Can\'t do it chief');
                                 }
                               },
                               child: Row(
@@ -1313,146 +1282,6 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
             ],
           ),
         ));
-  }
-}
-
-class SearchButtonBar extends StatefulWidget {
-  final bool isAdmin;
-  final TextEditingController searchController;
-
-  const SearchButtonBar(
-      {Key? key, required this.isAdmin, required this.searchController})
-      : super(key: key);
-
-  @override
-  State<SearchButtonBar> createState() => _SearchButtonBarState();
-}
-
-class _SearchButtonBarState extends State<SearchButtonBar>
-    with TickerProviderStateMixin {
-  bool open = false;
-
-  late AnimationController _iconController;
-
-  //  final _search = TextEditingController();
-
-  @override
-  void initState() {
-    _iconController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
-    open = false;
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _iconController.dispose();
-    //  _search.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
-
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.ease,
-        height: 50,
-        width: open
-            ? widget.isAdmin
-                ? width * .65
-                : width
-            : width * .25,
-        decoration: BoxDecoration(
-          color: ColorsB.gray800,
-          borderRadius: BorderRadius.circular(360),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
-            child: Center(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (open) {
-                        setState(() {
-                          open = false;
-                          _iconController.reverse();
-                          widget.searchController.text = '';
-                          FocusScope.of(context).unfocus();
-                        });
-                      }
-                    },
-                    child: AnimatedIcon(
-                      icon: AnimatedIcons.search_ellipsis,
-                      color: Colors.white,
-                      progress: _iconController,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  SizedBox(
-                    height: 50,
-                    width: width,
-                    child: TextField(
-                      controller: widget.searchController,
-                      onTap: () {
-                        if (!open) {
-                          setState(() {
-                            open = true;
-                            _iconController.forward();
-                          });
-                        }
-                      },
-                      style: TextStyle(color: Colors.white),
-                      onChanged: (_) {
-                        //  listKey.currentState!.setState(() {});
-                      },
-                      decoration: InputDecoration(
-                          hintText: 'Search',
-                          contentPadding: EdgeInsets.zero,
-                          hintStyle: TextStyle(
-                              color: open
-                                  ? Colors.white.withOpacity(.5)
-                                  : Colors.white,
-                              fontSize: 15.sp),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(360),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(360),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(360),
-                            borderSide: BorderSide.none,
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(360),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.transparent),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

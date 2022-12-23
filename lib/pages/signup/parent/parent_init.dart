@@ -19,6 +19,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import '../../../others/api.dart';
+
 String? fntopass;
 String? lntopass;
 String? email1topass;
@@ -337,7 +339,7 @@ class _FirstPageState extends State<FirstPage> {
                     email1topass = _mail.value.text;
                     pass1topass = _password.value.text;
                     pass2topass = _repPassword.value.text;
-                    debugPrint('Done');
+                    m_debugPrint('Done');
                     Navigator.of(context).pop('dialog');
 
                     setState(() {
@@ -481,12 +483,12 @@ class _SecondPageState extends State<SecondPage> {
 
                         email2topass = _childUsername.value.text;
 
-                        debugPrint(fntopass);
-                        debugPrint(lntopass);
-                        debugPrint(pass1topass);
-                        debugPrint(pass2topass);
-                        debugPrint(email1topass);
-                        debugPrint(email2topass);
+                        m_debugPrint(fntopass);
+                        m_debugPrint(lntopass);
+                        m_debugPrint(pass1topass);
+                        m_debugPrint(pass2topass);
+                        m_debugPrint(email1topass);
+                        m_debugPrint(email2topass);
 
                         _prefs.setString('email', email1topass!);
                         _prefs.setString('first_name', fntopass!);
@@ -507,7 +509,7 @@ class _SecondPageState extends State<SecondPage> {
                           "token": token,
                         });
                         if (response.statusCode == 200) {
-                          debugPrint(response.statusCode.toString());
+                          m_debugPrint(response.statusCode.toString());
                           var jsondata = json.decode(response.body);
                           if (jsondata["error"]) {
                             setState(() {
@@ -548,7 +550,7 @@ class _SecondPageState extends State<SecondPage> {
                               //user shared preference to save data
                             } else {
                               _errorText = "Error connecting.";
-                              //debugPrint(jsondata.toString());
+                              //m_debugPrint(jsondata.toString());
                               Navigator.of(context).pop('dialog');
                             }
                           }

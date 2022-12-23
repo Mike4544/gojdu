@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:gojdu/others/colors.dart';
+import '../others/api.dart';
 import '../widgets/Note.dart';
 import '../databases/notesdb.dart';
 
@@ -71,7 +71,7 @@ class _NotesState extends State<Notes> {
     });
 
     notes = await NotesDatabase.instance.readAllNotes();
-    debugPrint(notes.length.toString());
+    m_debugPrint(notes.length.toString());
     mapNotes();
 
     setState(() {
@@ -86,7 +86,7 @@ class _NotesState extends State<Notes> {
       noteWidgs.add(NoteContainer(data: element, type: 1));
     }
 
-    // debugPrint(noteWidgs.length);
+    // m_debugPrint(noteWidgs.length);
 
     noteWidgs.insert(
       0,

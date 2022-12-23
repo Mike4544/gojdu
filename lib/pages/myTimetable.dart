@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gojdu/widgets/switchPosts.dart';
 import 'package:shimmer/shimmer.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,6 +15,7 @@ import '../others/floor.dart';
 import '../others/options.dart';
 import '../widgets/floor_selector.dart';
 import 'editTables.dart';
+
 
 class MyTimetable extends StatefulWidget {
   final Map globalMap;
@@ -101,11 +103,11 @@ class ClassTableState extends State<ClassTable>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        m_debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
-          for (int i = 1; i <= 3; i++) {
-            //  //debugPrint(jsondata['$i']);
+          for (int i = 1; i <= jsondata.length; i++) {
+            //  //m_debugPrint(jsondata['$i']);
             classes.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -117,7 +119,7 @@ class ClassTableState extends State<ClassTable>
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -490,11 +492,11 @@ class _TeacherSearchState extends State<TeacherSearch>
 
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //debugPrint(jsondata.toString());
+        m_debugPrint(jsondata.toString());
         if (jsondata['0']["error"]) {
         } else {
-          for (int i = 1; i <= 3; i++) {
-            //  //debugPrint(jsondata['$i']);
+          for (int i = 1; i <= jsondata.length; i++) {
+            //  //m_debugPrint(jsondata['$i']);
             teachers.add(Floor(
                 floor: jsondata['$i']["floor"],
                 file: jsondata['$i']['file'],
@@ -506,7 +508,7 @@ class _TeacherSearchState extends State<TeacherSearch>
         return throw Exception("Couldn't connect");
       }
     } on TimeoutException catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
       mapErrored = true;
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

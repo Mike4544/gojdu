@@ -38,6 +38,9 @@ import 'firebase_options.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import './local_notif_service.dart';
+import 'others/api.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+
 
 String type = '';
 
@@ -49,6 +52,10 @@ Future<void> main() async {
 
   final LocalNotificationService _locNotifs = LocalNotificationService();
   WidgetsFlutterBinding.ensureInitialized();
+
+  await FlutterDownloader.initialize(
+    debug: true, // optional: set to false to disable printing logs to console (default: true)
+  );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -64,7 +71,7 @@ Future<void> main() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final Widget homeWidget = await getPage();
 
-  debugPrint('TYPE: $type');
+  m_debugPrint('TYPE: $type');
 
   //  await _locNotifs.init();
 
@@ -121,24 +128,24 @@ Future<void> getNotifs(int id) async {
       notifs.value = jsondata['notifs'];
     }
   } catch (e, stack) {
-    debugPrint(e.toString());
-    debugPrint(stack.toString());
+    m_debugPrint(e.toString());
+    m_debugPrint(stack.toString());
   }
 }
 
 Future<Widget> getPage() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  debugPrint(prefs.getString('email').toString());
+  m_debugPrint(prefs.getString('email').toString());
 
   String? token = await FirebaseMessaging.instance.getToken();
 
   if (!(prefs.getString('email') != null &&
       prefs.getString("password") != null)) {
-    debugPrint(false.toString());
+    m_debugPrint(false.toString());
     return const Login();
   } else {
     try {
-      //debugPrint(true);
+      //m_debugPrint(true);
       var url = Uri.parse('${Misc.link}/${Misc.appName}/login_gojdu.php');
       final response = await http.post(url, body: {
         "email": prefs.getString('email').toString(),

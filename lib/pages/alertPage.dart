@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gojdu/pages/news.dart';
 import 'package:intl/intl.dart';
+import '../others/api.dart';
 import '../others/colors.dart';
 
 import 'package:http/http.dart' as http;
@@ -85,15 +86,15 @@ class _AlertPageState extends State<AlertPage> {
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
         if (jsondata["error"]) {
-          ////debugPrint(jsondata["msg"]);
+          ////m_debugPrint(jsondata["msg"]);
         } else {
-          //debugPrint("Upload successful");
+          //m_debugPrint("Upload successful");
         }
       } else {
-        //debugPrint("Upload failed");
+        //m_debugPrint("Upload failed");
       }
     } catch (e) {
-      //debugPrint("Error during converting to Base64");
+      //m_debugPrint("Error during converting to Base64");
     }
   }
 
@@ -142,27 +143,27 @@ class _AlertPageState extends State<AlertPage> {
               "time": time
             });
 
-            // debugPrint(response.statusCode);
-            //       // debugPrint(response.body);
-            //  debugPrint(DateTime.now().toIso8601String());
+            // m_debugPrint(response.statusCode);
+            //       // m_debugPrint(response.body);
+            //  m_debugPrint(DateTime.now().toIso8601String());
 
             if (response.statusCode == 200) {
               var jsondata = jsonDecode(response.body);
 
-              //debugPrint(jsondata.toString());
+              //m_debugPrint(jsondata.toString());
 
               //  Navigator.of(context).pop();
             } else {
-              debugPrint('Error!');
+              m_debugPrint('Error!');
             }
           } catch (e, stack) {
-            debugPrint(e.toString());
-            debugPrint(stack.toString());
+            m_debugPrint(e.toString());
+            m_debugPrint(stack.toString());
           }
         }
       }
     } catch (e) {
-      debugPrint("Exception! $e");
+      m_debugPrint("Exception! $e");
     }
   }
 
@@ -299,8 +300,8 @@ class _AlertPageState extends State<AlertPage> {
                           errorText = '';
                         });
 
-                        debugPrint(_postTitleController.text);
-                        debugPrint(_postController.text);
+                        m_debugPrint(_postTitleController.text);
+                        m_debugPrint(_postController.text);
 
                         await sendReport(_file, _postTitleController.text,
                             _postController.text, format);
