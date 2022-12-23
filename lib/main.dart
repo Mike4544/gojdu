@@ -55,6 +55,7 @@ Future<void> main() async {
 
   await FlutterDownloader.initialize(
     debug: true, // optional: set to false to disable printing logs to console (default: true)
+    ignoreSsl: true, // optional: set to true if you want to ignore SSL certificate errors (default: false)
   );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

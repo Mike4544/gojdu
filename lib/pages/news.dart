@@ -580,8 +580,11 @@ class _NewsPageState extends State<NewsPage> {
                   globalMap: globalMap,
                 ),
                 AlertPage(gMap: globalMap),
-                const Calendar(key: ValueKey(3)),
-                SchoolFiles(key: const ValueKey(4), isAdmin: globalMap['account'] == 'Admin' || globalMap['account'] == 'Teacher'),
+                SchoolFiles(
+                    key: const ValueKey(3),
+                    isAdmin: globalMap['account'] == 'Admin' ||
+                        globalMap['account'] == 'Teacher'),
+                const Calendar(key: ValueKey(4)),
                 const FeedbackPage(),
               ],
               map: globalMap,
@@ -1164,7 +1167,8 @@ class _AnnouncementsState extends State<Announcements>
     _tabController.addListener(() async {
       if (!_tabController.indexIsChanging) {
         setState(() {
-          currentChannel = Misc.categories.entries.elementAt(_tabController.index).key;
+          currentChannel =
+              Misc.categories.entries.elementAt(_tabController.index).key;
         });
       }
       //  await Future.delayed(Duration(milliseconds:150));

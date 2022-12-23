@@ -59,7 +59,7 @@ class SchoolFiles extends StatefulWidget {
 }
 
 class _SchoolFilesState extends State<SchoolFiles> {
-  late Map<String, dynamic> paths;
+  late Map<String, dynamic> paths = {};
   late List<Category> categories = [];
 
   Future<bool> newCategory() async {
@@ -262,6 +262,17 @@ class _SchoolFilesState extends State<SchoolFiles> {
     } catch (e, s) {
       m_debugPrint(e);
       m_debugPrint(s);
+
+      // return a snack bar
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          "Failed to load data",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: ColorsB.gray800,
+      ));
+
+      return 0;
     }
 
     return 1;
@@ -306,6 +317,18 @@ class _SchoolFilesState extends State<SchoolFiles> {
   final GlobalKey<_MemoryBarState> memoryBarKey = GlobalKey<_MemoryBarState>();
   double memUsed = 0;
 
+  Widget memBar() => Visibility(
+        visible: widget.isAdmin,
+        child: Column(
+          children: [
+            MemoryBar(usedMemory: memUsed, key: memoryBarKey),
+            const SizedBox(
+              height: 20,
+            ),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -316,10 +339,7 @@ class _SchoolFilesState extends State<SchoolFiles> {
           if (snapshot.hasData) {
             return Column(
               children: [
-                MemoryBar(usedMemory: memUsed, key: memoryBarKey),
-                const SizedBox(
-                  height: 20,
-                ),
+                memBar(),
                 buildFileView(),
               ],
             );

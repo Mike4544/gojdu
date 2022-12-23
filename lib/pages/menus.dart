@@ -49,6 +49,8 @@ class _MenuTabsState extends State<MenuTabs> {
     return false;
   }
 
+
+
   @override
   void initState() {
     BackButtonInterceptor.add(backInterceptor);
@@ -91,20 +93,20 @@ class _MenuTabsState extends State<MenuTabs> {
         update: update,
       ),
       Tab(
-        color: ColorsB.gray700,
-        image: "assets/images/Calendar.png",
-        description:
-            "Reserve a hall according to your needs.",
-        title: "Book a Hall",
-        index: 5,
-        update: update,
-      ),
-      Tab(
         color: Colors.indigoAccent,
         image: "assets/images/folderImg.png",
         description:
             "Search through your school's files.",
         title: "School Files",
+        index: 5,
+        update: update,
+      ),
+      Tab(
+        color: ColorsB.gray700,
+        image: "assets/images/Calendar.png",
+        description:
+            "Reserve a hall according to your needs.",
+        title: "Book a Hall",
         index: 6,
         update: update,
       ),
