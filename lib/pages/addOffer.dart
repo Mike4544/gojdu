@@ -15,6 +15,7 @@ import '../others/colors.dart';
 import 'package:http/http.dart' as http;
 
 import '../widgets/back_navbar.dart';
+import '../widgets/filters.dart';
 import '../widgets/input_fields.dart';
 
 import 'package:flutter_map/flutter_map.dart';
@@ -102,6 +103,95 @@ class _AddOfferState extends State<AddOffer> {
   final shortDescription = TextEditingController();
   final companyName = TextEditingController();
 
+  List<mFilterChip> schools = [];
+  List<mFilterChip> selectedSchools = [];
+
+  Future<int> getSchools() async {
+    var link = "${Misc.link}/listaScoli.json";
+
+    http.get(Uri.parse(link)).then((response) {
+      var data = json.decode(response.body);
+      m_debugPrint(data);
+      List<mFilterChip> temp = [];
+      for (var i = 0; i < data.length; i++) {
+        if (data[i]['app'] == Misc.appName) continue;
+
+        temp.add(mFilterChip(label: data[i]["app"]!, color: ColorsB.gray800));
+      }
+      //  Remove where the key is equal to the Misc.appName
+
+      setState(() {
+        schools = temp;
+      });
+    });
+
+    return 1;
+  }
+
+  late final Future _getSchools = getSchools();
+
+  void delete(mFilterChip filter) {
+    selectedSchools.removeWhere((element) => element.label == filter.label);
+    setState(() {});
+  }
+
+  Widget schoolsDropDown() => FutureBuilder(
+      future: _getSchools,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+            ),
+          );
+        } else {
+          return Container(
+            decoration: BoxDecoration(
+              color: ColorsB.gray800,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: DropdownButton<mFilterChip>(
+                underline: const SizedBox(),
+                menuMaxHeight: MediaQuery.of(context).size.height * .5,
+                hint: const Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text(
+                    'Add School',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                dropdownColor: Colors.white10,
+                borderRadius: BorderRadius.circular(30),
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                items: schools
+                    .map((e) => DropdownMenuItem<mFilterChip>(
+                          value: e,
+                          child: e,
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  m_debugPrint(selectedSchools);
+                  delete(value!);
+                  setState(() {
+                    selectedSchools.add(value.copyWith(onDelete: () {
+                      delete(value);
+                    }));
+                  });
+                },
+              ),
+            ),
+          );
+        }
+      });
+
   String generateString() {
     String generated = '';
 
@@ -145,6 +235,8 @@ class _AddOfferState extends State<AddOffer> {
 
   bool isCustom = false;
   final TextEditingController _customLocation = TextEditingController();
+
+  String? offerType;
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +289,32 @@ class _AddOfferState extends State<AddOffer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Select other schools',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                        flex: 2,
+                        child: Wrap(
+                          children: selectedSchools
+                              .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8), child: e))
+                              .toList(),
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: schoolsDropDown(),
+                    )
+                  ]),
+                  const SizedBox(
+                    height: 50,
+                  ),
                   InputField(
                     fieldName: 'Discount',
                     isPassword: false,
@@ -260,6 +378,39 @@ class _AddOfferState extends State<AddOffer> {
                       }
                     },
                   ),
+                  const SizedBox(height: 50),
+                  const Text(
+                    'Choose the type of offer',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Column(
+                      children: ["Offers", "Trends"]
+                          .map((e) => Row(
+                                children: [
+                                  Checkbox(
+                                      activeColor: ColorsB.yellow500,
+                                      value: offerType == e,
+                                      onChanged: (_) {
+                                        setState(() {
+                                          offerType = e;
+                                        });
+                                      }),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Text(
+                                    e,
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  )
+                                ],
+                              ))
+                          .toList()),
                   const SizedBox(height: 50),
                   const Text(
                     'Choose your location',
@@ -664,6 +815,12 @@ class _AddOfferState extends State<AddOffer> {
                                   ? _customLocation.text
                                   : locationButton;
 
+                              List<String> schoolsList =
+                                  selectedSchools.map((e) => e.label).toList();
+
+                              // Insert current name at index 0
+                              schoolsList.insert(0, Misc.appName);
+
                               String mapsLink = isCustom
                                   ? ""
                                   : "https://www.google.com/maps/search/?api=1&query=${coordsForLink.latitude},${coordsForLink.longitude}";
@@ -677,7 +834,7 @@ class _AddOfferState extends State<AddOffer> {
                               //m_debugPrint(_file);
 
                               var url = Uri.parse(
-                                  '${Misc.link}/${Misc.appName}/addOffer.php');
+                                  '${Misc.link}/${Misc.appName}/offersAPI/addOffer.php');
                               final response;
                               response = await http.post(url, body: {
                                 "d": discountController.text,
@@ -696,12 +853,15 @@ class _AddOfferState extends State<AddOffer> {
                                 "limg":
                                     "${Misc.link}/${Misc.appName}/imgs/${companyName.text.replaceAll(' ', '_').replaceAll('\'', '')}.png",
                                 "col": choosenColor.toString(),
-                                "ownerID": widget.gMap['id'].toString()
+                                "ownerID": widget.gMap['id'].toString(),
+                                "appList": jsonEncode(schoolsList),
+                                "mySchool": Misc.appName,
+                                "topic": offerType ?? "Offers",
                               });
                               m_debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                //m_debugPrint(jsondata.toString());
+                                m_debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/api.dart';
+import 'package:gojdu/pages/replyNotifPage.dart';
 import 'package:gojdu/pages/schoolFiles.dart';
 import 'package:gojdu/pages/settings.dart';
 import 'package:gojdu/pages/threads.dart';
@@ -46,6 +47,7 @@ import 'package:gojdu/others/floor.dart';
 
 import 'package:gojdu/pages/menus.dart';
 import '../widgets/Event.dart';
+import '../widgets/filters.dart';
 import '../widgets/lazyBuilder.dart';
 import './notes.dart';
 
@@ -395,6 +397,39 @@ class _NewsPageState extends State<NewsPage> {
           ));
           break;
 
+        case 'Reply':
+          //  Show a snackbar with a button that says "Show Post" and has a dummy function for now
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: const [
+                Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 17,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'You have a new reply!',
+                  style: TextStyle(fontFamily: 'Nunito'),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Show Reply',
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => SeePostNotif(
+                            uid: globalMap['id'],
+                            id: int.parse(message.data['postID']))));
+              },
+            ),
+          ));
+          break;
+
         default:
           m_debugPrint('DEFAULT');
           break;
@@ -454,6 +489,17 @@ class _NewsPageState extends State<NewsPage> {
     _pageController = PageController(
       initialPage: startingIndex,
     );
+
+    _pageController.addListener(() {
+      //  Get currrent page after change
+      int next = _pageController.page!.round();
+
+      m_debugPrint(next.toString());
+
+      setState(() {
+        currPage = next;
+      });
+    });
 
     currSelect = 0;
 
@@ -531,6 +577,8 @@ class _NewsPageState extends State<NewsPage> {
 
   //  late List<Widget> pages;
 
+  var currPage = 0;
+
   @override
   Widget build(BuildContext context) {
     var device = MediaQuery.of(context);
@@ -540,7 +588,7 @@ class _NewsPageState extends State<NewsPage> {
     // }
 
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: currPage != 2 && currPage != 3,
         //  key: _scaffoldKey,
         appBar: CurvedAppbar(
           notifs: widget.notifs,
@@ -1734,7 +1782,7 @@ class _PostsListState extends State<PostsList>
             for (int i = 1; i < jsondata.length; i++) {
               String post = jsondata[i]["post"].toString();
               String title = jsondata[i]["title"].toString();
-              String owner = jsondata[i]["owner"].toString();
+              String? owner = jsondata[i]["owner"];
               int? ownerID = jsondata[i]["oid"];
               String link = jsondata[i]["link"].toString();
 
@@ -1749,18 +1797,6 @@ class _PostsListState extends State<PostsList>
               bool likedbool = jsondata[i]['userLikes'] >= 1;
               bool dislikedbool = jsondata[i]['userDislikes'] >= 1;
               Color? color;
-
-              switch (channel) {
-                case 'Students':
-                  color = ColorsB.gray800;
-                  break;
-                case 'Teachers':
-                  color = Colors.amber;
-                  break;
-                case 'Parents':
-                  color = Colors.indigoAccent;
-                  break;
-              }
 
               if (post != "null" && post != null && ownerID != null) {
                 // if (liked.contains(globalMap['id'].toString())) {
@@ -1780,13 +1816,13 @@ class _PostsListState extends State<PostsList>
                 posts.add(Post(
                   id: id!,
                   title: title,
-                  color: color,
+                  color: widget.color,
                   likes: likesCount,
                   likesBool: likedbool,
                   dislikes: dislikedbool,
                   ids: id,
                   descriptions: post,
-                  owners: owner,
+                  owners: owner ?? 'Unknown',
                   ownerID: ownerID,
                   link: link,
                   hero: _hero,
@@ -1929,7 +1965,7 @@ class _PostsListState extends State<PostsList>
                   title: title,
                   description: description,
                   color: color,
-                  author: author,
+                  author: id < 0 ? 'Anonymous' : author,
                   ownerID: oid,
                   imageLink: link,
                   likes: likes,
@@ -2195,6 +2231,7 @@ class BigNewsContainer extends StatefulWidget {
   final int ownerID;
   final String? imageLink;
   final File? file;
+  bool? shouldShowComments;
   int? likes, ids;
   bool? likesBool, dislikes;
   StreamController<int?>? contrL;
@@ -2208,6 +2245,7 @@ class BigNewsContainer extends StatefulWidget {
       required this.color,
       required this.author,
       required this.ownerID,
+      this.shouldShowComments,
       this.imageLink,
       this.file,
       this.likes,
@@ -2449,6 +2487,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   int lastMax = -1;
   final int _turnsToLoad = 20;
 
+  int gotFirstComment = 0;
+
   Future<int> getComments() async {
     lastMax = _commentMaxIndex;
 
@@ -2459,6 +2499,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
       final response = await http.post(url, body: {
         "post_id": widget.id.toString(),
         "lastID": lastLoaded.toString(),
+        "gotFirstComment": gotFirstComment.toString(),
         'userID': globalMap['id'].toString(),
         "maxLoaded": _turnsToLoad.toString()
       });
@@ -2487,6 +2528,10 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
           lastLoaded = jsondata['${jsondata.length - 2}']['id'];
 
           _commentMaxIndex += 5;
+
+          setState(() {
+            gotFirstComment = 1;
+          });
         }
       }
     } catch (e, stack) {
@@ -2530,6 +2575,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     });
 
     super.initState();
+
+    // Await widget to be build then if shouldShowComments is not null, scroll to comments
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.shouldShowComments != null) {
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        showComments();
+      }
+    });
   }
 
   @override
@@ -2627,127 +2681,8 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                         ),
                         onPressed: () async {
                           //  _loadedComments ??= await getComments();
-                          if (comments.isEmpty) {
-                            await getComments()
-                                .then((value) => _commentsStream.add(1));
-                          }
 
-                          showModalBottomSheet(
-                              backgroundColor: ColorsB.gray800,
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(30),
-                                      topRight: Radius.circular(30))),
-                              barrierColor: Colors.black26,
-                              isScrollControlled: true,
-                              context: context,
-                              builder: (context) {
-                                //  GlobalKey _commentKey = GlobalKey<FormState>();
-
-                                return SizedBox(
-                                  height: MediaQuery.of(context)
-                                          .copyWith()
-                                          .size
-                                          .height *
-                                      .75,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.fromLTRB(
-                                          15,
-                                          10,
-                                          15,
-                                          MediaQuery.of(context)
-                                              .viewInsets
-                                              .bottom),
-                                      child: SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                .5,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Column(children: [
-                                              Container(
-                                                  height: 5,
-                                                  width: 100,
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.white24,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              360))),
-                                              const SizedBox(height: 10),
-                                              Text('Comments',
-                                                  style: TextStyle(
-                                                      fontSize: 20.sp,
-                                                      color: Colors.white))
-                                            ]),
-                                            const SizedBox(height: 10),
-                                            Expanded(
-                                                child: Scrollbar(
-                                                    child: StreamBuilder(
-                                                        stream: _commentsStream
-                                                            .stream,
-                                                        builder: (context,
-                                                            snapshot) {
-                                                          return ListView
-                                                              .builder(
-                                                                  controller:
-                                                                      _commentScrollController,
-                                                                  itemCount: comments
-                                                                          .isEmpty
-                                                                      ? 1
-                                                                      : comments.length <
-                                                                              _commentMaxIndex
-                                                                          ? comments
-                                                                              .length
-                                                                          : _commentMaxIndex,
-                                                                  shrinkWrap:
-                                                                      true,
-                                                                  itemBuilder:
-                                                                      (context,
-                                                                          index) {
-                                                                    if (comments
-                                                                        .isEmpty) {
-                                                                      return Text(
-                                                                          'No comments to show.',
-                                                                          style:
-                                                                              const TextStyle(color: Colors.white24));
-                                                                    } else if (index !=
-                                                                        _commentMaxIndex) {
-                                                                      return comments[
-                                                                          index];
-                                                                    } else {
-                                                                      return const CircularProgressIndicator(
-                                                                          valueColor:
-                                                                              AlwaysStoppedAnimation(ColorsB.yellow500));
-                                                                    }
-                                                                  });
-                                                        }))),
-                                            const SizedBox(height: 10),
-                                            CommentBar(
-                                              postID: widget.id,
-                                              gMap: globalMap,
-                                              commentStream: _commentsStream,
-                                              comments: comments,
-                                            )
-                                            // Row(
-                                            //   children: [
-                                            //     Form(
-                                            //       key: _commentKey,
-                                            //       child: TextFormField(),
-                                            //     )
-                                            //   ],
-                                            // )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              });
+                          showComments();
                         },
                       ),
                     ]),
@@ -2759,6 +2694,124 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     } else {
       return const SizedBox();
     }
+  }
+
+  void showComments() async {
+    if (comments.isEmpty) {
+      await getComments().then((value) => _commentsStream.add(1));
+    }
+
+    final FocusNode _commentFocus = FocusNode();
+    FocusScope.of(context).unfocus();
+
+    m_debugPrint("Context: ${FocusScope.of(context).hasFocus}");
+    m_debugPrint("Comment: ${_commentFocus.hasFocus}");
+
+    int touches = 0;
+
+    showModalBottomSheet(
+        backgroundColor: ColorsB.gray800,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+        barrierColor: Colors.black26,
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          //  GlobalKey _commentKey = GlobalKey<FormState>();
+
+          return SizedBox(
+            height: MediaQuery.of(context).copyWith().size.height * .75,
+            child: GestureDetector(
+              onTap: () {
+                FocusScope.of(context).unfocus();
+
+                if (touches == 0) {
+                  ++touches;
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                    15, 10, 15, MediaQuery.of(context).viewInsets.bottom + 20),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * .5,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Column(children: [
+                        Container(
+                            height: 5,
+                            width: 100,
+                            decoration: BoxDecoration(
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(360))),
+                        const SizedBox(height: 10),
+                        Text('Comments',
+                            style:
+                                TextStyle(fontSize: 20.sp, color: Colors.white))
+                      ]),
+                      const SizedBox(height: 10),
+                      Expanded(
+                          child: Scrollbar(
+                              child: StreamBuilder(
+                                  stream: _commentsStream.stream,
+                                  builder: (context, snapshot) {
+                                    return ListView.builder(
+                                        controller: _commentScrollController,
+                                        itemCount: comments.isEmpty
+                                            ? 1
+                                            : comments.length < _commentMaxIndex
+                                                ? comments.length
+                                                : _commentMaxIndex,
+                                        shrinkWrap: true,
+                                        itemBuilder: (context, index) {
+                                          if (comments.isEmpty) {
+                                            return const Text(
+                                                'No comments to show.',
+                                                style: TextStyle(
+                                                    color: Colors.white24));
+                                          } else if (index !=
+                                              _commentMaxIndex) {
+                                            return comments[index];
+                                          } else {
+                                            return const CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation(
+                                                        ColorsB.yellow500));
+                                          }
+                                        });
+                                  }))),
+                      const SizedBox(height: 10),
+                      Visibility(
+                        visible: // Make visible only when the focus isn't on the reply bar
+                            !_commentFocus.hasFocus &&
+                                    FocusScope.of(context).hasFocus &&
+                                    touches != 0
+                                ? false
+                                : true,
+                        child: CommentBar(
+                          postID: widget.id,
+                          commentNode: _commentFocus,
+                          gMap: globalMap,
+                          commentStream: _commentsStream,
+                          comments: comments,
+                        ),
+                      )
+                      // Row(
+                      //   children: [
+                      //     Form(
+                      //       key: _commentKey,
+                      //       child: TextFormField(),
+                      //     )
+                      //   ],
+                      // )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   @override
@@ -5095,6 +5148,33 @@ class _PostItPageState extends State<PostItPage> {
   late XFile? image;
   File? _file;
 
+  List<mFilterChip> schools = [];
+  List<mFilterChip> selectedSchools = [];
+
+  Future<int> getSchools() async {
+    var link = "${Misc.link}/listaScoli.json";
+
+    http.get(Uri.parse(link)).then((response) {
+      var data = json.decode(response.body);
+      m_debugPrint(data);
+      List<mFilterChip> temp = [];
+      for (var i = 0; i < data.length; i++) {
+        if (data[i]['app'] == Misc.appName) continue;
+
+        temp.add(mFilterChip(label: data[i]["app"]!, color: ColorsB.gray800));
+      }
+      //  Remove where the key is equal to the Misc.appName
+
+      setState(() {
+        schools = temp;
+      });
+    });
+
+    return 1;
+  }
+
+  late final Future _getSchools = getSchools();
+
   String? format;
 
   String generateString() {
@@ -5139,6 +5219,68 @@ class _PostItPageState extends State<PostItPage> {
       //m_debugPrint("Error during converting to Base64");
     }
   }
+
+  void delete(mFilterChip filter) {
+    selectedSchools.removeWhere((element) => element.label == filter.label);
+    setState(() {});
+  }
+
+  Widget schoolsDropDown() => FutureBuilder(
+      future: _getSchools,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+            ),
+          );
+        } else {
+          return Container(
+            decoration: BoxDecoration(
+              color: ColorsB.gray800,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: DropdownButton<mFilterChip>(
+                underline: const SizedBox(),
+                menuMaxHeight: screenHeight * .5,
+                hint: const Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text(
+                    'Add School',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                dropdownColor: Colors.white10,
+                borderRadius: BorderRadius.circular(30),
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                items: schools
+                    .map((e) => DropdownMenuItem<mFilterChip>(
+                          value: e,
+                          child: e,
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  m_debugPrint(selectedSchools);
+                  delete(value!);
+                  setState(() {
+                    selectedSchools.add(value.copyWith(onDelete: () {
+                      delete(value);
+                    }));
+                  });
+                },
+              ),
+            ),
+          );
+        }
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -5191,6 +5333,32 @@ class _PostItPageState extends State<PostItPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Select other schools',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                        flex: 2,
+                        child: Wrap(
+                          children: selectedSchools
+                              .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8), child: e))
+                              .toList(),
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: schoolsDropDown(),
+                    )
+                  ]),
+                  const SizedBox(
+                    height: 50,
+                  ),
                   InputField(
                     fieldName: 'Choose a title',
                     isPassword: false,
@@ -5367,6 +5535,14 @@ class _PostItPageState extends State<PostItPage> {
                               errorText = '';
                             });
 
+                            List<String> schoolsList =
+                                selectedSchools.map((e) => e.label).toList();
+
+                            // Insert current name at index 0
+                            schoolsList.insert(0, Misc.appName);
+
+                            m_debugPrint(schoolsList);
+
                             String name = generateString();
 
                             bool imgSub = false;
@@ -5386,7 +5562,7 @@ class _PostItPageState extends State<PostItPage> {
                                 //m_debugPrint(_file);
 
                                 var url = Uri.parse(
-                                    '${Misc.link}/${Misc.appName}/insertposts.php');
+                                    '${Misc.link}/${Misc.appName}/postsAPI/insertposts.php');
                                 final response;
 
                                 response = await http.post(url, body: {
@@ -5397,11 +5573,14 @@ class _PostItPageState extends State<PostItPage> {
                                       " " +
                                       globalMap["last_name"],
                                   "owid": globalMap['id'].toString(),
-                                  "link": imgLink
+                                  "link": imgLink,
+                                  "appList": jsonEncode(schoolsList),
+                                  "mySchool": Misc.appName,
                                 });
 
                                 if (response.statusCode == 200) {
                                   var jsondata = json.decode(response.body);
+                                  m_debugPrint(jsondata);
                                   if (jsondata["error"]) {
                                     Navigator.of(context).pop();
                                   } else {

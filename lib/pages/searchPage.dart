@@ -182,10 +182,10 @@ class _SearchResultPageState extends State<SearchResultPage> {
           for (int i = 1; i < jsondata.length; i++) {
             cards.add(OfferContainer.fromJson(jsondata[i], gmap, () {}));
           }
-        }
 
-        maxScrollCount += turns;
-        lastID = cards.last.id;
+          maxScrollCount += turns;
+          lastID = cards.last.id;
+        }
       }
     } catch (e, s) {
       m_debugPrint(e);

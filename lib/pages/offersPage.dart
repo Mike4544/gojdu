@@ -427,12 +427,8 @@ class OfferContainer extends StatelessWidget {
                             children: [
                               SizedBox(
                                 height: screenHeight * .05,
-                                child: ColorFiltered(
-                                  colorFilter: const ColorFilter.mode(
-                                      Colors.white, BlendMode.srcATop),
-                                  child: CachedNetworkImage(
-                                    imageUrl: logoLink,
-                                  ),
+                                child: CachedNetworkImage(
+                                  imageUrl: logoLink,
                                 ),
                               ),
                               const SizedBox(
@@ -765,11 +761,7 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                                       child: SizedBox(
                                         height: screenHeight * .05,
                                         width: screenHeight * .05,
-                                        child: ColorFiltered(
-                                          colorFilter: const ColorFilter.mode(
-                                              Colors.white, BlendMode.srcATop),
-                                          child: Image.network(widget.logoLink),
-                                        ),
+                                        child: Image.network(widget.logoLink),
                                       ),
                                     ),
                                     const SizedBox(

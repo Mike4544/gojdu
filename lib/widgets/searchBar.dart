@@ -32,18 +32,6 @@ class _SearchBarState extends State<SearchBar> {
     searchController = TextEditingController();
 
     super.initState();
-
-    // Add post frame callback to the build method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Add a listener to the search controller
-      FocusScope.of(context).addListener(() {
-        if (FocusScope.of(context).hasFocus) {
-          setState(() {
-            open = true;
-          });
-        }
-      });
-    });
   }
 
   void delete(mFilterChip filter) {
@@ -108,6 +96,9 @@ class _SearchBarState extends State<SearchBar> {
                     height: 50,
                     width: screenWidth,
                     child: TextField(
+                      onTap: () {
+                        setState(() => open = true);
+                      },
                       textInputAction: TextInputAction.search,
                       onSubmitted: (value) {
                         search(value);
@@ -157,116 +148,125 @@ class _SearchBarState extends State<SearchBar> {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
 
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    searchBar(),
-                    Positioned(
-                        right: 0,
-                        child: Visibility(
-                          visible: searchController.text.isNotEmpty ||
-                              selectedFilters.isNotEmpty,
-                          child: IconButton(
-                            onPressed: () => search(searchController.text),
-                            icon: const Icon(
-                              Icons.search,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ))
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: widget.adminButton,
-              ),
-            ],
-          ),
-          // Add a space between the search bar and the filters
-          const SizedBox(height: 10),
-          // Add a row with the selected filters and a dropdown button
-          // that has the filters that are unselected
-          SizedBox(
-            width: width,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 500),
-              opacity: open ? 1 : 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Make the selectedFilters row wrap
-                  Expanded(
-                    flex: 2,
-                    child: Wrap(
-                      children: selectedFilters
-                          .map((e) => Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: e,
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                  // Add a dropdown button that has the filters that are unselected
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: ColorsB.gray800,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        child: DropdownButton<mFilterChip>(
-                          underline: const SizedBox(),
-                          menuMaxHeight: height * .5,
-                          hint: const Padding(
-                            padding: EdgeInsets.all(5.0),
-                            child: Text(
-                              'Add Filter',
-                              style: TextStyle(
+    return GestureDetector(
+      onTap: () {
+        setState(() => open = true);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      searchBar(),
+                      Positioned(
+                          right: 0,
+                          child: Visibility(
+                            visible: searchController.text.isNotEmpty ||
+                                selectedFilters.isNotEmpty,
+                            child: IconButton(
+                              onPressed: () => search(searchController.text),
+                              icon: const Icon(
+                                Icons.search,
                                 color: Colors.white,
                               ),
                             ),
-                          ),
-                          dropdownColor: Colors.white10,
+                          ))
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: widget.adminButton,
+                ),
+              ],
+            ),
+            // Add a space between the search bar and the filters
+            const SizedBox(height: 10),
+            // Add a row with the selected filters and a dropdown button
+            // that has the filters that are unselected
+            Container(
+              width: width,
+              constraints: BoxConstraints(
+                maxHeight: open ? height * .5 : 0,
+              ),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 500),
+                opacity: open ? 1 : 0,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Make the selectedFilters row wrap
+                    Expanded(
+                      flex: 2,
+                      child: Wrap(
+                        children: selectedFilters
+                            .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: e,
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    // Add a dropdown button that has the filters that are unselected
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: ColorsB.gray800,
                           borderRadius: BorderRadius.circular(30),
-                          isExpanded: true,
-                          icon: const Icon(
-                            Icons.add,
-                            color: Colors.white,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: DropdownButton<mFilterChip>(
+                            underline: const SizedBox(),
+                            menuMaxHeight: height * .5,
+                            hint: const Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: Text(
+                                'Add Filter',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            dropdownColor: Colors.white10,
+                            borderRadius: BorderRadius.circular(30),
+                            isExpanded: true,
+                            icon: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                            ),
+                            items: widget.filters
+                                .map((e) => DropdownMenuItem<mFilterChip>(
+                                      value: e,
+                                      child: e,
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              delete(value!);
+                              setState(() {
+                                selectedFilters
+                                    .add(value.copyWith(onDelete: () {
+                                  delete(value);
+                                }));
+                              });
+                            },
                           ),
-                          items: widget.filters
-                              .map((e) => DropdownMenuItem<mFilterChip>(
-                                    value: e,
-                                    child: e,
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            delete(value!);
-                            setState(() {
-                              selectedFilters.add(value.copyWith(onDelete: () {
-                                delete(value);
-                              }));
-                            });
-                          },
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

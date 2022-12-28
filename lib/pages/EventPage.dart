@@ -16,6 +16,7 @@ import '../others/colors.dart';
 import 'package:http/http.dart' as http;
 
 import '../widgets/back_navbar.dart';
+import '../widgets/filters.dart';
 import '../widgets/input_fields.dart';
 
 import 'package:gojdu/others/options.dart';
@@ -88,6 +89,95 @@ class _PostEventState extends State<PostEvent> {
 
     return generated;
   }
+
+  List<mFilterChip> schools = [];
+  List<mFilterChip> selectedSchools = [];
+
+  Future<int> getSchools() async {
+    var link = "${Misc.link}/listaScoli.json";
+
+    http.get(Uri.parse(link)).then((response) {
+      var data = json.decode(response.body);
+      m_debugPrint(data);
+      List<mFilterChip> temp = [];
+      for (var i = 0; i < data.length; i++) {
+        if (data[i]['app'] == Misc.appName) continue;
+
+        temp.add(mFilterChip(label: data[i]["app"]!, color: ColorsB.gray800));
+      }
+      //  Remove where the key is equal to the Misc.appName
+
+      setState(() {
+        schools = temp;
+      });
+    });
+
+    return 1;
+  }
+
+  late final Future _getSchools = getSchools();
+
+  void delete(mFilterChip filter) {
+    selectedSchools.removeWhere((element) => element.label == filter.label);
+    setState(() {});
+  }
+
+  Widget schoolsDropDown() => FutureBuilder(
+      future: _getSchools,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(ColorsB.yellow500),
+            ),
+          );
+        } else {
+          return Container(
+            decoration: BoxDecoration(
+              color: ColorsB.gray800,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: DropdownButton<mFilterChip>(
+                underline: const SizedBox(),
+                menuMaxHeight: MediaQuery.of(context).size.height * .5,
+                hint: const Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: Text(
+                    'Add School',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                dropdownColor: Colors.white10,
+                borderRadius: BorderRadius.circular(30),
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                items: schools
+                    .map((e) => DropdownMenuItem<mFilterChip>(
+                          value: e,
+                          child: e,
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  m_debugPrint(selectedSchools);
+                  delete(value!);
+                  setState(() {
+                    selectedSchools.add(value.copyWith(onDelete: () {
+                      delete(value);
+                    }));
+                  });
+                },
+              ),
+            ),
+          );
+        }
+      });
 
   Future<void> uploadImage(File? file, String name) async {
     try {
@@ -173,6 +263,32 @@ class _PostEventState extends State<PostEvent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Select other schools',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                        flex: 2,
+                        child: Wrap(
+                          children: selectedSchools
+                              .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8), child: e))
+                              .toList(),
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: schoolsDropDown(),
+                    )
+                  ]),
+                  const SizedBox(
+                    height: 50,
+                  ),
                   InputField(
                     fieldName: 'Choose a title',
                     isPassword: false,
@@ -461,8 +577,14 @@ class _PostEventState extends State<PostEvent> {
 
                               //m_debugPrint(_file);
 
+                              List<String> schoolsList =
+                                  selectedSchools.map((e) => e.label).toList();
+
+                              // Insert current name at index 0
+                              schoolsList.insert(0, Misc.appName);
+
                               var url = Uri.parse(
-                                  '${Misc.link}/${Misc.appName}/insertEvent.php');
+                                  '${Misc.link}/${Misc.appName}/eventsAPI/insertEvent.php');
                               final response;
                               response = await http.post(url, body: {
                                 "title": _postTitleController.value.text,
@@ -476,12 +598,14 @@ class _PostEventState extends State<PostEvent> {
                                 "owid": owid.toString(),
                                 "link": imgLink,
                                 'dateTime': pickedDate.toIso8601String(),
-                                "maps_link": mapsLink
+                                "maps_link": mapsLink,
+                                "appList": jsonEncode(schoolsList),
+                                "mySchool": Misc.appName,
                               });
                               //  m_debugPrint(response.statusCode);
                               if (response.statusCode == 200) {
                                 var jsondata = json.decode(response.body);
-                                //m_debugPrint(jsondata.toString());
+                                m_debugPrint(jsondata.toString());
                                 if (jsondata["error"]) {
                                   //  Navigator.of(context).pop();
                                 } else {

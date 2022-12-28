@@ -10,7 +10,7 @@ class Misc {
     "Students": ColorsB.gray800,
     "Teachers": Colors.amber,
     "Parents": Colors.indigoAccent,
-    "Consiliul\nElevilor": Colors.blue
+    "C. Elevilor": Colors.blue
   };
 
   static const int INT_MAX = 9223372036854775807;

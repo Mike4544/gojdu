@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:gojdu/others/api.dart';
 import 'package:gojdu/others/colors.dart';
 import 'package:gojdu/widgets/input_fields.dart';
 import 'package:gojdu/widgets/back_navbar.dart';
@@ -294,9 +295,11 @@ class _AdminSignUpState extends State<AdminSignUp> {
                           "code": _schoolCode.text,
                           "token": token,
                         });
+                        m_debugPrint(response.statusCode);
+
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          //m_debugPrint(jsondata.toString());
+                          m_debugPrint(jsondata.toString());
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];

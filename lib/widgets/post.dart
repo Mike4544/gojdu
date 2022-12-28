@@ -50,7 +50,7 @@ class Post extends StatefulWidget {
     required this.title,
     required this.color,
     required this.descriptions,
-    required this.owners,
+    this.owners,
     required this.ownerID,
     required this.link,
     required this.hero,
@@ -465,7 +465,7 @@ class _PostState extends State<Post> {
                           widget.title,
                           widget.id,
                           widget.descriptions,
-                          widget.owners,
+                          widget.owners ?? 'Unknown',
                           widget.ownerID,
                           widget.color!,
                           widget.link,
@@ -488,11 +488,14 @@ class _PostState extends State<Post> {
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold),
                             ),
-                            Text(
-                              'by ${widget.owners.split(' ').first} ${widget.owners.split(' ').last[0]}.', //  Hard coded!!
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
-                                fontSize: 15,
+                            Visibility(
+                              visible: widget.ids >= 0,
+                              child: Text(
+                                'by ${widget.owners.split(' ').first} ${widget.owners.split(' ').last[0]}.', //  Hard coded!!
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
                             const SizedBox(
@@ -522,6 +525,8 @@ class _PostState extends State<Post> {
   }
 }
 
+enum CommentDB { posts, activities, offers }
+
 class Comment extends StatefulWidget {
   final int id;
   final int ownerId;
@@ -532,12 +537,17 @@ class Comment extends StatefulWidget {
   final Function delete;
   final DateTime timePosted;
   final Map globalMap;
-  final int commentsNo;
+  int commentsNo;
+  final CommentDB type;
+  final bool repliable;
+  final bool likable;
 
   Comment(
       {Key? key,
       required this.id,
       required this.likes,
+      required this.repliable,
+      required this.likable,
       required this.likesBool,
       required this.ownerId,
       required this.body,
@@ -545,6 +555,7 @@ class Comment extends StatefulWidget {
       required this.delete,
       required this.globalMap,
       required this.commentsNo,
+      required this.type,
       required this.timePosted})
       : super(key: key);
 
@@ -560,7 +571,10 @@ class Comment extends StatefulWidget {
         body: json['body'],
         delete: delete,
         globalMap: gMap,
-        commentsNo: 0,
+        commentsNo: json['commentsNo'] ?? 0,
+        repliable: true,
+        likable: true,
+        type: CommentDB.posts,
         timePosted: DateTime.parse(json['time']),
       );
 
@@ -581,23 +595,6 @@ class Comment extends StatefulWidget {
 
         if (jsondata['error']) {
           m_debugPrint('Errored');
-
-          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          //   behavior: SnackBarBehavior.floating,
-          //   backgroundColor: Colors.red,
-          //   content: Row(
-          //     children: const [
-          //       Icon(Icons.error, color: Colors.white),
-          //       SizedBox(
-          //         width: 20,
-          //       ),
-          //       Text(
-          //         'Uh-oh! Something went wrong!',
-          //         style: TextStyle(color: Colors.white),
-          //       )
-          //     ],
-          //   ),
-          // ));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -831,38 +828,19 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                                   color: Colors.white24,
                                   fontSize: 12.5.sp,
                                   fontWeight: FontWeight.bold)),
-
-                          // Row(
-                          //   children: [
-                          //     // Text(
-                          //     //     timeago.format(DateTime.now().subtract(
-                          //     //         Duration(
-                          //     //             days: DateTime.now().day -
-                          //     //                 widget.timePosted.day,
-                          //     //             hours: DateTime.now().hour -
-                          //     //                 widget.timePosted.hour,
-                          //     //             minutes: DateTime.now().minute -
-                          //     //                 widget.timePosted.minute,
-                          //     //             seconds: DateTime.now().second -
-                          //     //                 widget.timePosted.second))),
-                          //     //     style: TextStyle(
-                          //     //         color: Colors.white24,
-                          //     //         fontSize: 12.5.sp,
-                          //     //         fontWeight: FontWeight.bold)),
-
-                          //     //  Adding the reply for the next time
-
-                          //     // TextButton(
-                          //     //   onPressed: () {
-                          //     //     reply();
-                          //     //   },
-                          //     //   child: Text('Reply',
-                          //     //       style: TextStyle(
-                          //     //           color: Colors.white24,
-                          //     //           fontSize: 12.5.sp,
-                          //     //           fontWeight: FontWeight.bold)),
-                          //     // ),
-                          //   ],
+                          Visibility(
+                            visible: widget.repliable,
+                            child: TextButton(
+                              onPressed: () {
+                                reply();
+                              },
+                              child: Text('Reply',
+                                  style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 12.5.sp,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ),
                           // ),
                           // TextButton.icon(
                           //   onPressed: () {},
@@ -870,26 +848,29 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                           // ),
                           Row(
                             children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  if (widget.likesBool) {
-                                    unlike(widget.id, globalMap['id']);
-                                  } else {
-                                    like(widget.id, globalMap['id']);
-                                  }
-                                },
-                                icon: Icon(
-                                  Icons.thumb_up,
-                                  color: widget.likesBool
-                                      ? Colors.white
-                                      : Colors.white24,
-                                ),
-                                label: Text(
-                                  widget.likes.toString(),
-                                  style: TextStyle(
-                                      color: widget.likesBool
-                                          ? Colors.white
-                                          : Colors.white24),
+                              Visibility(
+                                visible: widget.likable,
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    if (widget.likesBool) {
+                                      unlike(widget.id, globalMap['id']);
+                                    } else {
+                                      like(widget.id, globalMap['id']);
+                                    }
+                                  },
+                                  icon: Icon(
+                                    Icons.thumb_up,
+                                    color: widget.likesBool
+                                        ? Colors.white
+                                        : Colors.white24,
+                                  ),
+                                  label: Text(
+                                    widget.likes.toString(),
+                                    style: TextStyle(
+                                        color: widget.likesBool
+                                            ? Colors.white
+                                            : Colors.white24),
+                                  ),
                                 ),
                               ),
                               Visibility(
@@ -934,6 +915,123 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
       isReplying = false;
     });
   }
+
+  int repliesToShow = 0;
+
+  Widget showRepliesButton() => Visibility(
+        visible: repliesToShow < widget.commentsNo && widget.commentsNo > 0,
+        child: GestureDetector(
+            onTap: () => setState(() {
+                  _getReplies = getRepliesFromIndex(lastId, context);
+                  repliesToShow += 3;
+                }),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 50,
+              child: Center(
+                child: Text(
+                  'Show replies (${widget.commentsNo - repliesToShow})',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15.sp,
+                  ),
+                ),
+              ),
+            )),
+      );
+
+  List<Reply> replies = [];
+
+  int lastId = Misc.INT_MAX;
+
+  Future<int> dummyWait() async {
+    await Future.delayed(const Duration(milliseconds: 0));
+    return 1;
+  }
+
+  late Future _dummyWait = dummyWait();
+
+  late Future _getReplies = getRepliesFromIndex(lastId, context);
+
+  Future<int> getRepliesFromIndex(int lastID, BuildContext context) async {
+    //  String folder;
+
+    int flags = 0;
+
+    switch (widget.type) {
+      case CommentDB.posts:
+        flags = 1;
+        break;
+      case CommentDB.activities:
+        flags = 2;
+        break;
+      case CommentDB.offers:
+        flags = 2;
+        break;
+    }
+
+    String link = '${Misc.link}/${Misc.appName}/commentsAPI/getReplies.php';
+
+    // Make the request providing the flags, the start index and the comment id
+    try {
+      final response = await http.post(Uri.parse(link), body: {
+        'flags': flags.toString(),
+        'lastID': lastID.toString(),
+        'post_id': widget.id.toString(),
+        'userID': widget.globalMap['id'].toString(),
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        m_debugPrint(data);
+
+        if (data['success']) {
+          for (int i = 1; i < data.length; ++i) {
+            // ignore: use_build_context_synchronously
+            replies.add(Reply.fromJson(i - 1, data['$i'], () {
+              m_debugPrint('Deleted');
+              replies.removeAt(i - 1);
+              widget.commentsNo--;
+              setState(() {});
+            }, globalMap, context));
+          }
+        }
+      }
+    } catch (e, s) {
+      m_debugPrint(e);
+      m_debugPrint(s);
+    }
+
+    lastId = replies.last.id;
+
+    setState(() {});
+
+    return 1;
+  }
+
+  Widget repliesBody() => FutureBuilder(
+        future: replies.isEmpty ? _dummyWait : _getReplies,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: replies.length + 1,
+              itemBuilder: (context, index) {
+                if (index != replies.length) {
+                  return replies[index];
+                } else {
+                  return showRepliesButton();
+                }
+              },
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      );
 
   final TextEditingController _replyController = TextEditingController();
 
@@ -986,8 +1084,23 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                   mini: true,
                   elevation: 0,
                   backgroundColor: ColorsB.yellow500,
-                  child: const Icon(Icons.send, color: Colors.white),
-                  onPressed: () {},
+                  child: replyButtonLoading
+                      ? const CircularProgressIndicator()
+                      : const Icon(Icons.send),
+                  onPressed: () async {
+                    //  Set the reply button loading to true
+                    setState(() {
+                      replyButtonLoading = true;
+                    });
+
+                    //  Reply to the comment
+                    await addReply(_replyController.text, widget.ownerId);
+
+                    //  Set the reply button loading to false
+                    setState(() {
+                      replyButtonLoading = false;
+                    });
+                  },
                 ),
               ),
             )
@@ -995,11 +1108,79 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
         ),
       );
 
+  bool replyButtonLoading = false;
+
   late Tween<Offset> _transitionTween;
   late Tween<double> _opacityTween;
   late Animation<Offset> _slideInAnim;
   late Animation<double> _opacityAnim;
   late AnimationController _slideAnimCtrl;
+
+  Future addReply(String replyBody, int userID) async {
+    String link = '${Misc.link}/${Misc.appName}/commentsAPI/addReply.php';
+
+    try {
+      final response = await http.post(Uri.parse(link), body: {
+        'pid': widget.id.toString(),
+        'oid': widget.globalMap['id'].toString(),
+        'body': replyBody,
+        'poc': userID.toString(),
+      });
+
+      m_debugPrint(response.statusCode);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        m_debugPrint(data);
+
+        if (data['success']) {
+          // Add the reply to the list
+          Reply mockReply = Reply(
+            index: 0,
+            id: -999999,
+            body: replyBody,
+            owner:
+                "${widget.globalMap['first_name']} ${widget.globalMap['last_name'][0]}.",
+            timePosted: DateTime.now(),
+            delete: () {
+              m_debugPrint('Deleted');
+              replies.removeAt(0);
+              widget.commentsNo--;
+              setState(() {});
+            },
+            likes: 0,
+            likesBool: false,
+            ownerId: widget.globalMap['id'],
+            globalMap: widget.globalMap,
+            likable: false,
+          );
+
+          replies.insert(0, mockReply);
+
+          setState(() {
+            _replyController.clear();
+            stopReply();
+
+            widget.commentsNo++;
+
+            // Unfocus the reply node
+            replyNode.unfocus();
+          });
+
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          // Show a snack bar
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Reply added'),
+            duration: Duration(seconds: 2),
+          ));
+        }
+      }
+    } catch (e, s) {
+      m_debugPrint(e);
+      m_debugPrint(s);
+    }
+  }
 
   var difference, timeAgo;
 
@@ -1043,21 +1224,122 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
       child: Column(
-        children: [mainCommentBody(), replyCommentBody()],
+        children: [mainCommentBody(), replyCommentBody(), repliesBody()],
       ),
     );
   }
 }
 
+class Reply extends Comment {
+  final int id;
+  final int index;
+  final String body;
+  final DateTime timePosted;
+  final int likes;
+  final bool likesBool;
+  final String owner;
+  final int ownerId;
+  final Map globalMap;
+  final Function delete;
+  final bool likable;
+
+  Reply({
+    required this.index,
+    required this.id,
+    required this.body,
+    required this.timePosted,
+    required this.likes,
+    required this.likesBool,
+    required this.owner,
+    required this.ownerId,
+    required this.likable,
+    required this.globalMap,
+    required this.delete,
+  }) : super(
+          id: id,
+          body: body,
+          timePosted: timePosted,
+          likes: likes,
+          likesBool: likesBool,
+          owner: owner,
+          ownerId: ownerId,
+          commentsNo: 0,
+          type: CommentDB.values[1],
+          repliable: false,
+          likable: false,
+          globalMap: globalMap,
+          delete: delete,
+        );
+
+  @override
+  //  From json
+  factory Reply.fromJson(int index, Map<String, dynamic> json, Function delete,
+      Map gmap, BuildContext context) {
+    return Reply(
+      index: index,
+      id: json['id'],
+      body: json['body'],
+      timePosted: DateTime.parse(json['time']),
+      likes: json['likes'],
+      likesBool: json['userLiked'] > 0,
+      owner: json['owner'],
+      ownerId: json['ownerID'],
+      globalMap: gmap,
+      delete: () async {
+        m_debugPrint(json['id']);
+
+        bool success = await deleteReply(json['id']);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Reply deleted'),
+            duration: Duration(seconds: 2),
+          ));
+
+          delete();
+        }
+      },
+      likable: false,
+    );
+  }
+
+  static Future<bool> deleteReply(int id) async {
+    String link = '${Misc.link}/${Misc.appName}/commentsAPI/deleteReply.php';
+
+    try {
+      final response = await http.post(Uri.parse(link), body: {
+        'id': id.toString(),
+      });
+
+      m_debugPrint(response.statusCode);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        m_debugPrint(data);
+
+        return data['success'];
+      }
+    } catch (e, s) {
+      m_debugPrint(e);
+      m_debugPrint(s);
+    }
+
+    return false;
+  }
+}
+
+// ignore: must_be_immutable
 class CommentBar extends StatefulWidget {
   final int postID;
   final Map gMap;
+  final FocusNode commentNode;
   List<Comment> comments;
   final StreamController commentStream;
   CommentBar(
       {Key? key,
       required this.postID,
       required this.gMap,
+      required this.commentNode,
       required this.comments,
       required this.commentStream})
       : super(key: key);
@@ -1080,6 +1362,7 @@ class _CommentBarState extends State<CommentBar> {
           child: TextField(
             keyboardType: TextInputType.text,
             controller: _commentController,
+            focusNode: widget.commentNode,
             style: const TextStyle(color: Colors.white),
             maxLines: null,
             maxLength: 150,
@@ -1140,6 +1423,9 @@ class _CommentBarState extends State<CommentBar> {
                       int commentId = await Comment.getMaxId();
 
                       widget.comments.add(Comment(
+                        likable: false,
+                        type: CommentDB.values[0],
+                        repliable: false,
                         id: commentId,
                         likes: 0,
                         likesBool: false,
