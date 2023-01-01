@@ -40,8 +40,8 @@ class _EditFloorsState extends State<EditFloors> {
   int kInsertFlag = 1 << 0; //  00001
   int kUpdateFlag = 1 << 1; //  00010
   int kDeleteFlag = 1 << 2; //  00100
-  int kTextFlag   = 1 << 3; //  01000
-  int kImageFlag  = 1 << 4; //  10000
+  int kTextFlag = 1 << 3; //  01000
+  int kImageFlag = 1 << 4; //  10000
 
   late bool canClick;
 
@@ -55,7 +55,8 @@ class _EditFloorsState extends State<EditFloors> {
 
     widget.type == null
         ? url1 = '${Misc.link}/${Misc.appName}/floorsAPI/insertfloor.php'
-        : url1 = '${Misc.link}/${Misc.appName}/timetablesAPI/insertTimetable.php';
+        : url1 =
+            '${Misc.link}/${Misc.appName}/timetablesAPI/insertTimetable.php';
 
     widget.type == null
         ? postBody = {
@@ -892,9 +893,10 @@ class _EditFloorsState extends State<EditFloors> {
                         "id[$i]": {
                           "floor": toSend[i].floor,
                           "initName": toSend[i].initName,
+                          "type": widget.type,
                           "file": toSend[i].file,
                           "b64": toSend[i].image,
-                          "flags": toSend[i].tcase.toString()
+                          "flags": toSend[i].tcase.toString(),
                         }
                       });
                     }

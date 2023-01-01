@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/others/api.dart';
 import 'package:gojdu/others/options.dart';
+import 'package:gojdu/widgets/course.dart';
 //  Import colorsB
 import "../others/colors.dart";
 // Import lazyBuilder
@@ -85,6 +86,9 @@ class _SearchResultPageState extends State<SearchResultPage> {
       case SearchType.offers:
         file = "searchOffers.php";
         break;
+      case SearchType.courses:
+        file = "searchCourses.php";
+        break;
       case SearchType.defaultSearch:
         file = "DEF.php";
         break;
@@ -109,6 +113,9 @@ class _SearchResultPageState extends State<SearchResultPage> {
         break;
       case SearchType.offers:
         searchResults.addAll(await loadOffers(link, sendQuery));
+        break;
+      case SearchType.courses:
+        searchResults.addAll(await loadCourses(link, sendQuery));
         break;
     }
     m_debugPrint(sendQuery);
@@ -193,6 +200,39 @@ class _SearchResultPageState extends State<SearchResultPage> {
     }
 
     return cards;
+  }
+
+  Future<List<CourseContainer>> loadCourses(String link, Map sendQuery) async {
+    lastMax = maxScrollCount;
+
+    List<CourseContainer> courses = [];
+
+    try {
+      var url = Uri.parse(link);
+      var response = await http.post(url, body: sendQuery);
+      m_debugPrint(response.statusCode.toString());
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        m_debugPrint(jsondata);
+
+        if (jsondata[0]['success']) {
+          Map gmap = {"id": -999, "account": "NaN"};
+
+          for (int i = 1; i < jsondata.length; i++) {
+            courses.add(CourseContainer.fromJson(jsondata[i], gmap));
+          }
+
+          maxScrollCount += turns;
+          lastID = courses.last.id;
+        }
+      }
+    } catch (e, s) {
+      m_debugPrint(e);
+      m_debugPrint(s);
+    }
+
+    return courses;
   }
 
   late List<Widget> searchResults;

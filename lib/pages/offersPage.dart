@@ -24,6 +24,8 @@ import 'package:sensors_plus/sensors_plus.dart';
 
 import 'package:gojdu/others/options.dart';
 
+import '../widgets/textPP.dart';
+
 var screenHeight = window.physicalSize.height / window.devicePixelRatio;
 var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 
@@ -897,20 +899,13 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 child: SizedBox(
                   child: Padding(
                       padding: const EdgeInsets.all(15.0),
-                      child: SelectableLinkify(
-                        linkStyle: const TextStyle(color: ColorsB.yellow500),
-                        text: widget.description,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17.5,
-                            fontWeight: FontWeight.normal),
-                        onOpen: (link) async {
-                          if (await canLaunch(link.url)) {
-                            await launch(link.url);
-                          } else {
-                            throw 'Could not launch $link';
-                          }
+                      child: TextPP(
+                        string: widget.description,
+                        onHashtagClick: (tag) {
+                          Misc.defSearch(tag, SearchType.offers, context);
                         },
+                        onLinkClick: Misc.openUrl,
+                        onPhoneClick: Misc.openPhone,
                       )),
                 ),
               )

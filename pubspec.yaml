@@ -82,6 +82,8 @@ dependencies:
   flutter_downloader: ^1.9.1
   permission_handler: ^10.2.0
   path_provider: ^2.0.11
+  email_launcher: ^1.1.1
+  flutter_rating_bar: ^4.0.1
 
 flutter_native_splash:
   color: '#1A202C'
@@ -119,6 +121,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/images/courseTypes/
     - assets/images/file_types/
     - assets/images/
     - assets/svgs/

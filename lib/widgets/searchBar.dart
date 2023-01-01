@@ -8,7 +8,7 @@ import "../others/colors.dart";
 import '../pages/searchPage.dart';
 import "filters.dart";
 
-enum SearchType { activities, offers, defaultSearch }
+enum SearchType { activities, offers, defaultSearch, courses }
 
 class SearchBar extends StatefulWidget {
   List<mFilterChip> filters;

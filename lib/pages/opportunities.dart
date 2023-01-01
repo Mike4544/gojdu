@@ -13,6 +13,7 @@ import '../others/colors.dart';
 import '../widgets/back_navbar.dart';
 import '../widgets/filters.dart';
 import '../widgets/lazyBuilder.dart';
+import '../widgets/switchPosts.dart';
 import 'addOpportunity.dart';
 
 import 'package:http/http.dart' as http;
@@ -25,6 +26,9 @@ import 'package:gojdu/others/options.dart';
 
 // import the search bar
 import '../widgets/searchBar.dart';
+
+// Import TextPP
+import '../widgets/textPP.dart';
 
 class OpportunitiesList extends StatefulWidget {
   final Map globalMap;
@@ -225,6 +229,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
   void initState() {
     opportunities = [];
     lazyController = ScrollController();
+    pageController = PageController();
 
     lazyController.addListener(lazyLoadCallback);
     super.initState();
@@ -235,6 +240,7 @@ class _OpportunitiesListState extends State<OpportunitiesList>
     // TODO: implement dispose
     opportunities.clear();
     searchEditor.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
@@ -258,61 +264,84 @@ class _OpportunitiesListState extends State<OpportunitiesList>
         ),
       );
 
+  int currentIndex = 0;
+  late PageController pageController;
+
+  Widget opportunityPage() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SearchBar(
+            searchType: SearchType.activities,
+            adminButton: _addButton(),
+            filters: const [
+              mFilterChip(
+                label: 'IT',
+                color: Colors.greenAccent,
+              ),
+              // Add serval more topics different from the ones in the database
+              mFilterChip(
+                label: 'Design',
+                color: Colors.tealAccent,
+              ),
+              mFilterChip(
+                label: 'Fashion',
+                color: Colors.purple,
+              ),
+              mFilterChip(
+                label: 'Other',
+                color: Colors.brown,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Expanded(child: opportunityList()),
+        ],
+      );
+
+  Widget opportunityList() {
+    return LazyBuilder(
+        future: _getOpportunities,
+        widgetList: opportunities,
+        lastID: lastIDOpportunities,
+        lastMax: lastMaxOpportunities,
+        maxScrollCount: maxScrollCountOpportunities,
+        refresh: refresh,
+        scrollController: lazyController,
+        turns: turnsOpportunities);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     //  m_debugPrint('building');
 
-    Widget opportunityList() {
-      return LazyBuilder(
-          future: _getOpportunities,
-          widgetList: opportunities,
-          lastID: lastIDOpportunities,
-          lastMax: lastMaxOpportunities,
-          maxScrollCount: maxScrollCountOpportunities,
-          refresh: refresh,
-          scrollController: lazyController,
-          turns: turnsOpportunities);
-    }
-
     return Stack(
       children: [
         const TriangleBackground(),
-        Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SearchBar(
-                  searchType: SearchType.activities,
-                  adminButton: _addButton(),
-                  filters: const [
-                    mFilterChip(
-                      label: 'IT',
-                      color: Colors.greenAccent,
-                    ),
-                    // Add serval more topics different from the ones in the database
-                    mFilterChip(
-                      label: 'Design',
-                      color: Colors.tealAccent,
-                    ),
-                    mFilterChip(
-                      label: 'Fashion',
-                      color: Colors.purple,
-                    ),
-                    mFilterChip(
-                      label: 'Other',
-                      color: Colors.brown,
-                    ),
-                  ],
+        Column(
+          children: [
+            PostsSwitcher(
+                index: currentIndex,
+                ctrl: pageController,
+                labels: const ['Activities', 'Events'],
+                icons: const [Icons.apartment_rounded, Icons.event_rounded],
+                update: (val) {
+                  setState(() => currentIndex = val);
+                }),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25),
+                child: PageView(
+                  controller: pageController,
+                  children: [opportunityPage(), const EventsPage()],
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Expanded(child: opportunityList()),
-              ],
-            )),
+              ),
+            ),
+          ],
+        )
       ],
     );
   }
@@ -389,6 +418,10 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
             __,
           ) =>
               AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.ease,
+            top: 25.0 + (_acceleration.y * -_backConstant),
+            right: _acceleration.x * -_backConstant,
             child: SizedBox(
                 height: screenHeight * .25,
                 width: screenHeight * .25,
@@ -410,10 +443,6 @@ class _TriangleBackgroundState extends State<TriangleBackground> {
                     },
                   ),
                 )),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.ease,
-            top: 25.0 + (_acceleration.y * -_backConstant),
-            right: _acceleration.x * -_backConstant,
           ),
         ),
         TweenAnimationBuilder<double>(
@@ -1258,22 +1287,16 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                 child: Padding(
                     padding: const EdgeInsets.all(15.0),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SelectableLinkify(
-                          linkStyle: const TextStyle(color: ColorsB.yellow500),
-                          text: widget.description,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17.5,
-                              fontWeight: FontWeight.normal),
-                          onOpen: (link) async {
-                            if (await canLaunch(link.url)) {
-                              await launch(link.url);
-                            } else {
-                              throw 'Could not launch $link';
-                            }
+                        TextPP(
+                          string: widget.description,
+                          onHashtagClick: (tag) {
+                            Misc.defSearch(tag, SearchType.activities, context);
                           },
+                          onLinkClick: Misc.openUrl,
+                          onPhoneClick: Misc.openPhone,
                         ),
                         const Spacer()
                       ],

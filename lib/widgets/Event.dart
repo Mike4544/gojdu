@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gojdu/widgets/profilePics.dart';
+import 'package:gojdu/widgets/textPP.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../others/api.dart';
@@ -55,200 +56,214 @@ class Event extends StatelessWidget {
     var avatarImg = '${Misc.link}/${Misc.appName}/profiles/$ownerID.jpg';
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SizedBox(
-        height: screenHeight * .3,
-        width: screenWidth,
-        child: Stack(
-          children: [
-            Container(
-              width: screenWidth,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: LinearGradient(
-                      colors: [
-                        Colors.indigoAccent.withOpacity(.5),
-                        Colors.indigoAccent.withOpacity(.1)
-                      ],
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight,
-                      stops: const [0, .75]),
-                  border:
-                      Border.all(color: Colors.indigoAccent.withOpacity(.25))),
-              child: Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: SizedBox(
-                        width: screenWidth,
-                        child: Text(
-                          title,
-                          overflow: TextOverflow.fade,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: title.length > 10 ? 20 : 25,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: screenHeight * .3,
+          width: screenWidth,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(screenWidth * .075),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 7,
+                sigmaY: 7,
+              ),
+              child: Stack(
+                children: [
+                  Container(
+                    width: screenWidth,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                            colors: [
+                              Colors.indigoAccent.withOpacity(.5),
+                              Colors.indigoAccent.withOpacity(.1)
+                            ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight,
+                            stops: const [0, .75]),
+                        border: Border.all(
+                            color: Colors.indigoAccent.withOpacity(.25))),
+                    child: Padding(
+                      padding: const EdgeInsets.all(25.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                  child: Chip(
-                                label: Text(
-                                    '${owner.split(' ').first} ${owner.split(' ').last[0]}.'),
-                                avatar: ProfilePicture(
-                                  url: avatarImg,
-                                  userName: owner,
+                          Expanded(
+                            flex: 1,
+                            child: SizedBox(
+                              width: screenWidth,
+                              child: Text(
+                                title,
+                                overflow: TextOverflow.fade,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: title.length > 10 ? 20 : 25,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flexible(
+                                        child: Chip(
+                                      label: Text(
+                                          '${owner.split(' ').first} ${owner.split(' ').last[0]}.'),
+                                      avatar: ProfilePicture(
+                                        url: avatarImg,
+                                        userName: owner,
+                                      ),
+                                    )),
+                                    BetterChip(
+                                        icon: const Icon(
+                                          Icons.calendar_today_outlined,
+                                          color: ColorsB.gray900,
+                                        ),
+                                        label: DateFormat("dd/MM/yyyy")
+                                            .format(date),
+                                        isGlass: true)
+                                  ],
                                 ),
-                              )),
-                              BetterChip(
+                                BetterChip(
                                   icon: const Icon(
-                                    Icons.calendar_today_outlined,
+                                    Icons.location_on_outlined,
                                     color: ColorsB.gray900,
                                   ),
-                                  label: DateFormat("dd/MM/yyyy").format(date),
-                                  isGlass: true)
-                            ],
-                          ),
-                          BetterChip(
-                            icon: const Icon(
-                              Icons.location_on_outlined,
-                              color: ColorsB.gray900,
-                            ),
-                            label: location.split(',')[0],
-                            isGlass: true,
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => BigNewsContainer(
-                          title: title,
-                          description: body,
-                          author: owner,
-                          ownerID: ownerID,
-                          date: DateFormat("dd/MM/yyyy").format(date),
-                          location: location,
-                          imageString: link,
-                          mapsLink: maps_link)));
-                },
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            Visibility(
-              visible: gMap['account'] == 'Admin' || gMap['id'] == ownerID,
-              child: Positioned(
-                bottom: 10,
-                right: 10,
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (context) => AlertDialog(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            backgroundColor: ColorsB.gray900,
-                            title: Column(
-                              children: const [
-                                Text(
-                                  'Are you sure you want delete this post?',
-                                  style: TextStyle(
-                                      color: ColorsB.yellow500, fontSize: 15),
+                                  label: location.split(',')[0],
+                                  isGlass: true,
                                 ),
-                                Divider(
-                                  color: ColorsB.yellow500,
-                                  thickness: 1,
-                                  height: 10,
-                                )
                               ],
                             ),
-                            content: SizedBox(
-                              height: 75,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      InkWell(
-                                        onTap: () async {
-                                          await delete();
-
-                                          Navigator.of(context).pop();
-
-                                          //  logoff(context);
-                                        },
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Ink(
-                                          decoration: BoxDecoration(
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => BigNewsContainer(
+                                title: title,
+                                description: body,
+                                author: owner,
+                                ownerID: ownerID,
+                                date: DateFormat("dd/MM/yyyy").format(date),
+                                location: location,
+                                imageString: link,
+                                mapsLink: maps_link)));
+                      },
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  Visibility(
+                    visible:
+                        gMap['account'] == 'Admin' || gMap['id'] == ownerID,
+                    child: Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.white),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  backgroundColor: ColorsB.gray900,
+                                  title: Column(
+                                    children: const [
+                                      Text(
+                                        'Are you sure you want delete this post?',
+                                        style: TextStyle(
                                             color: ColorsB.yellow500,
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                          ),
-                                          height: 50,
-                                          width: 75,
-                                          child: Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                            fontSize: 15),
                                       ),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Ink(
-                                          decoration: BoxDecoration(
-                                            color: ColorsB.gray800,
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                          ),
-                                          height: 50,
-                                          width: 75,
-                                          child: Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
+                                      Divider(
+                                        color: ColorsB.yellow500,
+                                        thickness: 1,
+                                        height: 10,
+                                      )
                                     ],
-                                  )
-                                ],
-                              ),
-                            )));
-                  },
-                ),
+                                  ),
+                                  content: SizedBox(
+                                    height: 75,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            InkWell(
+                                              onTap: () async {
+                                                await delete();
+
+                                                Navigator.of(context).pop();
+
+                                                //  logoff(context);
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                              child: Ink(
+                                                decoration: BoxDecoration(
+                                                  color: ColorsB.yellow500,
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                ),
+                                                height: 50,
+                                                width: 75,
+                                                child: Icon(
+                                                  Icons.check,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                              child: Ink(
+                                                decoration: BoxDecoration(
+                                                  color: ColorsB.gray800,
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                ),
+                                                height: 50,
+                                                width: 75,
+                                                child: Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  )));
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }
 
@@ -617,27 +632,15 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
                     )),
               ),
               SliverFillRemaining(
-                hasScrollBody: false,
-                child: SizedBox(
-                  child: Padding(
+                  hasScrollBody: false,
+                  child: SizedBox(
+                    child: Padding(
                       padding: const EdgeInsets.all(15.0),
-                      child: SelectableLinkify(
-                        linkStyle: const TextStyle(color: ColorsB.yellow500),
-                        text: widget.description,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17.5,
-                            fontWeight: FontWeight.normal),
-                        onOpen: (link) async {
-                          if (await canLaunch(link.url)) {
-                            await launch(link.url);
-                          } else {
-                            throw 'Could not launch $link';
-                          }
-                        },
-                      )),
-                ),
-              )
+                      child: TextPP(
+                        string: widget.description,
+                      ),
+                    ),
+                  ))
             ],
           ),
         ));

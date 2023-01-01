@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import FirebaseCore
+import flutter_downloader
 
 
 func requestPermission() -> Void {
@@ -24,6 +25,7 @@ func requestPermission() -> Void {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+    FlutterDownloaderPlugin.setPluginRegistrantCallback(registerPlugins)
       if(FirebaseApp.app() == nil){
       FirebaseApp.configure()
       }
@@ -48,4 +50,10 @@ func requestPermission() -> Void {
 
       return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+}
+
+private func registerPlugins(registry: FlutterPluginRegistry) {
+    if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
+       FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
+    }
 }
