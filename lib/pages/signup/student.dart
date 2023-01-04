@@ -298,7 +298,9 @@ class _StudentSignUpState extends State<StudentSignUp> {
                         });
                         if (response.statusCode == 200) {
                           var jsondata = await json.decode(response.body);
-                          //m_debugPrint(jsondata.toString());
+                          m_debugPrint(jsondata.toString());
+                          // m_debugPrint(jsondata[0]);
+                          // m_debugPrint(jsondata[1]);
                           if (jsondata["error"]) {
                             setState(() {
                               error = jsondata["message"];

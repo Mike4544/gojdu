@@ -214,6 +214,7 @@ class CourseContainer extends StatelessWidget {
                           builder: (context) => BigNewsContainer(
                                 title: title,
                                 description: description,
+                                image: courseCover(),
                                 link: link,
                               )));
                 },
@@ -270,7 +271,7 @@ class BigNewsContainer extends StatefulWidget {
   final String title;
   final String description;
   final Color? color;
-  final String? imageString;
+  final Image image;
   final String? link;
 
   const BigNewsContainer({
@@ -279,7 +280,7 @@ class BigNewsContainer extends StatefulWidget {
     required this.title,
     required this.description,
     this.color = ColorsB.yellow500,
-    this.imageString,
+    required this.image,
   }) : super(key: key);
 
   @override
@@ -319,49 +320,40 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   Widget topPage() {
     BoxDecoration woImage = BoxDecoration(color: widget.color);
 
-    BoxDecoration wImage = BoxDecoration(color: widget.color);
+    BoxDecoration wImage = BoxDecoration(
+        color: widget.color,
+        image: DecorationImage(image: widget.image.image, fit: BoxFit.cover));
 
     //m_debugPrint(imageLink);
 
     return GestureDetector(
-      onTap: (widget.imageString == 'null' ||
-              widget.imageString == '' ||
-              widget.imageString == null)
-          ? null
-          : () {
-              showDialog(
-                  context: context,
-                  builder: (context) => Material(
-                      color: Colors.transparent,
-                      child: Stack(children: [
-                        Center(
-                          child: InteractiveViewer(
-                            clipBehavior: Clip.none,
-                            child: CachedNetworkImage(
-                              imageUrl: widget.imageString!,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                            top: 10,
-                            right: 10,
-                            child: IconButton(
-                                tooltip: 'Close',
-                                splashRadius: 25,
-                                icon: const Icon(Icons.close,
-                                    color: Colors.white),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                }))
-                      ])));
-            },
+      onTap: () {
+        showDialog(
+            context: context,
+            builder: (context) => Material(
+                color: Colors.transparent,
+                child: Stack(children: [
+                  Center(
+                    child: InteractiveViewer(
+                      clipBehavior: Clip.none,
+                      child: widget.image,
+                    ),
+                  ),
+                  Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                          tooltip: 'Close',
+                          splashRadius: 25,
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          }))
+                ])));
+      },
       child: Container(
         width: screenWidth,
-        decoration: (widget.imageString == 'null' ||
-                widget.imageString == '' ||
-                widget.imageString == null)
-            ? woImage
-            : wImage,
+        decoration: wImage,
         child: Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
@@ -577,7 +569,7 @@ class _StarBarState extends State<StarBar> {
         child: FittedBox(
           fit: BoxFit.contain,
           child: Text(
-            '${widget.initialRating}',
+            widget.initialRating.toStringAsFixed(1),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),

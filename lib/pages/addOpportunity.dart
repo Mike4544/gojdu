@@ -255,7 +255,7 @@ class _AddOpportunityState extends State<AddOpportunity> {
                     width: 20,
                   ),
                   Text(
-                    'Create an opportunity',
+                    'Create an event',
                     style: TextStyle(
                         fontSize: 25,
                         color: Colors.white,

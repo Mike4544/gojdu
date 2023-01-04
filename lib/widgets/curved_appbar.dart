@@ -28,7 +28,8 @@ class CurvedAppbar extends StatefulWidget implements PreferredSizeWidget {
       this.accType,
       required this.position,
       required this.map,
-      required this.descriptions, required this.notifs})
+      required this.descriptions,
+      required this.notifs})
       : preferredSize = Size.fromHeight(
             screenHeight < 675 ? screenHeight * .175 : screenHeight * .15),
         super(key: key);
@@ -47,7 +48,6 @@ var screenWidth = window.physicalSize.width / window.devicePixelRatio;
 class _CurvedAppbarState extends State<CurvedAppbar> {
   late bool isActive;
 
-  
   // late var loadBall = getBall();
 
   final double size = screenHeight * .05 > 40 ? 40 : screenHeight * .05;
@@ -70,7 +70,8 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
       return GestureDetector(
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => NotifPage(notifs: widget.notifs,
+              builder: (context) => NotifPage(
+                    notifs: widget.notifs,
                     isAdmin: globalMap['account'] == 'Admin',
                   )));
         },
@@ -172,7 +173,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
               ),
               ValueListenableBuilder(
                 valueListenable: widget.notifs,
-                builder: (_ , __, ___) {
+                builder: (_, __, ___) {
                   return notifBell(size: size);
                 },
               ),
@@ -184,75 +185,74 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
   }
 
   Widget nameText() {
-    return SizedBox(
-      width: screenWidth * .4,
-      key: ValueKey(widget.nameIndex),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            children: [
-              Text(
-                widget.names[widget.nameIndex],
-                style: const TextStyle(
-                    fontSize: 22.5,
-                    fontWeight: FontWeight.bold,
-                    color: ColorsB.gray900),
-              ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            backgroundColor: ColorsB.gray900,
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'Close',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            ],
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30)),
-                            content: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    widget.descriptions[widget.nameIndex].title,
-                                    style: TextStyle(
-                                        color: ColorsB.yellow500,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 25.sp),
-                                  ),
-                                  const Divider(
-                                    color: ColorsB.yellow500,
-                                  ),
-                                  const SizedBox(
-                                    height: 25,
-                                  ),
-                                  Text(
-                                    widget.descriptions[widget.nameIndex]
-                                        .description,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 15.sp),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ));
-                },
-                child: Container(
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  backgroundColor: ColorsB.gray900,
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Close',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  ],
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  content: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.descriptions[widget.nameIndex].title,
+                          style: TextStyle(
+                              color: ColorsB.yellow500,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 25.sp),
+                        ),
+                        const Divider(
+                          color: ColorsB.yellow500,
+                        ),
+                        const SizedBox(
+                          height: 25,
+                        ),
+                        Text(
+                          widget.descriptions[widget.nameIndex].description,
+                          style:
+                              TextStyle(color: Colors.white, fontSize: 15.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                ));
+      },
+      child: SizedBox(
+        width: screenWidth * .4,
+        key: ValueKey(widget.nameIndex),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              children: [
+                Text(
+                  widget.names[widget.nameIndex],
+                  style: const TextStyle(
+                      fontSize: 22.5,
+                      fontWeight: FontWeight.bold,
+                      color: ColorsB.gray900),
+                ),
+                const SizedBox(width: 10),
+                Container(
                   decoration: const BoxDecoration(
                       color: ColorsB.gray900, shape: BoxShape.circle),
                   child: const Padding(
@@ -263,9 +263,9 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
                       size: 15,
                     ),
                   ),
-                ),
-              )
-            ],
+                )
+              ],
+            ),
           ),
         ),
       ),

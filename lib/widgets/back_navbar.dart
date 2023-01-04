@@ -19,7 +19,13 @@ class BackNavbar extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(
+                // All 8, bottom: 16
+                left: 8,
+                right: 8,
+                top: 8,
+                bottom: 16,
+              ),
               child: TextButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
@@ -42,8 +48,8 @@ class BackNavbar extends StatelessWidget {
                   )),
             ),
           ),
-          SizedBox(),
-          SizedBox()
+          const SizedBox(),
+          const SizedBox()
         ],
       );
     } else {

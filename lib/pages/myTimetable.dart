@@ -353,7 +353,7 @@ class ClassTableState extends State<ClassTable>
             const SizedBox(height: 20),
             Visibility(
                 visible: widget.globalMap['account'] == "Admin" ||
-                    widget.globalMap['account'] == "Teacher",
+                    widget.globalMap['account'] == "Teacher" || widget.globalMap['account'] == "C. Elevilor",
                 child: TextButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -546,7 +546,7 @@ class _TeacherSearchState extends State<TeacherSearch>
                   children: [
                     Visibility(
                         visible: widget.globalMap['account'] == 'Admin' ||
-                            widget.globalMap['account'] == 'Teacher',
+                            widget.globalMap['account'] == 'Teacher' || widget.globalMap['account'] == 'C. Elevilor',
                         child: TextButton.icon(
                             onPressed: () {
                               Navigator.push(

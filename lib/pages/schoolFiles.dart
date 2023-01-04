@@ -473,13 +473,22 @@ class FileContainer extends StatelessWidget {
         ),
       );
 
-      final id = await FlutterDownloader.enqueue(
-        url: url,
-        savedDir: externalDir!.path,
-        saveInPublicStorage: true,
-        showNotification: true,
-        openFileFromNotification: true,
-      );
+      // Different settings for android and ios
+      if (Platform.isAndroid) {
+        await FlutterDownloader.enqueue(
+          url: url,
+          savedDir: externalDir!.path,
+          fileName: name,
+          showNotification: true,
+          openFileFromNotification: true,
+        );
+      } else {
+        await FlutterDownloader.enqueue(
+          url: url,
+          savedDir: externalDir!.path,
+          fileName: name,
+        );
+      }
     } else {
       // Snack bar for failed download
 

@@ -514,13 +514,12 @@ class _NewsPageState extends State<NewsPage> {
 
   //  @threads thingys
   final List<PageDescription> curvedAppBarDescriptions = [
-    const PageDescription(title: 'Threads', description: 'TBA'),
     const PageDescription(
         title: 'News',
         description:
             'Here you are able to see the latest school anouncements and events!'),
     const PageDescription(
-        title: 'Activities',
+        title: 'Events',
         description:
             'See the latest local activities available to you, as well as special opportunities such as internships!'),
     const PageDescription(
@@ -534,9 +533,8 @@ class _NewsPageState extends State<NewsPage> {
   ];
 
   final List<String> curvedAppBarLabels = [
-    'Threads',
     'News',
-    'Activities',
+    'Events',
     'Trends & Offers',
     'Menus'
   ];
@@ -591,7 +589,7 @@ class _NewsPageState extends State<NewsPage> {
     // }
 
     return Scaffold(
-        resizeToAvoidBottomInset: currPage != 2 && currPage != 3,
+        resizeToAvoidBottomInset: currPage != 1 && currPage != 2,
         //  key: _scaffoldKey,
         appBar: CurvedAppbar(
           notifs: widget.notifs,
@@ -610,7 +608,6 @@ class _NewsPageState extends State<NewsPage> {
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
           children: [
-            const Threads(),
             Announcements(
               eventCtrl: _eventCtrl,
               key: _announcementsKey,
@@ -634,7 +631,7 @@ class _NewsPageState extends State<NewsPage> {
                 SchoolFiles(
                     key: const ValueKey(3),
                     isAdmin: globalMap['account'] == 'Admin' ||
-                        globalMap['account'] == 'Teacher'),
+                        globalMap['account'] == 'Teacher' || globalMap['account'] == 'C. Elevilor'),
                 const Calendar(key: ValueKey(4)),
                 const FeedbackPage(),
               ],
@@ -734,9 +731,9 @@ class _NewsPageState extends State<NewsPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  '${sn.data![index].name.split(' ')[0]} ${sn.data![index].name.split(' ')[1][0]}.',
-                                                  style: const TextStyle(
-                                                      fontSize: 15,
+                                                  sn.data![index].name,
+                                                  style: TextStyle(
+                                                      fontSize: 15.sp,
                                                       color: Colors.white),
                                                 ),
                                                 const SizedBox(
@@ -846,7 +843,6 @@ class _NewsPageState extends State<NewsPage> {
 
   Widget _bottomNavBar() {
     List<IconData> icons = [
-      Icons.add_comment_rounded,
       Icons.announcement,
       Icons.apartment_rounded,
       Icons.local_activity_rounded,
@@ -854,9 +850,8 @@ class _NewsPageState extends State<NewsPage> {
     ];
 
     List<String> titles = [
-      'Threads',
       'Announcements',
-      'Activities',
+      'Events',
       'Trends & Offers',
       'Menu',
     ];
@@ -1131,7 +1126,7 @@ class _AnnouncementsState extends State<Announcements>
                         ),
                         Visibility(
                           visible: globalMap['account'] == 'Teacher' ||
-                              globalMap['account'] == 'Admin', // cHANGE IT,
+                              globalMap['account'] == 'Admin' || globalMap['account'] == 'C. Elevilor', // cHANGE IT,
                           child: GestureDetector(
                             onTap: _showWritable,
                             child: const Icon(
@@ -1196,7 +1191,7 @@ class _AnnouncementsState extends State<Announcements>
   // void lazyLoadCallback() {}
 
   Widget teachersBar() {
-    if (globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin') {
+    if (globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' || globalMap['account'] == 'C. Elevilor') {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Container(
@@ -3067,7 +3062,7 @@ class _MapPageState extends State<MapPage> {
             const SizedBox(height: 20),
             Visibility(
                 visible: globalMap['account'] == "Admin" ||
-                    globalMap['account'] == "Teacher",
+                    globalMap['account'] == "Teacher" || globalMap['account'] == 'C. Elevilor',
                 child: TextButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -4413,382 +4408,378 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                   ),
                                   SizedBox(
                                     height: 30,
-                                    child: Visibility(
-                                        visible: globalMap['account'] ==
-                                                'Admin' ||
-                                            globalMap['account'] == 'Teacher',
-                                        child: TextButton(
-                                            onPressed: () {
-                                              if (globalMap['verification'] !=
-                                                  "Pending") {
-                                                showDialog(
-                                                    context: context,
-                                                    builder: (context) {
-                                                      var timeText =
-                                                          TextEditingController();
-                                                      var timeText2 =
-                                                          TextEditingController();
+                                    child: TextButton(
+                                        onPressed: () {
+                                          if (globalMap['verification'] !=
+                                              "Pending") {
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  var timeText =
+                                                      TextEditingController();
+                                                  var timeText2 =
+                                                      TextEditingController();
 
-                                                      TimeOfDay? parsedTime1;
-                                                      TimeOfDay? parsedTime2;
+                                                  TimeOfDay? parsedTime1;
+                                                  TimeOfDay? parsedTime2;
 
-                                                      var _formKey = GlobalKey<
-                                                          FormState>();
-                                                      var errorText1,
-                                                          errorText2;
+                                                  var _formKey = GlobalKey<
+                                                      FormState>();
+                                                  var errorText1,
+                                                      errorText2;
 
-                                                      bool clicked = false;
+                                                  bool clicked = false;
 
-                                                      return StatefulBuilder(
-                                                          builder: (_,
-                                                                  StateSetter
-                                                                      setState) =>
-                                                              AlertDialog(
-                                                                  shape:
-                                                                      RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            30),
-                                                                  ),
-                                                                  backgroundColor:
-                                                                      ColorsB
-                                                                          .gray900,
-                                                                  content:
-                                                                      SizedBox(
-                                                                    height: 200,
+                                                  return StatefulBuilder(
+                                                      builder: (_,
+                                                              StateSetter
+                                                                  setState) =>
+                                                          AlertDialog(
+                                                              shape:
+                                                                  RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                        30),
+                                                              ),
+                                                              backgroundColor:
+                                                                  ColorsB
+                                                                      .gray900,
+                                                              content:
+                                                                  SizedBox(
+                                                                height: 200,
+                                                                child:
+                                                                    Center(
+                                                                  child:
+                                                                      Form(
+                                                                    key:
+                                                                        _formKey,
+                                                                    autovalidateMode:
+                                                                        AutovalidateMode.onUserInteraction,
                                                                     child:
-                                                                        Center(
-                                                                      child:
-                                                                          Form(
-                                                                        key:
-                                                                            _formKey,
-                                                                        autovalidateMode:
-                                                                            AutovalidateMode.onUserInteraction,
-                                                                        child:
-                                                                            Column(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.spaceBetween,
+                                                                        Column(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Row(
                                                                           children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                const Text(
-                                                                                  'From: ',
-                                                                                  style: TextStyle(
-                                                                                    fontSize: 15,
-                                                                                    fontWeight: FontWeight.bold,
-                                                                                    color: Colors.white,
-                                                                                  ),
-                                                                                ),
-                                                                                const SizedBox(
-                                                                                  width: 10,
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  width: 200,
-                                                                                  height: 50,
-                                                                                  child: TextFormField(
-                                                                                    controller: timeText,
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 15,
-                                                                                      color: Colors.white,
-                                                                                    ),
-                                                                                    readOnly: true,
-                                                                                    decoration: InputDecoration(
-                                                                                      errorText: errorText1,
-                                                                                      icon: Icon(
-                                                                                        Icons.timer,
-                                                                                        color: Colors.white.withOpacity(0.5),
-                                                                                      ), //icon of text field
-                                                                                      labelText: "Enter Time", //label text of field
-                                                                                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                      focusedBorder: UnderlineInputBorder(
-                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                                                                      ),
-                                                                                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                                    ),
-                                                                                    onTap: () async {
-                                                                                      TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                      //m_debugPrint(pickedTime.toString());
-                                                                                      if (pickedTime != null) {
-                                                                                        parsedTime1 = pickedTime;
-                                                                                        //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
-                                                                                        String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //m_debugPrint(formattedTime);
-                                                                                        setState(() {
-                                                                                          timeText.text = formattedTime;
-                                                                                          _time1 = formattedTime;
-                                                                                          //m_debugPrint(formattedTime);
-                                                                                        });
-                                                                                      }
-                                                                                    },
-                                                                                    validator: (value) {
-                                                                                      if (value == null || value.isEmpty) {
-                                                                                        return "Please enter time";
-                                                                                      } else if (parsedTime1 != null && parsedTime2 != null) {
-                                                                                        if (parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))) {
-                                                                                          return "Please enter valid time";
-                                                                                        }
-                                                                                      }
-                                                                                      return null;
-                                                                                    },
-                                                                                  ),
-                                                                                ),
-                                                                              ],
+                                                                            const Text(
+                                                                              'From: ',
+                                                                              style: TextStyle(
+                                                                                fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white,
+                                                                              ),
                                                                             ),
-                                                                            Row(
-                                                                              children: [
-                                                                                const Text(
-                                                                                  'To: ',
-                                                                                  style: TextStyle(
-                                                                                    fontSize: 15,
-                                                                                    fontWeight: FontWeight.bold,
-                                                                                    color: Colors.white,
-                                                                                  ),
-                                                                                ),
-                                                                                const SizedBox(
-                                                                                  width: 10,
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  width: 200,
-                                                                                  height: 50,
-                                                                                  child: TextFormField(
-                                                                                    controller: timeText2,
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 15,
-                                                                                      color: Colors.white,
-                                                                                    ),
-                                                                                    readOnly: true,
-                                                                                    decoration: InputDecoration(
-                                                                                      errorText: errorText2,
-                                                                                      icon: Icon(
-                                                                                        Icons.timer,
-                                                                                        color: Colors.white.withOpacity(0.5),
-                                                                                      ), //icon of text field
-                                                                                      labelText: "Enter Time", //label text of field
-                                                                                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
-                                                                                      focusedBorder: UnderlineInputBorder(
-                                                                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
-                                                                                      ),
-                                                                                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
-                                                                                    ),
-                                                                                    onTap: () async {
-                                                                                      TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                                                                                      parsedTime2 = pickedTime;
-                                                                                      if (pickedTime != null) {
-                                                                                        String formattedTime = convertTo24(pickedTime.format(context));
-                                                                                        //  //m_debugPrint(formattedTime);
-                                                                                        setState(() {
-                                                                                          timeText2.text = formattedTime;
-                                                                                          _time2 = formattedTime;
-                                                                                        });
-                                                                                      }
-                                                                                    },
-                                                                                    validator: (value) {
-                                                                                      if (value == null || value.isEmpty) {
-                                                                                        return "Please enter time";
-                                                                                      } else if (parsedTime1 != null && parsedTime2 != null) {
-                                                                                        if (parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))) {
-                                                                                          return "Please enter valid time";
-                                                                                        }
-                                                                                      }
-                                                                                      return null;
-                                                                                    },
-                                                                                  ),
-                                                                                ),
-                                                                              ],
+                                                                            const SizedBox(
+                                                                              width: 10,
                                                                             ),
-                                                                            TextButton.icon(
-                                                                              onPressed: () async {
-                                                                                if (_events[_selectedDay] != null) {
-                                                                                  if (!overlap(_time1, _time2)) {
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText1,
+                                                                                  icon: Icon(
+                                                                                    Icons.timer,
+                                                                                    color: Colors.white.withOpacity(0.5),
+                                                                                  ), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                ),
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  //m_debugPrint(pickedTime.toString());
+                                                                                  if (pickedTime != null) {
+                                                                                    parsedTime1 = pickedTime;
+                                                                                    //DateTime parsedTime = DateFormat.jm().parse(pickedTime.format(context).toString());
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                    //  //m_debugPrint(formattedTime);
                                                                                     setState(() {
-                                                                                      errorText1 = errorText2 = 'Overlapping!';
+                                                                                      timeText.text = formattedTime;
+                                                                                      _time1 = formattedTime;
+                                                                                      //m_debugPrint(formattedTime);
                                                                                     });
-                                                                                    return;
                                                                                   }
-                                                                                }
-
-                                                                                if (_formKey.currentState!.validate()) {
-                                                                                  try {
-                                                                                    setState(() {
-                                                                                      clicked = true;
-                                                                                    });
-                                                                                    var url = Uri.parse('${Misc.link}/${Misc.appName}/insertbookings.php');
-                                                                                    final response = await http.post(url, body: {
-                                                                                      "day": _selectedDay.toString().split(' ').first,
-                                                                                      "start": _time1 + ":00",
-                                                                                      "end": _time2 + ":00",
-                                                                                      "hall": _currentHall.toString(),
-                                                                                      "owner": globalMap["first_name"] + " " + globalMap["last_name"],
-                                                                                    });
-                                                                                    //m_debugPrint(response.statusCode);
-                                                                                    //m_debugPrint("does work");
-                                                                                    if (response.statusCode == 200) {
-                                                                                      var jsondata = json.decode(response.body);
-                                                                                      ////m_debugPrint(jsondata.toString());
-                                                                                      if (jsondata["error"]) {
-                                                                                      } else {
-                                                                                        if (jsondata["success"]) {
-                                                                                          Navigator.pop(context);
-                                                                                        } else {
-                                                                                          ////m_debugPrint(jsondata["message"]);
-                                                                                        }
-                                                                                      }
+                                                                                },
+                                                                                validator: (value) {
+                                                                                  if (value == null || value.isEmpty) {
+                                                                                    return "Please enter time";
+                                                                                  } else if (parsedTime1 != null && parsedTime2 != null) {
+                                                                                    if (parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))) {
+                                                                                      return "Please enter valid time";
                                                                                     }
-                                                                                    //m_debugPrint(_events);
-
-                                                                                    widget.changePage(3);
-                                                                                    setState(() {});
-                                                                                  } catch (e) {
-                                                                                    _events[_selectedDay] = [
-                                                                                      'Error! Please try again!'
-                                                                                    ];
                                                                                   }
-                                                                                }
-                                                                              },
-                                                                              icon: !clicked
-                                                                                  ? const Icon(
-                                                                                      Icons.add_circle,
-                                                                                      color: Colors.white,
-                                                                                    )
-                                                                                  : const SizedBox(),
-                                                                              label: !clicked
-                                                                                  ? const Text(
-                                                                                      'Reserve',
-                                                                                      style: TextStyle(
-                                                                                        color: Colors.white,
-                                                                                      ),
-                                                                                    )
-                                                                                  : const CircularProgressIndicator(
-                                                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                                                    ),
-                                                                            )
+                                                                                  return null;
+                                                                                },
+                                                                              ),
+                                                                            ),
                                                                           ],
                                                                         ),
-                                                                      ),
+                                                                        Row(
+                                                                          children: [
+                                                                            const Text(
+                                                                              'To: ',
+                                                                              style: TextStyle(
+                                                                                fontSize: 15,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.white,
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 200,
+                                                                              height: 50,
+                                                                              child: TextFormField(
+                                                                                controller: timeText2,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: Colors.white,
+                                                                                ),
+                                                                                readOnly: true,
+                                                                                decoration: InputDecoration(
+                                                                                  errorText: errorText2,
+                                                                                  icon: Icon(
+                                                                                    Icons.timer,
+                                                                                    color: Colors.white.withOpacity(0.5),
+                                                                                  ), //icon of text field
+                                                                                  labelText: "Enter Time", //label text of field
+                                                                                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)), //style of label text
+                                                                                  focusedBorder: UnderlineInputBorder(
+                                                                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                                                                  ),
+                                                                                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.5))), //border of text field
+                                                                                ),
+                                                                                onTap: () async {
+                                                                                  TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                                                                  parsedTime2 = pickedTime;
+                                                                                  if (pickedTime != null) {
+                                                                                    String formattedTime = convertTo24(pickedTime.format(context));
+                                                                                    //  //m_debugPrint(formattedTime);
+                                                                                    setState(() {
+                                                                                      timeText2.text = formattedTime;
+                                                                                      _time2 = formattedTime;
+                                                                                    });
+                                                                                  }
+                                                                                },
+                                                                                validator: (value) {
+                                                                                  if (value == null || value.isEmpty) {
+                                                                                    return "Please enter time";
+                                                                                  } else if (parsedTime1 != null && parsedTime2 != null) {
+                                                                                    if (parsedTime1!.hour > parsedTime2!.hour || ((parsedTime1!.hour == parsedTime2!.hour) && (parsedTime1!.minute >= parsedTime2!.minute))) {
+                                                                                      return "Please enter valid time";
+                                                                                    }
+                                                                                  }
+                                                                                  return null;
+                                                                                },
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        TextButton.icon(
+                                                                          onPressed: () async {
+                                                                            if (_events[_selectedDay] != null) {
+                                                                              if (!overlap(_time1, _time2)) {
+                                                                                setState(() {
+                                                                                  errorText1 = errorText2 = 'Overlapping!';
+                                                                                });
+                                                                                return;
+                                                                              }
+                                                                            }
+
+                                                                            if (_formKey.currentState!.validate()) {
+                                                                              try {
+                                                                                setState(() {
+                                                                                  clicked = true;
+                                                                                });
+                                                                                var url = Uri.parse('${Misc.link}/${Misc.appName}/insertbookings.php');
+                                                                                final response = await http.post(url, body: {
+                                                                                  "day": _selectedDay.toString().split(' ').first,
+                                                                                  "start": _time1 + ":00",
+                                                                                  "end": _time2 + ":00",
+                                                                                  "hall": _currentHall.toString(),
+                                                                                  "owner": globalMap["first_name"] + " " + globalMap["last_name"],
+                                                                                });
+                                                                                //m_debugPrint(response.statusCode);
+                                                                                //m_debugPrint("does work");
+                                                                                if (response.statusCode == 200) {
+                                                                                  var jsondata = json.decode(response.body);
+                                                                                  ////m_debugPrint(jsondata.toString());
+                                                                                  if (jsondata["error"]) {
+                                                                                  } else {
+                                                                                    if (jsondata["success"]) {
+                                                                                      Navigator.pop(context);
+                                                                                    } else {
+                                                                                      ////m_debugPrint(jsondata["message"]);
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                                //m_debugPrint(_events);
+
+                                                                                widget.changePage(3);
+                                                                                setState(() {});
+                                                                              } catch (e) {
+                                                                                _events[_selectedDay] = [
+                                                                                  'Error! Please try again!'
+                                                                                ];
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          icon: !clicked
+                                                                              ? const Icon(
+                                                                                  Icons.add_circle,
+                                                                                  color: Colors.white,
+                                                                                )
+                                                                              : const SizedBox(),
+                                                                          label: !clicked
+                                                                              ? const Text(
+                                                                                  'Reserve',
+                                                                                  style: TextStyle(
+                                                                                    color: Colors.white,
+                                                                                  ),
+                                                                                )
+                                                                              : const CircularProgressIndicator(
+                                                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                                                ),
+                                                                        )
+                                                                      ],
                                                                     ),
-                                                                  )));
-                                                    });
-                                              } else {
-                                                showDialog(
-                                                    barrierDismissible: false,
-                                                    context: context,
-                                                    builder: (_) => AlertDialog(
-                                                          backgroundColor:
-                                                              ColorsB.gray900,
-                                                          clipBehavior:
-                                                              Clip.hardEdge,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        30),
+                                                                  ),
+                                                                ),
+                                                              )));
+                                                });
+                                          } else {
+                                            showDialog(
+                                                barrierDismissible: false,
+                                                context: context,
+                                                builder: (_) => AlertDialog(
+                                                      backgroundColor:
+                                                          ColorsB.gray900,
+                                                      clipBehavior:
+                                                          Clip.hardEdge,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    30),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                          child: const Text(
+                                                            "Okay",
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'Nunito',
+                                                                fontSize:
+                                                                    15,
+                                                                color: Colors
+                                                                    .white),
                                                           ),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.pop(
-                                                                    context);
-                                                              },
-                                                              child: const Text(
-                                                                "Okay",
-                                                                style: TextStyle(
-                                                                    fontFamily:
-                                                                        'Nunito',
-                                                                    fontSize:
-                                                                        15,
-                                                                    color: Colors
-                                                                        .white),
+                                                        ),
+                                                      ],
+                                                      content: SizedBox(
+                                                        height:
+                                                            screenHeight *
+                                                                0.5,
+                                                        child: Column(
+                                                          children: [
+                                                            SizedBox(
+                                                              height: 200,
+                                                              child:
+                                                                  SvgPicture
+                                                                      .asset(
+                                                                'assets/svgs/locked.svg',
+                                                                fit: BoxFit
+                                                                    .contain,
+                                                              ),
+                                                            ),
+                                                            const Text(
+                                                              'Oops! You can\'t do that!',
+                                                              style:
+                                                                  TextStyle(
+                                                                fontFamily:
+                                                                    'Nunito',
+                                                                fontSize:
+                                                                    17.5,
+                                                                color: ColorsB
+                                                                    .yellow500,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 25),
+                                                            Text(
+                                                              'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
+                                                              style:
+                                                                  TextStyle(
+                                                                fontFamily:
+                                                                    'Nunito',
+                                                                fontSize:
+                                                                    13,
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                        0.5),
                                                               ),
                                                             ),
                                                           ],
-                                                          content: SizedBox(
-                                                            height:
-                                                                screenHeight *
-                                                                    0.5,
-                                                            child: Column(
-                                                              children: [
-                                                                SizedBox(
-                                                                  height: 200,
-                                                                  child:
-                                                                      SvgPicture
-                                                                          .asset(
-                                                                    'assets/svgs/locked.svg',
-                                                                    fit: BoxFit
-                                                                        .contain,
-                                                                  ),
-                                                                ),
-                                                                const Text(
-                                                                  'Oops! You can\'t do that!',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontFamily:
-                                                                        'Nunito',
-                                                                    fontSize:
-                                                                        17.5,
-                                                                    color: ColorsB
-                                                                        .yellow500,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(
-                                                                    height: 25),
-                                                                Text(
-                                                                  'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontFamily:
-                                                                        'Nunito',
-                                                                    fontSize:
-                                                                        13,
-                                                                    color: Colors
-                                                                        .white
-                                                                        .withOpacity(
-                                                                            0.5),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ));
-                                              }
-                                            },
-                                            child: globalMap['verification'] !=
-                                                    "Pending"
-                                                ? const Text(
-                                                    'Reserve',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
-                                                  )
-                                                : const Icon(
-                                                    Icons.lock_outline,
-                                                    color: Colors.white,
-                                                    size: 15,
-                                                  ),
-                                            style: ButtonStyle(
-                                              elevation:
-                                                  MaterialStateProperty.all(0),
-                                              backgroundColor: globalMap[
-                                                          "verification"] !=
-                                                      "Pending"
-                                                  ? MaterialStateProperty.all<
-                                                      Color>(ColorsB.yellow500)
-                                                  : MaterialStateProperty.all<
-                                                      Color>(ColorsB.gray700),
-                                              shape: MaterialStateProperty.all<
-                                                  OutlinedBorder>(
-                                                RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(50),
+                                                        ),
+                                                      ),
+                                                    ));
+                                          }
+                                        },
+                                        style: ButtonStyle(
+                                          elevation:
+                                              MaterialStateProperty.all(0),
+                                          backgroundColor: globalMap[
+                                                      "verification"] !=
+                                                  "Pending"
+                                              ? MaterialStateProperty.all<
+                                                  Color>(ColorsB.yellow500)
+                                              : MaterialStateProperty.all<
+                                                  Color>(ColorsB.gray700),
+                                          shape: MaterialStateProperty.all<
+                                              OutlinedBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                            ),
+                                          ),
+                                        ),
+                                        child: globalMap['verification'] !=
+                                                "Pending"
+                                            ? const Text(
+                                                'Reserve',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  color: Colors.white,
                                                 ),
-                                              ),
-                                            ))),
+                                              )
+                                            : const Icon(
+                                                Icons.lock_outline,
+                                                color: Colors.white,
+                                                size: 15,
+                                              )),
                                   )
                                 ],
                               ),

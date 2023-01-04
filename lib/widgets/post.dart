@@ -866,7 +866,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                                   ),
                                   label: Text(
                                     widget.likes.toString(),
-                                    style: TextStyle(
+                                    style: TextStyle( 
                                         color: widget.likesBool
                                             ? Colors.white
                                             : Colors.white24),
@@ -874,8 +874,9 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                                 ),
                               ),
                               Visibility(
-                                  visible:
-                                      widget.ownerId == widget.globalMap['id'],
+                                  visible: widget.ownerId ==
+                                          widget.globalMap['id'] ||
+                                      widget.globalMap['account'] == 'Admin',
                                   child: TextButton(
                                     onPressed: () {
                                       widget.delete();

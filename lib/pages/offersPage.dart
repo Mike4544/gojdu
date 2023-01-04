@@ -84,12 +84,15 @@ class _OffersPageState extends State<OffersPage>
 
     try {
       var url = Uri.parse('${Misc.link}/${Misc.appName}/getOffers.php');
-      final response = await http.post(url,
-          body: {"lastID": "$lastIDOffers", "turns": "$turnsOffers"});
+      final response = await http.post(url, body: {
+        "lastID": "$lastIDOffers",
+        "turns": "$turnsOffers",
+        "userID": "${widget.globalMap['id']}",
+      });
       //  m_debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         var jsondata = json.decode(response.body);
-        //m_debugPrint(jsondata.toString());
+        m_debugPrint(jsondata.toString());
 
         if (jsondata[0]["error"]) {
           m_debugPrint('Error');
@@ -258,7 +261,7 @@ class _OffersPageState extends State<OffersPage>
 
   Widget adminButton() => Visibility(
         visible: widget.globalMap['account'] == 'Admin' ||
-            widget.globalMap['account'] == 'Teacher',
+            widget.globalMap['account'] == 'Teacher' || widget.globalMap['account'] == 'C. Elevilor',
         child: FloatingActionButton(
           elevation: 0,
           backgroundColor: ColorsB.gray800,
@@ -277,37 +280,40 @@ class _OffersPageState extends State<OffersPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Stack(
-      children: [
-        StatefulBuilder(
-          builder: (context, setThisState) => const Background(),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SearchBar(
-                filters: const [
-                  mFilterChip(label: "Trends", color: ColorsB.yellow500),
-                  mFilterChip(label: "Offers", color: Colors.blueAccent),
-                ],
-                searchType: SearchType.offers,
-                adminButton: adminButton(),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Expanded(child: _offersList())
-            ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Stack(
+        children: [
+          StatefulBuilder(
+            builder: (context, setThisState) => const Background(),
           ),
-        )
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SearchBar(
+                  filters: const [
+                    mFilterChip(label: "Trends", color: ColorsB.yellow500),
+                    mFilterChip(label: "Offers", color: Colors.blueAccent),
+                  ],
+                  searchType: SearchType.offers,
+                  adminButton: adminButton(),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Expanded(child: _offersList())
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
 
-class OfferContainer extends StatelessWidget {
+class OfferContainer extends StatefulWidget {
   final int id;
   final int owner_id;
   final Map globalMap;
@@ -323,7 +329,11 @@ class OfferContainer extends StatelessWidget {
   final DateTime date;
   final Function delete;
 
-  const OfferContainer(
+  int likes;
+  bool liked;
+  bool disliked;
+
+  OfferContainer(
       {Key? key,
       required this.id,
       required this.globalMap,
@@ -338,6 +348,9 @@ class OfferContainer extends StatelessWidget {
       required this.delete,
       required this.smallDescription,
       required this.fullDescription,
+      required this.likes,
+      required this.liked,
+      required this.disliked,
       required this.owner_id})
       : super(key: key);
 
@@ -372,12 +385,376 @@ class OfferContainer extends StatelessWidget {
       logoLink: logo,
       owner: owner,
       s_color: color,
+      likes: jsondata['likes'] ?? 0,
+      liked: jsondata['liked'] != null && jsondata['liked'] > 0,
+      disliked: jsondata['disliked'] != null && jsondata['disliked'] > 0,
     );
   }
 
   @override
+  State<OfferContainer> createState() => _OfferContainerState();
+}
+
+class _OfferContainerState extends State<OfferContainer> {
+  final StreamController<int?> _controllerLikes = StreamController<int?>();
+  final StreamController<bool> _controllerLBool = StreamController<bool>();
+  final StreamController<bool> _controllerDBool = StreamController<bool>();
+
+  @override
+  initState() {
+    super.initState();
+    _controllerLikes.stream.listen((event) {
+      setState(() {
+        widget.likes = event!;
+      });
+    });
+    _controllerLBool.stream.listen((event) {
+      setState(() {
+        widget.liked = event;
+      });
+    });
+    _controllerDBool.stream.listen((event) {
+      setState(() {
+        widget.disliked = event;
+      });
+    });
+  }
+
+  @override
+  Future<void> like(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    if (widget.disliked == true) {
+      undislike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes + 1;
+      widget.liked = true;
+
+      widget.disliked = false;
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'LIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> unlike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    setState(() {
+      widget.likes = widget.likes - 1;
+      widget.liked = false;
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> dislike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    if (widget.liked == true) {
+      unlike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes - 1;
+      widget.liked = false;
+
+      widget.disliked = true;
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'DISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          m_debugPrint(id.toString());
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> undislike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    setState(() {
+      widget.likes = widget.likes + 1;
+
+      widget.disliked = false;
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNDISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   Widget build(BuildContext context) {
-    m_debugPrint(date.toString());
+    Widget _deleteButton() => Visibility(
+          visible: widget.globalMap['account'] == 'Admin',
+          child: IconButton(
+            icon: Icon(
+              Icons.delete,
+              color: Colors.white,
+              size: screenHeight * .05,
+            ),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      backgroundColor: ColorsB.gray900,
+                      title: Column(
+                        children: const [
+                          Text(
+                            'Are you sure you want delete this event?',
+                            style: TextStyle(
+                                color: ColorsB.yellow500, fontSize: 15),
+                          ),
+                          Divider(
+                            color: ColorsB.yellow500,
+                            thickness: 1,
+                            height: 10,
+                          )
+                        ],
+                      ),
+                      content: SizedBox(
+                        height: 75,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                InkWell(
+                                  onTap: () async {
+                                    await widget.delete();
+
+                                    Navigator.of(context).pop();
+
+                                    //  logoff(context);
+                                  },
+                                  borderRadius: BorderRadius.circular(30),
+                                  child: Ink(
+                                    decoration: BoxDecoration(
+                                      color: ColorsB.yellow500,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    height: 50,
+                                    width: 75,
+                                    child: Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  borderRadius: BorderRadius.circular(30),
+                                  child: Ink(
+                                    decoration: BoxDecoration(
+                                      color: ColorsB.gray800,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    height: 50,
+                                    width: 75,
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      )));
+            },
+          ),
+        );
+
+    Widget actionBar() => Visibility(
+          visible: widget.globalMap['verification'] != "Pending",
+          child: Container(
+            height: 50,
+            constraints: BoxConstraints(maxWidth: screenWidth * .5),
+            decoration: BoxDecoration(
+                color: ColorsB.gray800,
+                borderRadius: BorderRadius.circular(50)),
+            child: Padding(
+              padding: const EdgeInsets.all(1.5),
+              child: FittedBox(
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _deleteButton(),
+                      Row(children: [
+                        //   Like and dislike
+                        IconButton(
+                          splashRadius: 20,
+                          icon: Icon(
+                            Icons.thumb_up,
+                            color: widget.liked == true
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.5),
+                            size: 25,
+                          ),
+                          onPressed: () {
+                            widget.liked == true
+                                ? unlike(widget.id, widget.globalMap['id'])
+                                : like(widget.id, widget.globalMap['id']);
+                          },
+                        ),
+                        Text(
+                          widget.likes.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                        IconButton(
+                          splashRadius: 20,
+                          icon: Icon(
+                            Icons.thumb_down,
+                            color: widget.disliked == true
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.5),
+                            size: 25,
+                          ),
+                          onPressed: () {
+                            widget.disliked == true
+                                ? undislike(widget.id, widget.globalMap['id'])
+                                : dislike(widget.id, widget.globalMap['id']);
+                            //
+                          },
+                        ),
+                      ])
+                    ]),
+              ),
+            ),
+          ),
+        );
+
+    m_debugPrint(widget.date.toString());
 
     final titleStyle = TextStyle(
         color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold);
@@ -390,233 +767,160 @@ class OfferContainer extends StatelessWidget {
     final numberStyle = TextStyle(
         color: Colors.white, fontWeight: FontWeight.bold, fontSize: 50.sp);
 
-    var tempcolor = s_color.split('(0x')[1].split(')')[0];
+    var tempcolor = widget.s_color.split('(0x')[1].split(')')[0];
     int value = int.parse(tempcolor, radix: 16);
     Color color = Color(value);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 25),
-      child: Container(
-          clipBehavior: Clip.hardEdge,
-          height: screenHeight * .3,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(screenWidth * .075)),
-          child: Stack(
-            children: [
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
-                child: Container(
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(screenWidth * .075),
-                    border: Border.all(
-                        color: Color.alphaBlend(color, Colors.white)
-                            .withOpacity(.5)),
-                    gradient: LinearGradient(
-                        colors: [color.withOpacity(.5), color.withOpacity(.05)],
-                        begin: Alignment.bottomLeft,
-                        end: Alignment.topRight,
-                        stops: const [0, .75]),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SizedBox(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                height: screenHeight * .05,
-                                child: CachedNetworkImage(
-                                  imageUrl: logoLink,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Text(compName, style: titleStyle),
-                              const Spacer(),
-                              Icon(
-                                Icons.center_focus_strong_rounded,
-                                color: Colors.white.withOpacity(.5),
-                                size: screenHeight * .05,
-                              )
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+              clipBehavior: Clip.hardEdge,
+              height: screenHeight * .3,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(screenWidth * .075)),
+              child: Stack(
+                children: [
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+                    child: Container(
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(screenWidth * .075),
+                        border: Border.all(
+                            color: Color.alphaBlend(color, Colors.white)
+                                .withOpacity(.5)),
+                        gradient: LinearGradient(
+                            colors: [
+                              color.withOpacity(.5),
+                              color.withOpacity(.05)
                             ],
-                          ),
-                          Divider(
-                            color: Colors.white.withOpacity(.5),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: discount.length < 10
-                                      ? FittedBox(
-                                          fit: BoxFit.contain,
-                                          child: Text(
-                                            discount,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        )
-                                      : Text(
-                                          discount,
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15.sp),
-                                        ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    smallDescription,
-                                    style: subtitleStyle,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          BetterChip(
-                            width: screenWidth * .5,
-                            height: screenHeight * .05,
-                            icon: Icons.timer,
-                            label:
-                                'Available until ${DateFormat('dd.MM.yyyy').format(date)}',
-                            isGlass: true,
-                            bgColor: Colors.pinkAccent,
-                          )
-                        ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight,
+                            stops: const [0, .75]),
                       ),
-                    ),
-                  ),
-                ),
-              ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => BigNewsContainer(
-                              title: compName,
-                              description: fullDescription,
-                              date: DateFormat('dd.MM.yyyy').format(date),
-                              gMapsLink: gmaps_link,
-                              color: color,
-                              logoLink: logoLink,
-                              imageString: headerImageLink.toString(),
-                            )));
-                  },
-                ),
-              ),
-              Visibility(
-                visible: globalMap['account'] == 'Admin' ||
-                    globalMap['id'] == owner_id,
-                child: Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.white),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              backgroundColor: ColorsB.gray900,
-                              title: Column(
-                                children: const [
-                                  Text(
-                                    'Are you sure you want delete this post?',
-                                    style: TextStyle(
-                                        color: ColorsB.yellow500, fontSize: 15),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: SizedBox(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    height: screenHeight * .05,
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.logoLink,
+                                    ),
                                   ),
-                                  Divider(
-                                    color: ColorsB.yellow500,
-                                    thickness: 1,
-                                    height: 10,
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Text(widget.compName, style: titleStyle),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.center_focus_strong_rounded,
+                                    color: Colors.white.withOpacity(.5),
+                                    size: screenHeight * .05,
                                   )
                                 ],
                               ),
-                              content: SizedBox(
-                                height: 75,
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        InkWell(
-                                          onTap: () async {
-                                            await delete();
-
-                                            Navigator.of(context).pop();
-
-                                            //  logoff(context);
-                                          },
-                                          borderRadius:
-                                              BorderRadius.circular(30),
-                                          child: Ink(
-                                            decoration: BoxDecoration(
-                                              color: ColorsB.yellow500,
-                                              borderRadius:
-                                                  BorderRadius.circular(30),
+                              Divider(
+                                color: Colors.white.withOpacity(.5),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: widget.discount.length < 10
+                                          ? FittedBox(
+                                              fit: BoxFit.contain,
+                                              child: Text(
+                                                widget.discount,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            )
+                                          : Text(
+                                              widget.discount,
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15.sp),
                                             ),
-                                            height: 50,
-                                            width: 75,
-                                            child: Icon(
-                                              Icons.check,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          borderRadius:
-                                              BorderRadius.circular(30),
-                                          child: Ink(
-                                            decoration: BoxDecoration(
-                                              color: ColorsB.gray800,
-                                              borderRadius:
-                                                  BorderRadius.circular(30),
-                                            ),
-                                            height: 50,
-                                            width: 75,
-                                            child: Icon(
-                                              Icons.close,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              )));
-                    },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: Text(
+                                        widget.smallDescription,
+                                        style: subtitleStyle,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              BetterChip(
+                                width: screenWidth * .5,
+                                height: screenHeight * .05,
+                                icon: Icons.timer,
+                                label:
+                                    'Available until ${DateFormat('dd.MM.yyyy').format(widget.date)}',
+                                isGlass: true,
+                                bgColor: Colors.pinkAccent,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              )
-            ],
-          )),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => BigNewsContainer(
+                                  likes: widget.likes,
+                                  liked: widget.liked,
+                                  id: widget.id,
+                                  globalMap: widget.globalMap,
+                                  disliked: widget.disliked,
+                                  contrL: _controllerLikes,
+                                  contrLB: _controllerLBool,
+                                  contrDB: _controllerDBool,
+                                  title: widget.compName,
+                                  description: widget.fullDescription,
+                                  date: DateFormat('dd.MM.yyyy')
+                                      .format(widget.date),
+                                  gMapsLink: widget.gmaps_link,
+                                  color: color,
+                                  logoLink: widget.logoLink,
+                                  imageString:
+                                      widget.headerImageLink.toString(),
+                                )));
+                      },
+                    ),
+                  ),
+                ],
+              )),
+          const SizedBox(height: 20),
+          actionBar()
+        ],
+      ),
     );
   }
 }
@@ -630,7 +934,18 @@ class BigNewsContainer extends StatefulWidget {
   final String? imageString;
   final String? gMapsLink;
 
-  const BigNewsContainer(
+  StreamController<int?>? contrL;
+  StreamController<bool?>? contrLB;
+  StreamController<bool?>? contrDB;
+
+  int likes;
+  bool liked;
+  bool disliked;
+
+  final int id;
+  final Map globalMap;
+
+  BigNewsContainer(
       {Key? key,
       this.gMapsLink,
       required this.title,
@@ -638,7 +953,15 @@ class BigNewsContainer extends StatefulWidget {
       this.color = ColorsB.yellow500,
       this.imageString,
       required this.date,
-      required this.logoLink})
+      required this.likes,
+      required this.liked,
+      required this.disliked,
+      required this.logoLink,
+      this.contrL,
+      this.contrLB,
+      this.contrDB,
+      required this.id,
+      required this.globalMap})
       : super(key: key);
 
   @override
@@ -654,6 +977,290 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
   var avatarImg;
 
   final ScrollController _controller = ScrollController();
+
+  Future<void> like(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    if (widget.disliked == true) {
+      undislike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes + 1;
+      widget.liked = true;
+
+      widget.disliked = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.liked);
+      widget.contrDB!.add(widget.disliked);
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'LIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> unlike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    setState(() {
+      widget.likes = widget.likes - 1;
+      widget.liked = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.liked);
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> dislike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    if (widget.liked == true) {
+      unlike(id, uid);
+    }
+
+    setState(() {
+      widget.likes = widget.likes - 1;
+      widget.liked = false;
+
+      widget.disliked = true;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrLB!.add(widget.liked);
+      widget.contrDB!.add(widget.disliked);
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'DISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          m_debugPrint(id.toString());
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Future<void> undislike(int id, int uid) async {
+    //m_debugPrint(ids);
+
+    setState(() {
+      widget.likes = widget.likes + 1;
+
+      widget.disliked = false;
+
+      widget.contrL!.add(widget.likes);
+      widget.contrDB!.add(widget.disliked);
+
+      //widget.update();
+    });
+
+    try {
+      var url = Uri.parse('${Misc.link}/${Misc.appName}/offersAPI/likes.php');
+      final response = await http.post(url, body: {
+        'action': 'UNDISLIKE',
+        'id': id.toString(),
+        'uid': uid.toString(),
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata['error']) {
+          //m_debugPrint(jsondata['message']);
+        }
+
+        if (jsondata['success']) {
+          //m_debugPrint(jsondata.toString());
+        }
+      }
+    } catch (e) {
+      m_debugPrint(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'Something went wrong!',
+          style: TextStyle(
+              fontSize: 15, color: Colors.white, fontFamily: 'Nunito'),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  Widget _likeBar() {
+    if (globalMap['verification'] != 'Pending' && widget.likes != null) {
+      return Stack(
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 7.5, sigmaY: 7.5),
+                  child: Container(
+                    height: 150,
+                    width: 50,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: Container(
+                height: 150,
+                width: 50,
+                decoration: BoxDecoration(
+                    color: ColorsB.gray800.withOpacity(.5),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 20,
+                          blurStyle: BlurStyle.outer,
+                          offset: Offset(4, 4))
+                    ]),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        splashRadius: 20,
+                        icon: Icon(
+                          Icons.thumb_up,
+                          color: widget.liked == true
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
+                          size: 25,
+                        ),
+                        onPressed: () {
+                          widget.liked == true
+                              ? unlike(widget.id, globalMap['id'])
+                              : like(widget.id, globalMap['id']);
+                        },
+                      ),
+                      Text(
+                        widget.likes.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
+                      IconButton(
+                        splashRadius: 20,
+                        icon: Icon(
+                          Icons.thumb_down,
+                          color: widget.disliked == true
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
+                          size: 25,
+                        ),
+                        onPressed: () {
+                          widget.disliked == true
+                              ? undislike(widget.id, globalMap['id'])
+                              : dislike(widget.id, globalMap['id']);
+                          //
+                        },
+                      ),
+                    ]),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return const SizedBox();
+    }
+  }
 
   bool visible = false;
 
@@ -857,61 +1464,64 @@ class _BigNewsContainerState extends State<BigNewsContainer> {
     return Scaffold(
         bottomNavigationBar: const BackNavbar(),
         backgroundColor: ColorsB.gray900,
-        body: Scrollbar(
-          child: CustomScrollView(
-            controller: _controller,
-            slivers: [
-              SliverAppBar(
-                backgroundColor: widget.color,
-                automaticallyImplyLeading: false,
-                expandedHeight: screenHeight * .75,
-                pinned: true,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: [
-                    StretchMode.blurBackground,
-                  ],
-                  background: topPage(),
-                ),
-                title: AnimatedOpacity(
-                    opacity: visible ? 1 : 0,
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: Row(
-                      children: [
-                        Text(
-                          widget.title.length > 20
-                              ? widget.title.substring(0, 20) + '...'
-                              : widget.title,
-                          style: TextStyle(
-                              color: ThemeData.estimateBrightnessForColor(
-                                          widget.color!) ==
-                                      Brightness.light
-                                  ? ColorsB.gray900
-                                  : Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    )),
-              ),
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: SizedBox(
-                  child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: TextPP(
-                        string: widget.description,
-                        onHashtagClick: (tag) {
-                          Misc.defSearch(tag, SearchType.offers, context);
-                        },
-                        onLinkClick: Misc.openUrl,
-                        onPhoneClick: Misc.openPhone,
+        body: Stack(alignment: Alignment.center, children: [
+          Scrollbar(
+            child: CustomScrollView(
+              controller: _controller,
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: widget.color,
+                  automaticallyImplyLeading: false,
+                  expandedHeight: screenHeight * .75,
+                  pinned: true,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    stretchModes: [
+                      StretchMode.blurBackground,
+                    ],
+                    background: topPage(),
+                  ),
+                  title: AnimatedOpacity(
+                      opacity: visible ? 1 : 0,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: Row(
+                        children: [
+                          Text(
+                            widget.title.length > 20
+                                ? widget.title.substring(0, 20) + '...'
+                                : widget.title,
+                            style: TextStyle(
+                                color: ThemeData.estimateBrightnessForColor(
+                                            widget.color!) ==
+                                        Brightness.light
+                                    ? ColorsB.gray900
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       )),
                 ),
-              )
-            ],
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: SizedBox(
+                    child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: TextPP(
+                          string: widget.description,
+                          onHashtagClick: (tag) {
+                            Misc.defSearch(tag, SearchType.offers, context);
+                          },
+                          onLinkClick: Misc.openUrl,
+                          onPhoneClick: Misc.openPhone,
+                        )),
+                  ),
+                )
+              ],
+            ),
           ),
-        ));
+          _likeBar()
+        ]));
   }
 }
 
