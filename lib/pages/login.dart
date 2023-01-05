@@ -309,7 +309,7 @@ class _LoginState extends State<Login> {
         }).timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
           var jsondata1 = json.decode(response.body);
-          //m_debugPrint(jsondata1);
+          m_debugPrint(jsondata1);
           if (jsondata1["error"]) {
             if (jsondata1['message'] ==
                 'Your account is still pending. Check your email and activate it.') {
@@ -407,7 +407,9 @@ class _LoginState extends State<Login> {
                                             const Duration(milliseconds: 500));
                                         await _firebaseMessaging
                                             .subscribeToTopic(
-                                                jsondata["account"].toString());
+                                                jsondata["account"]
+                                                    .toString()
+                                                    .replaceAll(' ', ''));
                                         await _firebaseMessaging
                                             .subscribeToTopic('all');
 
@@ -568,6 +570,8 @@ class _LoginState extends State<Login> {
         });
         throw Future.error('Timeout');
       } catch (e) {
+        m_debugPrint(e.toString());
+
         setState(() {
           isLoggingIn = false;
           nameError = "Error during connecting to server.";

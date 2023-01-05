@@ -248,7 +248,8 @@ class _OpportunitiesListState extends State<OpportunitiesList>
 
   Widget _addButton() => Visibility(
         visible: widget.globalMap['account'] == 'Admin' ||
-            widget.globalMap['account'] == 'Teacher' || widget.globalMap['account'] == 'C. Elevilor',
+            widget.globalMap['account'] == 'Teacher' ||
+            widget.globalMap['account'] == 'C. Elevilor',
         child: FloatingActionButton(
           elevation: 0,
           backgroundColor: ColorsB.gray800,
@@ -938,89 +939,98 @@ class _OpportunityCardState extends State<OpportunityCard> {
     Widget _deleteButton() => Visibility(
           visible: widget.ownerID == widget.globalMap["id"] ||
               widget.globalMap['account'] == 'Admin',
-          child: IconButton(
-            icon: Icon(
-              Icons.delete,
-              color: Colors.white,
-              size: widget.dev_height * .05,
-            ),
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  barrierDismissible: true,
-                  builder: (context) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      backgroundColor: ColorsB.gray900,
-                      title: Column(
-                        children: const [
-                          Text(
-                            'Are you sure you want delete this event?',
-                            style: TextStyle(
-                                color: ColorsB.yellow500, fontSize: 15),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          Divider(
-                            color: ColorsB.yellow500,
-                            thickness: 1,
-                            height: 10,
-                          )
-                        ],
-                      ),
-                      content: SizedBox(
-                        height: 75,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          backgroundColor: ColorsB.gray900,
+                          title: Column(
+                            children: const [
+                              Text(
+                                'Are you sure you want delete this event?',
+                                style: TextStyle(
+                                    color: ColorsB.yellow500, fontSize: 15),
+                              ),
+                              Divider(
+                                color: ColorsB.yellow500,
+                                thickness: 1,
+                                height: 10,
+                              )
+                            ],
+                          ),
+                          content: SizedBox(
+                            height: 75,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                InkWell(
-                                  onTap: () async {
-                                    await widget.delete();
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    InkWell(
+                                      onTap: () async {
+                                        await widget.delete();
 
-                                    Navigator.of(context).pop();
+                                        Navigator.of(context).pop();
 
-                                    //  logoff(context);
-                                  },
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Ink(
-                                    decoration: BoxDecoration(
-                                      color: ColorsB.yellow500,
+                                        //  logoff(context);
+                                      },
                                       borderRadius: BorderRadius.circular(30),
+                                      child: Ink(
+                                        decoration: BoxDecoration(
+                                          color: ColorsB.yellow500,
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        height: 50,
+                                        width: 75,
+                                        child: Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                    height: 50,
-                                    width: 75,
-                                    child: Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Ink(
-                                    decoration: BoxDecoration(
-                                      color: ColorsB.gray800,
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                      },
                                       borderRadius: BorderRadius.circular(30),
+                                      child: Ink(
+                                        decoration: BoxDecoration(
+                                          color: ColorsB.gray800,
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        height: 50,
+                                        width: 75,
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                    height: 50,
-                                    width: 75,
-                                    child: Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
+                                  ],
+                                )
                               ],
-                            )
-                          ],
-                        ),
-                      )));
-            },
+                            ),
+                          )));
+                },
+              ),
+              SizedBox(
+                width: screenWidth * .05,
+              ),
+            ],
           ),
         );
 

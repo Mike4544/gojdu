@@ -41,7 +41,6 @@ import './local_notif_service.dart';
 import 'others/api.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 
-
 String type = '';
 
 Future<void> main() async {
@@ -54,8 +53,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FlutterDownloader.initialize(
-    debug: true, // optional: set to false to disable printing logs to console (default: true)
-    ignoreSsl: true, // optional: set to true if you want to ignore SSL certificate errors (default: false)
+    debug:
+        true, // optional: set to false to disable printing logs to console (default: true)
+    ignoreSsl:
+        true, // optional: set to true if you want to ignore SSL certificate errors (default: false)
   );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -77,7 +78,7 @@ Future<void> main() async {
   //  await _locNotifs.init();
 
   // SUBSCRIBING TO THE NOTIFICATIONS
-  await messaging.subscribeToTopic(type + 's');
+  await messaging.subscribeToTopic(type.replaceAll(' ', ''));
   await messaging.subscribeToTopic('all');
 
   // await _locNotifs.showPeriodicNotification(
