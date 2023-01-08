@@ -84,6 +84,8 @@ dependencies:
   path_provider: ^2.0.11
   email_launcher: ^1.1.1
   flutter_rating_bar: ^4.0.1
+  dio: ^4.0.6
+  open_file: ^2.1.1
 
 flutter_native_splash:
   color: '#1A202C'

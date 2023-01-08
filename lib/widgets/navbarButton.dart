@@ -22,11 +22,13 @@ class NavbarButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () => onTap(),
-        child: SizedBox(
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: SizedBox(
+        child: AspectRatio(
+          aspectRatio: 1 / 1,
+          child: SizedBox(
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: Column(

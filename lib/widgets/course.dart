@@ -118,35 +118,40 @@ class _CoursesPageState extends State<CoursesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      SearchBar(
-        searchType: SearchType.courses,
-        filters: [
-          "Biology",
-          "Business",
-          "Finance",
-          "Health&Fitness",
-          "Literature",
-          "Maths",
-          "Physics",
-          "Psychology",
-          "Technology"
-        ].map((e) => mFilterChip(label: e, color: ColorsB.gray800)).toList(),
-        adminButton: const SizedBox(),
-      ),
-      Expanded(
-        child: LazyBuilder(
-          future: _getCourses,
-          widgetList: courses,
-          lastID: lastID,
-          lastMax: lastMaxOpportunities,
-          turns: turns,
-          maxScrollCount: maxScrollCountOpportunities,
-          refresh: refresh,
-          scrollController: lazyController,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Column(children: [
+        SearchBar(
+          searchType: SearchType.courses,
+          filters: [
+            "Biology",
+            "Business",
+            "Finance",
+            "Health&Fitness",
+            "Literature",
+            "Maths",
+            "Physics",
+            "Psychology",
+            "Technology"
+          ].map((e) => mFilterChip(label: e, color: ColorsB.gray800)).toList(),
+          adminButton: const SizedBox(),
         ),
-      )
-    ]);
+        Expanded(
+          child: LazyBuilder(
+            future: _getCourses,
+            widgetList: courses,
+            lastID: lastID,
+            lastMax: lastMaxOpportunities,
+            turns: turns,
+            maxScrollCount: maxScrollCountOpportunities,
+            refresh: refresh,
+            scrollController: lazyController,
+          ),
+        )
+      ]),
+    );
   }
 }
 

@@ -197,6 +197,37 @@ class _AddOpportunityState extends State<AddOpportunity> {
         }
       });
 
+  Widget selectOtherSchools() => Column(
+    children: [
+      const Text(
+                    'Select other schools',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      color: ColorsB.yellow500,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                        flex: 2,
+                        child: Wrap(
+                          children: selectedSchools
+                              .map((e) => Padding(
+                                  padding: const EdgeInsets.all(8), child: e))
+                              .toList(),
+                        )),
+                    Expanded(
+                      flex: 1,
+                      child: schoolsDropDown(),
+                    )
+                  ]),
+                  const SizedBox(
+                    height: 50,
+                  ),
+    ],
+  );
+
   Future<void> uploadImage(File? file, String name) async {
     try {
       if (image == null || file == null) {
@@ -275,31 +306,9 @@ class _AddOpportunityState extends State<AddOpportunity> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Select other schools',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      color: ColorsB.yellow500,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(children: [
-                    Expanded(
-                        flex: 2,
-                        child: Wrap(
-                          children: selectedSchools
-                              .map((e) => Padding(
-                                  padding: const EdgeInsets.all(8), child: e))
-                              .toList(),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: schoolsDropDown(),
-                    )
-                  ]),
-                  const SizedBox(
-                    height: 50,
+                  Visibility(
+                    visible: widget.gMap['account'] == 'Admin',
+                    child: selectOtherSchools(),
                   ),
                   InputField(
                     fieldName: 'Choose a title',

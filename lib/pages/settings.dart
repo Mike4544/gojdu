@@ -693,7 +693,7 @@ Future<void> logoff(BuildContext context) async {
 
   String type = prefs.getString('type')!;
 
-  await messaging.unsubscribeFromTopic(type + 's');
+  await messaging.unsubscribeFromTopic(type.replaceAll(' ', ''));
   await messaging.unsubscribeFromTopic('all');
 
   await prefs.remove('name');

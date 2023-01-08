@@ -876,7 +876,7 @@ class _CommentState extends State<Comment> with SingleTickerProviderStateMixin {
                               Visibility(
                                   visible: widget.ownerId ==
                                           widget.globalMap['id'] ||
-                                      widget.globalMap['account'] == 'Admin',
+                                      widget.globalMap['account'] == 'Admin' || widget.globalMap['account'] == 'Teacher' || widget.globalMap['account'] == 'C. Elevilor',
                                   child: TextButton(
                                     onPressed: () {
                                       widget.delete();

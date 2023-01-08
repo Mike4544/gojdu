@@ -21,11 +21,14 @@ import '../others/colors.dart';
 
 import 'package:file_picker/file_picker.dart';
 
-import 'package:flutter_downloader/flutter_downloader.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:path_provider/path_provider.dart';
+
+import 'package:open_file/open_file.dart';
+
+//  Import dio
+import 'package:dio/dio.dart';
 
 Map<String, String> fileTypeIcons = {
   "doc": "assets/images/file_types/doc.png",
@@ -287,30 +290,12 @@ class _SchoolFilesState extends State<SchoolFiles> {
   @override
   void initState() {
     super.initState();
-
-    IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      String id = data[0];
-      DownloadTaskStatus status = data[1];
-      int progress = data[2];
-      setState(() {});
-    });
-
-    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
   void dispose() {
     IsolateNameServer.removePortNameMapping('downloader_send_port');
     super.dispose();
-  }
-
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
-    final SendPort send =
-        IsolateNameServer.lookupPortByName('downloader_send_port')!;
-    send.send([id, status, progress]);
   }
 
   // Global key for the memory bar
@@ -458,13 +443,25 @@ class FileContainer extends StatelessWidget {
     }
   }
 
-  Future<void> downloadFile(BuildContext context) async {
+  Future openFile(BuildContext context) async {
+    final file = await downloadFile(context);
+
+    if (file == null) return;
+
+    OpenFile.open(file.path);
+  }
+
+  Future<File?> downloadFile(BuildContext context) async {
     final url = "${Misc.link}/${Misc.appName}/schoolFiles/$path";
 
     final status = await Permission.storage.request();
 
     if (status.isGranted) {
-      final externalDir = await getExternalStorageDirectory();
+      final externalDir = Platform.isAndroid
+          ? await getExternalStorageDirectory()
+          : await getApplicationDocumentsDirectory();
+
+      final file = File("${externalDir!.path}/$name");
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
@@ -473,22 +470,50 @@ class FileContainer extends StatelessWidget {
         ),
       );
 
-      // Different settings for android and ios
-      if (Platform.isAndroid) {
-        await FlutterDownloader.enqueue(
-          url: url,
-          savedDir: externalDir!.path,
-          fileName: name,
-          showNotification: true,
-          openFileFromNotification: true,
+      try {
+        final response = await Dio().get(url,
+            options: Options(
+              responseType: ResponseType.bytes,
+              followRedirects: false,
+              receiveTimeout: 0,
+            ));
+
+        final raf = file.openSync(mode: FileMode.write);
+        raf.writeFromSync(response.data);
+        await raf.close();
+
+        //  Display a snackbar notifying the user that the file has been downloaded successfully
+        //  close the current snackbar
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Downloaded"),
+            backgroundColor: ColorsB.yellow500,
+          ),
         );
-      } else {
-        await FlutterDownloader.enqueue(
-          url: url,
-          savedDir: externalDir!.path,
-          fileName: name,
+
+        return file;
+      } catch (e, s) {
+        m_debugPrint(e);
+        m_debugPrint(s);
+
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Download failed"),
+            backgroundColor: Colors.red,
+          ),
         );
+
+        return null;
       }
+
+      //
+
     } else {
       // Snack bar for failed download
 
@@ -531,7 +556,7 @@ class FileContainer extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () async {
-              await downloadFile(context);
+              await openFile(context);
               print("Download $name");
             },
             icon: const Icon(

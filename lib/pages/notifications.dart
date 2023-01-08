@@ -53,6 +53,45 @@ class _NotifPageState extends State<NotifPage> {
 
   late Future _getAlerts = loadAlerts();
 
+  Future<void> deleteAlert(Alert _alert) async {
+    String link = '${Misc.link}/${Misc.appName}/reportsAPI/deleteReport.php';
+
+    try {
+      final response = await http.post(Uri.parse(link), body: {
+        'id': '${_alert.id}',
+      });
+
+      if (response.statusCode == 200) {
+        var jsondata = json.decode(response.body);
+        if (jsondata["error"]) {
+          setState(() {
+            //nameError = jsondata["message"];
+          });
+        } else {
+          if (jsondata["success"]) {
+            m_debugPrint(jsondata["message"]);
+
+            //  Delete the alert from the list
+            alerts.removeWhere((element) => element.alert.id == _alert.id);
+            setState(() {});
+
+            //  Display a snack bar
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Alert deleted'),
+              duration: Duration(seconds: 2),
+            ));
+          } else {
+            m_debugPrint(jsondata["message"]);
+          }
+        }
+      }
+    } catch (e, s) {
+      m_debugPrint(e.toString());
+      m_debugPrint(s.toString());
+      throw Future.error(e.toString());
+    }
+  }
+
   Future<int> loadAlerts() async {
     //  Alerts.clear();
     widget.notifs.value = 0;
@@ -85,6 +124,7 @@ class _NotifPageState extends State<NotifPage> {
               final currAlert = Alert.fromJson(jsondata[i]);
 
               alerts.add(AlertContainer(
+                  delete: deleteAlert,
                   alert: currAlert,
                   callback: view,
                   share: share,
@@ -331,10 +371,12 @@ class AlertContainer extends StatefulWidget {
   final Alert alert;
   final Function(Alert) callback;
   final Function(Alert) share;
+  final Function(Alert) delete;
   final bool isAdmin;
 
   const AlertContainer({
     Key? key,
+    required this.delete,
     required this.alert,
     required this.callback,
     required this.share,
@@ -559,6 +601,31 @@ class _AlertContainerState extends State<AlertContainer> {
                           ],
                         ),
                       ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  //  Make a delete button on the bottom left
+                  left: 0,
+                  bottom: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            widget.delete(widget.alert);
+                          },
+                          borderRadius: BorderRadius.circular(30),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 )
