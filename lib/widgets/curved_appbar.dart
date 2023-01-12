@@ -186,6 +186,7 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
 
   Widget nameText() {
     return GestureDetector(
+      key: ValueKey(widget.nameIndex),
       onTap: () {
         showDialog(
             context: context,
@@ -237,7 +238,6 @@ class _CurvedAppbarState extends State<CurvedAppbar> {
       },
       child: SizedBox(
         width: screenWidth * .4,
-        key: ValueKey(widget.nameIndex),
         child: Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(

@@ -852,7 +852,7 @@ class _NewsPageState extends State<NewsPage> {
 
     List<String> titles = [
       'Announcements',
-      'Events & Activities',
+      'Events',
       'Trends & Offers',
       'Menu',
     ];
