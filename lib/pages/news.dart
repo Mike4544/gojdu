@@ -519,7 +519,7 @@ class _NewsPageState extends State<NewsPage> {
         description:
             'Aici vei putea vedea ultimele noutati legate de scoala ta!'),
     const PageDescription(
-        title: 'Events',
+        title: 'Events & Activities',
         description:
             'Aici vei putea vedea atat evenimente locale cat si evenimente din alte scoli!'),
     const PageDescription(
@@ -534,7 +534,7 @@ class _NewsPageState extends State<NewsPage> {
 
   final List<String> curvedAppBarLabels = [
     'News',
-    'Events',
+    'Events & Activities',
     'Trends & Offers',
     'Menus'
   ];
@@ -631,7 +631,8 @@ class _NewsPageState extends State<NewsPage> {
                 SchoolFiles(
                     key: const ValueKey(3),
                     isAdmin: globalMap['account'] == 'Admin' ||
-                        globalMap['account'] == 'Teacher' || globalMap['account'] == 'C. Elevilor'),
+                        globalMap['account'] == 'Teacher' ||
+                        globalMap['account'] == 'C. Elevilor'),
                 const Calendar(key: ValueKey(4)),
                 const FeedbackPage(),
               ],
@@ -851,7 +852,7 @@ class _NewsPageState extends State<NewsPage> {
 
     List<String> titles = [
       'Announcements',
-      'Events',
+      'Events & Activities',
       'Trends & Offers',
       'Menu',
     ];
@@ -1126,7 +1127,9 @@ class _AnnouncementsState extends State<Announcements>
                         ),
                         Visibility(
                           visible: globalMap['account'] == 'Teacher' ||
-                              globalMap['account'] == 'Admin' || globalMap['account'] == 'C. Elevilor', // cHANGE IT,
+                              globalMap['account'] == 'Admin' ||
+                              globalMap['account'] ==
+                                  'C. Elevilor', // cHANGE IT,
                           child: GestureDetector(
                             onTap: _showWritable,
                             child: const Icon(
@@ -1191,7 +1194,9 @@ class _AnnouncementsState extends State<Announcements>
   // void lazyLoadCallback() {}
 
   Widget teachersBar() {
-    if (globalMap['account'] == 'Teacher' || globalMap['account'] == 'Admin' || globalMap['account'] == 'C. Elevilor') {
+    if (globalMap['account'] == 'Teacher' ||
+        globalMap['account'] == 'Admin' ||
+        globalMap['account'] == 'C. Elevilor') {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Container(
@@ -3062,7 +3067,8 @@ class _MapPageState extends State<MapPage> {
             const SizedBox(height: 20),
             Visibility(
                 visible: globalMap['account'] == "Admin" ||
-                    globalMap['account'] == "Teacher" || globalMap['account'] == 'C. Elevilor',
+                    globalMap['account'] == "Teacher" ||
+                    globalMap['account'] == 'C. Elevilor',
                 child: TextButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -4423,10 +4429,9 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                   TimeOfDay? parsedTime1;
                                                   TimeOfDay? parsedTime2;
 
-                                                  var _formKey = GlobalKey<
-                                                      FormState>();
-                                                  var errorText1,
-                                                      errorText2;
+                                                  var _formKey =
+                                                      GlobalKey<FormState>();
+                                                  var errorText1, errorText2;
 
                                                   bool clicked = false;
 
@@ -4438,27 +4443,27 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                               shape:
                                                                   RoundedRectangleBorder(
                                                                 borderRadius:
-                                                                    BorderRadius.circular(
-                                                                        30),
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            30),
                                                               ),
                                                               backgroundColor:
                                                                   ColorsB
                                                                       .gray900,
-                                                              content:
-                                                                  SizedBox(
+                                                              content: SizedBox(
                                                                 height: 200,
-                                                                child:
-                                                                    Center(
-                                                                  child:
-                                                                      Form(
+                                                                child: Center(
+                                                                  child: Form(
                                                                     key:
                                                                         _formKey,
                                                                     autovalidateMode:
-                                                                        AutovalidateMode.onUserInteraction,
+                                                                        AutovalidateMode
+                                                                            .onUserInteraction,
                                                                     child:
                                                                         Column(
                                                                       mainAxisAlignment:
-                                                                          MainAxisAlignment.spaceBetween,
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
                                                                       children: [
                                                                         Row(
                                                                           children: [
@@ -4587,9 +4592,12 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                             ),
                                                                           ],
                                                                         ),
-                                                                        TextButton.icon(
-                                                                          onPressed: () async {
-                                                                            if (_events[_selectedDay] != null) {
+                                                                        TextButton
+                                                                            .icon(
+                                                                          onPressed:
+                                                                              () async {
+                                                                            if (_events[_selectedDay] !=
+                                                                                null) {
                                                                               if (!overlap(_time1, _time2)) {
                                                                                 setState(() {
                                                                                   errorText1 = errorText2 = 'Overlapping!';
@@ -4672,8 +4680,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                           RoundedRectangleBorder(
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(
-                                                                    30),
+                                                                .circular(30),
                                                       ),
                                                       actions: [
                                                         TextButton(
@@ -4686,8 +4693,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                             style: TextStyle(
                                                                 fontFamily:
                                                                     'Nunito',
-                                                                fontSize:
-                                                                    15,
+                                                                fontSize: 15,
                                                                 color: Colors
                                                                     .white),
                                                           ),
@@ -4695,15 +4701,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                       ],
                                                       content: SizedBox(
                                                         height:
-                                                            screenHeight *
-                                                                0.5,
+                                                            screenHeight * 0.5,
                                                         child: Column(
                                                           children: [
                                                             SizedBox(
                                                               height: 200,
-                                                              child:
-                                                                  SvgPicture
-                                                                      .asset(
+                                                              child: SvgPicture
+                                                                  .asset(
                                                                 'assets/svgs/locked.svg',
                                                                 fit: BoxFit
                                                                     .contain,
@@ -4711,12 +4715,10 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                             ),
                                                             const Text(
                                                               'Oops! You can\'t do that!',
-                                                              style:
-                                                                  TextStyle(
+                                                              style: TextStyle(
                                                                 fontFamily:
                                                                     'Nunito',
-                                                                fontSize:
-                                                                    17.5,
+                                                                fontSize: 17.5,
                                                                 color: ColorsB
                                                                     .yellow500,
                                                                 fontWeight:
@@ -4728,12 +4730,10 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                                 height: 25),
                                                             Text(
                                                               'Currently you are unverified, meaning that you won\'t be able to use all the features withing the app. \n\nIf you are actually verified, please restart the app.',
-                                                              style:
-                                                                  TextStyle(
+                                                              style: TextStyle(
                                                                 fontFamily:
                                                                     'Nunito',
-                                                                fontSize:
-                                                                    13,
+                                                                fontSize: 13,
                                                                 color: Colors
                                                                     .white
                                                                     .withOpacity(
@@ -4749,13 +4749,13 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                         style: ButtonStyle(
                                           elevation:
                                               MaterialStateProperty.all(0),
-                                          backgroundColor: globalMap[
-                                                      "verification"] !=
-                                                  "Pending"
-                                              ? MaterialStateProperty.all<
-                                                  Color>(ColorsB.yellow500)
-                                              : MaterialStateProperty.all<
-                                                  Color>(ColorsB.gray700),
+                                          backgroundColor:
+                                              globalMap["verification"] !=
+                                                      "Pending"
+                                                  ? MaterialStateProperty.all<
+                                                      Color>(ColorsB.yellow500)
+                                                  : MaterialStateProperty.all<
+                                                      Color>(ColorsB.gray700),
                                           shape: MaterialStateProperty.all<
                                               OutlinedBorder>(
                                             RoundedRectangleBorder(
@@ -4770,8 +4770,7 @@ class _CalPag2State extends State<CalPag2> with TickerProviderStateMixin {
                                                 'Reserve',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  fontWeight:
-                                                      FontWeight.bold,
+                                                  fontWeight: FontWeight.bold,
                                                   color: Colors.white,
                                                 ),
                                               )
@@ -5002,36 +5001,34 @@ class _PostItPageState extends State<PostItPage> {
     setState(() {});
   }
 
-  Widget selectOtherSchools() => Column(
-    children: [
-      const Text(
-                    'Select other schools',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      color: ColorsB.yellow500,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(children: [
-                    Expanded(
-                        flex: 2,
-                        child: Wrap(
-                          children: selectedSchools
-                              .map((e) => Padding(
-                                  padding: const EdgeInsets.all(8), child: e))
-                              .toList(),
-                        )),
-                    Expanded(
-                      flex: 1,
-                      child: schoolsDropDown(),
-                    )
-                  ]),
-                  const SizedBox(
-                    height: 50,
-                  ),
-    ]
-  );
+  Widget selectOtherSchools() => Column(children: [
+        const Text(
+          'Select other schools',
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            color: ColorsB.yellow500,
+            fontSize: 20,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(
+              flex: 2,
+              child: Wrap(
+                children: selectedSchools
+                    .map((e) =>
+                        Padding(padding: const EdgeInsets.all(8), child: e))
+                    .toList(),
+              )),
+          Expanded(
+            flex: 1,
+            child: schoolsDropDown(),
+          )
+        ]),
+        const SizedBox(
+          height: 50,
+        ),
+      ]);
 
   Widget schoolsDropDown() => FutureBuilder(
       future: _getSchools,

@@ -104,6 +104,10 @@ class _SearchBarState extends State<SearchBar> {
                         search(value);
                       },
                       controller: searchController,
+                      //  Get rid of the autocorrect
+                      autocorrect: false,
+                      //  Get rid of suggestions
+                      enableSuggestions: false,
                       style: const TextStyle(color: Colors.white),
                       onChanged: (_) {
                         setState(() {});

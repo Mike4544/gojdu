@@ -619,6 +619,10 @@ class _SearchBarState extends State<SearchBar> {
             setState(() {});
           },
           style: const TextStyle(color: Colors.white),
+          //  Get rid of the autocorrect
+                      autocorrect: false,
+                      //  Get rid of suggestions
+                      enableSuggestions: false,
           decoration: InputDecoration(
             labelText: 'Teacher\'s name',
             labelStyle: const TextStyle(
