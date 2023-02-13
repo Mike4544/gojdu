@@ -44,72 +44,102 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 String type = '';
 
 Future<void> main() async {
-  // SystemChrome.setPreferredOrientations([
-  //   DeviceOrientation.portraitUp,
-  //   DeviceOrientation.portraitDown,
-  // ]);
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   final LocalNotificationService _locNotifs = LocalNotificationService();
   WidgetsFlutterBinding.ensureInitialized();
 
   await FlutterDownloader.initialize(
     debug:
-        true, // optional: set to false to disable printing logs to console (default: true)
+        false, // optional: set to false to disable printing logs to console (default: true)
     ignoreSsl:
         true, // optional: set to true if you want to ignore SSL certificate errors (default: false)
   );
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
 
-  await FirebaseMessaging.instance.requestPermission();
+    await FirebaseMessaging.instance.requestPermission();
 
-  Paint.enableDithering = true;
+    Paint.enableDithering = true;
 
-  //FlutterNativeSplash.removeAfter(initialization);
+    //FlutterNativeSplash.removeAfter(initialization);
 
-  SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+    SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  final Widget homeWidget = await getPage();
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    final Widget homeWidget = await getPage();
 
-  m_debugPrint('TYPE: $type');
+    m_debugPrint('TYPE: $type');
 
-  //  await _locNotifs.init();
+    //  await _locNotifs.init();
 
-  // SUBSCRIBING TO THE NOTIFICATIONS
-  await messaging.subscribeToTopic(type.replaceAll(' ', ''));
-  await messaging.subscribeToTopic('all');
+    // SUBSCRIBING TO THE NOTIFICATIONS
+    await messaging.subscribeToTopic(type.replaceAll(' ', ''));
+    await messaging.subscribeToTopic('all');
 
-  // await _locNotifs.showPeriodicNotification(
-  //     id: 0,
-  //     title: "Don't miss out!",
-  //     body: "You might have new posts, events, opportunities or offers awaiting for you! Open the app and find out!",
-  //     repeatInterval: RepeatInterval.weekly
-  // );
+    // await _locNotifs.showPeriodicNotification(
+    //     id: 0,
+    //     title: "Don't miss out!",
+    //     body: "You might have new posts, events, opportunities or offers awaiting for you! Open the app and find out!",
+    //     repeatInterval: RepeatInterval.weekly
+    // );
 
-  runApp(ScreenUtilInit(
-    designSize: const Size(412, 732),
-    minTextAdapt: true,
-    builder: (context, child) {
-      return MaterialApp(
-        theme: ThemeData(
-          fontFamily: 'Nunito',
-        ),
+    runApp(ScreenUtilInit(
+      designSize: const Size(412, 732),
+      minTextAdapt: true,
+      builder: (context, child) {
+        return MaterialApp(
+          theme: ThemeData(
+            fontFamily: 'Nunito',
+          ),
 
-        home: homeWidget,
-        routes: {
-          '/login': (context) => const Login(),
-          '/signup': (context) => const SignupSelect(),
-          '/signup/student': (context) => const StudentSignUp(),
-          '/signup/teachers': (context) => const TeacherSignUp(),
-          'signup/parents/1': (context) => const ParentsSignupPage1(),
-        },
+          home: homeWidget,
+          routes: {
+            '/login': (context) => const Login(),
+            '/signup': (context) => const SignupSelect(),
+            '/signup/student': (context) => const StudentSignUp(),
+            '/signup/teachers': (context) => const TeacherSignUp(),
+            'signup/parents/1': (context) => const ParentsSignupPage1(),
+          },
 
-        //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
-      );
-    },
-  ));
+          //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
+        );
+      },
+    ));
+  } catch (e, s) {
+    m_debugPrint(e);
+    m_debugPrint(s);
+
+    //  If topic recognition fails, ensure working app
+    runApp(ScreenUtilInit(
+      designSize: const Size(412, 732),
+      minTextAdapt: true,
+      builder: (context, child) {
+        return MaterialApp(
+          theme: ThemeData(
+            fontFamily: 'Nunito',
+          ),
+
+          home: const Login(),
+          routes: {
+            '/login': (context) => const Login(),
+            '/signup': (context) => const SignupSelect(),
+            '/signup/student': (context) => const StudentSignUp(),
+            '/signup/teachers': (context) => const TeacherSignUp(),
+            'signup/parents/1': (context) => const ParentsSignupPage1(),
+          },
+
+          //TODO: Note to self: add the dependecy of 'NewsPage' to the rest of the pages.
+        );
+      },
+    ));
+  }
 }
 
 void initialization(BuildContext context) async {
